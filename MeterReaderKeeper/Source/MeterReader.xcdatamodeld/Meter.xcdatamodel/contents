@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="19H524" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Building" representedClassName="Building" syncable="YES" codeGenerationType="class">
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="uuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="floors" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Floor" inverseName="building" inverseEntity="Floor"/>
+    </entity>
+    <entity name="Floor" representedClassName="Floor" syncable="YES" codeGenerationType="class">
+        <attribute name="map" optional="YES" attributeType="Binary"/>
+        <attribute name="number" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="building" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Building" inverseName="floors" inverseEntity="Building"/>
+        <relationship name="meters" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Meter" inverseName="floor" inverseEntity="Meter"/>
+    </entity>
+    <entity name="Meter" representedClassName="Meter" syncable="YES" codeGenerationType="class">
+        <attribute name="image" optional="YES" attributeType="Binary"/>
+        <attribute name="meterDescription" optional="YES" attributeType="String"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="qrString" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="floor" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Floor" inverseName="meters" inverseEntity="Floor"/>
+        <relationship name="readings" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Reading" inverseName="meter" inverseEntity="Reading"/>
+    </entity>
+    <entity name="Reading" representedClassName="Reading" syncable="YES" codeGenerationType="class">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="kWh" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="meter" maxCount="1" deletionRule="Nullify" destinationEntity="Meter" inverseName="readings" inverseEntity="Meter"/>
+    </entity>
+    <elements>
+        <element name="Reading" positionX="22.49609375" positionY="20.765625" width="128" height="88"/>
+        <element name="Building" positionX="-216.8515625" positionY="-345.98828125" width="128" height="88"/>
+        <element name="Meter" positionX="-192.08203125" positionY="-25.56640625" width="128" height="133"/>
+        <element name="Floor" positionX="-206.78125" positionY="-146.859375" width="128" height="103"/>
+    </elements>
+</model>

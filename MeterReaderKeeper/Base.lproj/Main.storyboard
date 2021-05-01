@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="kgy-yV-V4W">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17703"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Navigation Controller-->
+        <scene sceneID="y1B-0W-erE">
+            <objects>
+                <navigationController id="kgy-yV-V4W" sceneMemberID="viewController">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="AbV-T6-Xck">
+                        <rect key="frame" x="0.0" y="44" width="414" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="2BO-Gn-qfn" kind="relationship" relationship="rootViewController" id="Pp2-Sj-bwv"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="rm3-hu-2vf" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1738" y="110"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="bhe-3P-fSA">
+            <objects>
+                <viewController id="2BO-Gn-qfn" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="bt2-ac-Ma2">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Y2O-lr-sa0">
+                                <rect key="frame" x="54" y="194" width="306" height="60"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="40"/>
+                                <state key="normal" title="Start Meter Reads"/>
+                                <connections>
+                                    <segue destination="e6d-jP-xTO" kind="show" id="q1U-Ya-Jcl"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WAB-xv-WxU">
+                                <rect key="frame" x="77" y="343" width="260" height="60"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="40"/>
+                                <state key="normal" title="Meter Manager"/>
+                                <connections>
+                                    <segue destination="BYZ-38-t0r" kind="show" id="hMm-1p-bhN"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6Fr-cx-CDX">
+                                <rect key="frame" x="50" y="497" width="314" height="60"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="40"/>
+                                <state key="normal" title="Previous Readings"/>
+                                <connections>
+                                    <segue destination="9iM-BM-ySN" kind="show" id="ITX-wE-byG"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="vn0-FF-xKL"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="rBn-Rv-IuA"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="mzh-hn-FWO" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-871" y="110"/>
+        </scene>
+        <!--Meters-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController modalPresentationStyle="fullScreen" id="BYZ-38-t0r" customClass="MetersTableViewController" customModule="Meter_Reader_Keeper" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="waS-Lk-72E">
+                                <rect key="frame" x="0.0" y="108" width="414" height="754"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <prototypes>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="B7m-3L-LoK">
+                                        <rect key="frame" x="0.0" y="28" width="414" height="43.5"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="B7m-3L-LoK" id="sjU-bb-7kM">
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </prototypes>
+                                <connections>
+                                    <outlet property="dataSource" destination="BYZ-38-t0r" id="pDG-VM-2aI"/>
+                                    <outlet property="delegate" destination="BYZ-38-t0r" id="RNn-k1-qwo"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="waS-Lk-72E" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="9sP-Xb-ORa"/>
+                            <constraint firstItem="waS-Lk-72E" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="20" id="E2o-Xo-lo0"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="waS-Lk-72E" secondAttribute="bottom" id="XfI-mw-zhO"/>
+                            <constraint firstItem="waS-Lk-72E" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="srC-GN-6aa"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="Meters" id="SsR-De-GcK">
+                        <barButtonItem key="rightBarButtonItem" style="plain" id="tfe-0m-Qmh">
+                            <button key="customView" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="ejI-rp-tWq">
+                                <rect key="frame" x="354" y="2" width="40" height="40"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="40" id="A3w-tW-zvV"/>
+                                    <constraint firstAttribute="height" constant="40" id="Tpj-42-TzF"/>
+                                </constraints>
+                                <state key="normal" image="plus" catalog="system"/>
+                                <connections>
+                                    <action selector="addMeter:" destination="BYZ-38-t0r" eventType="touchUpInside" id="sjM-DD-Q9X"/>
+                                </connections>
+                            </button>
+                        </barButtonItem>
+                    </navigationItem>
+                    <connections>
+                        <outlet property="tableView" destination="waS-Lk-72E" id="xgr-Oo-Dto"/>
+                        <segue destination="eBR-Zx-jeW" kind="show" id="hWv-Aj-UtQ"/>
+                        <segue destination="dt8-dr-5Di" kind="show" identifier="MeterTableToMeterDetailsSegue" id="uAh-Uy-fw3"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="103" y="110"/>
+        </scene>
+        <!--Previous Readings View Controller-->
+        <scene sceneID="0Ai-xS-CgR">
+            <objects>
+                <viewController id="9iM-BM-ySN" customClass="PreviousReadingsViewController" customModule="Meter_Reader_Keeper" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="hNW-GW-Y0k">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <viewLayoutGuide key="safeArea" id="WeD-i8-OJn"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="Yeo-3B-Q8h"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="A5f-yV-91d" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="103" y="835"/>
+        </scene>
+        <!--Title-->
+        <scene sceneID="5jZ-ec-z4B">
+            <objects>
+                <viewController modalPresentationStyle="fullScreen" id="dt8-dr-5Di" customClass="AddEditMeterViewController" customModule="Meter_Reader_Keeper" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="vU0-P3-tKK">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="lEr-xi-Iq7">
+                                <rect key="frame" x="20" y="108" width="374" height="230"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="h48-Ua-1As">
+                                        <rect key="frame" x="0.0" y="0.0" width="374" height="40"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="40" id="LH4-V3-3Kc"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="TUG-np-0pE">
+                                        <rect key="frame" x="0.0" y="40" width="374" height="50"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="50" id="u0G-9z-fc5"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                    </textField>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Description" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Gld-tg-3Tm">
+                                        <rect key="frame" x="0.0" y="90" width="374" height="40"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="40" id="2BY-Ak-1fp"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="0sY-h7-dsR">
+                                        <rect key="frame" x="0.0" y="130" width="374" height="100"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="100" id="OBB-4j-Zt2"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                    </textField>
+                                </subviews>
+                            </stackView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iIg-2F-AWA">
+                                <rect key="frame" x="20" y="812" width="374" height="30"/>
+                                <state key="normal" title="Delete">
+                                    <color key="titleColor" systemColor="systemRedColor"/>
+                                </state>
+                                <connections>
+                                    <action selector="deleteTapped:" destination="dt8-dr-5Di" eventType="touchUpInside" id="1Rw-dx-zHB"/>
+                                </connections>
+                            </button>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="N54-Vd-Btt">
+                                <rect key="frame" x="20" y="346" width="374" height="231"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="4Ir-O1-AAR"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="4Ir-O1-AAR" firstAttribute="trailing" secondItem="lEr-xi-Iq7" secondAttribute="trailing" constant="20" id="NKh-uW-iZY"/>
+                            <constraint firstItem="lEr-xi-Iq7" firstAttribute="leading" secondItem="4Ir-O1-AAR" secondAttribute="leading" constant="20" id="Tht-0u-fuY"/>
+                            <constraint firstItem="iIg-2F-AWA" firstAttribute="leading" secondItem="4Ir-O1-AAR" secondAttribute="leading" constant="20" id="Wqj-Sy-bMP"/>
+                            <constraint firstItem="lEr-xi-Iq7" firstAttribute="top" secondItem="4Ir-O1-AAR" secondAttribute="top" constant="20" id="b8y-mn-kJH"/>
+                            <constraint firstItem="4Ir-O1-AAR" firstAttribute="trailing" secondItem="iIg-2F-AWA" secondAttribute="trailing" constant="20" id="bbL-Uz-QbN"/>
+                            <constraint firstItem="iIg-2F-AWA" firstAttribute="bottom" secondItem="4Ir-O1-AAR" secondAttribute="bottom" constant="-20" id="dhB-aU-tB7"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="Title" id="tlb-OZ-KzO">
+                        <barButtonItem key="rightBarButtonItem" style="plain" systemItem="save" id="uoL-2T-G84">
+                            <connections>
+                                <action selector="saveTapped:" destination="dt8-dr-5Di" id="2rD-bY-Sv5"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <connections>
+                        <outlet property="deleteButton" destination="iIg-2F-AWA" id="uTo-Ki-rpc"/>
+                        <outlet property="descriptionTextField" destination="0sY-h7-dsR" id="4wX-Fu-dR8"/>
+                        <outlet property="nameTextField" destination="TUG-np-0pE" id="l5o-4j-tQA"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="AHd-rJ-Ru8" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="969.56521739130437" y="451.33928571428567"/>
+        </scene>
+        <!--MeterQR Reader View Controller-->
+        <scene sceneID="iuk-rQ-jAP">
+            <objects>
+                <viewController modalPresentationStyle="fullScreen" id="eBR-Zx-jeW" customClass="MeterQRReaderViewController" customModule="Meter_Reader_Keeper" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="SPV-Qk-mhF">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <viewLayoutGuide key="safeArea" id="uAf-GV-gev"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="Cnm-k6-eCt"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="DMZ-Hz-JU4" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="970" y="-232"/>
+        </scene>
+        <!--Previous Readings View Controller-->
+        <scene sceneID="qfc-f8-Gto">
+            <objects>
+                <viewController id="e6d-jP-xTO" customClass="PreviousReadingsViewController" customModule="Meter_Reader_Keeper" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="c1k-Zk-0YC">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <viewLayoutGuide key="safeArea" id="j79-Ka-c6t"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="kRj-Va-EYb"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="QAg-wT-lBg" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="103" y="-569"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="plus" catalog="system" width="128" height="113"/>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemRedColor">
+            <color red="1" green="0.23137254901960785" blue="0.18823529411764706" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+    </resources>
+</document>
