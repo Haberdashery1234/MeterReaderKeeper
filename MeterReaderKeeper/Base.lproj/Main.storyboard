@@ -72,7 +72,7 @@
         <!--Meters-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController modalPresentationStyle="fullScreen" id="BYZ-38-t0r" customClass="MetersTableViewController" customModule="MeterReaderKeeper" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController modalPresentationStyle="fullScreen" id="BYZ-38-t0r" customClass="ManagementTableViewController" customModule="MeterReaderKeeper" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -81,13 +81,82 @@
                                 <rect key="frame" x="0.0" y="157" width="414" height="705"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="B7m-3L-LoK">
-                                        <rect key="frame" x="0.0" y="28" width="414" height="43.5"/>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="BuildingCell" rowHeight="65" id="B7m-3L-LoK" customClass="BuildingTableViewCell" customModule="MeterReaderKeeper" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="28" width="414" height="65"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="B7m-3L-LoK" id="sjU-bb-7kM">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="65"/>
                                             <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qpL-0x-prb">
+                                                    <rect key="frame" x="20" y="11" width="48" height="24"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="20"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kvh-uT-K1S">
+                                                    <rect key="frame" x="20" y="37" width="35.5" height="17"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Dik-MO-cmM">
+                                                    <rect key="frame" x="352" y="22" width="42" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="Dik-MO-cmM" firstAttribute="centerY" secondItem="sjU-bb-7kM" secondAttribute="centerY" id="6f6-Gq-oTm"/>
+                                                <constraint firstItem="Dik-MO-cmM" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="kvh-uT-K1S" secondAttribute="trailing" constant="20" id="8XY-pp-Y3u"/>
+                                                <constraint firstItem="qpL-0x-prb" firstAttribute="leading" secondItem="sjU-bb-7kM" secondAttribute="leadingMargin" id="LHi-Yv-fdT"/>
+                                                <constraint firstItem="Dik-MO-cmM" firstAttribute="trailing" secondItem="sjU-bb-7kM" secondAttribute="trailingMargin" id="XT1-Ao-8no"/>
+                                                <constraint firstAttribute="bottomMargin" secondItem="kvh-uT-K1S" secondAttribute="bottom" id="beH-tG-sFo"/>
+                                                <constraint firstItem="Dik-MO-cmM" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="qpL-0x-prb" secondAttribute="trailing" constant="20" id="fV1-0B-ep3"/>
+                                                <constraint firstItem="qpL-0x-prb" firstAttribute="top" secondItem="sjU-bb-7kM" secondAttribute="topMargin" id="gNn-ai-8W2"/>
+                                                <constraint firstItem="kvh-uT-K1S" firstAttribute="leading" secondItem="sjU-bb-7kM" secondAttribute="leadingMargin" id="qBM-0E-vot"/>
+                                                <constraint firstItem="kvh-uT-K1S" firstAttribute="top" secondItem="qpL-0x-prb" secondAttribute="bottom" constant="2" id="wbv-iI-03S"/>
+                                            </constraints>
                                         </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="floorsLabel" destination="kvh-uT-K1S" id="BFA-AS-kEd"/>
+                                            <outlet property="metersLabel" destination="Dik-MO-cmM" id="Bxa-fi-fL5"/>
+                                            <outlet property="nameLabel" destination="qpL-0x-prb" id="1Zz-nN-jyZ"/>
+                                        </connections>
+                                    </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="FloorCell" rowHeight="50" id="8Np-ih-UMp" customClass="FloorTableViewCell" customModule="MeterReaderKeeper" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="93" width="414" height="50"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="8Np-ih-UMp" id="w5u-8i-BT4" customClass="FloorTableViewCell" customModule="MeterReaderKeeper" customModuleProvider="target">
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="50"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="axE-Qe-4aK">
+                                                    <rect key="frame" x="20" y="13" width="48" height="24"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="20"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="0o2-2Y-iUr">
+                                                    <rect key="frame" x="352" y="14.5" width="42" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="0o2-2Y-iUr" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="axE-Qe-4aK" secondAttribute="trailing" constant="20" id="Ggx-Qj-ya5"/>
+                                                <constraint firstAttribute="trailing" secondItem="0o2-2Y-iUr" secondAttribute="trailing" constant="20" symbolic="YES" id="Z0K-Ji-ooz"/>
+                                                <constraint firstItem="axE-Qe-4aK" firstAttribute="leading" secondItem="w5u-8i-BT4" secondAttribute="leading" constant="20" symbolic="YES" id="f9r-05-v81"/>
+                                                <constraint firstItem="0o2-2Y-iUr" firstAttribute="centerY" secondItem="w5u-8i-BT4" secondAttribute="centerY" id="vsx-ch-40D"/>
+                                                <constraint firstItem="axE-Qe-4aK" firstAttribute="centerY" secondItem="w5u-8i-BT4" secondAttribute="centerY" id="wDt-AN-4kf"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="metersLabel" destination="0o2-2Y-iUr" id="gC7-rY-niR"/>
+                                            <outlet property="nameLabel" destination="axE-Qe-4aK" id="Yx3-mB-J4t"/>
+                                        </connections>
                                     </tableViewCell>
                                 </prototypes>
                                 <connections>
@@ -102,6 +171,9 @@
                                     <segment title="Floors"/>
                                     <segment title="Meters"/>
                                 </segments>
+                                <connections>
+                                    <action selector="listSegmentedControlChanged:" destination="BYZ-38-t0r" eventType="valueChanged" id="Mwz-Rt-TsL"/>
+                                </connections>
                             </segmentedControl>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
@@ -133,6 +205,7 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="listSourceSegmentedControl" destination="VQE-Dx-hRM" id="66A-Br-Yij"/>
                         <outlet property="tableView" destination="waS-Lk-72E" id="xgr-Oo-Dto"/>
                         <segue destination="dt8-dr-5Di" kind="show" identifier="MeterTableToMeterDetailsSegue" id="uAh-Uy-fw3"/>
                         <segue destination="CFI-jc-756" kind="show" identifier="MeterTableToBuildingDetailsSegue" id="FKW-Xo-AjC"/>
@@ -146,7 +219,7 @@
         <!--Building Details-->
         <scene sceneID="zTR-mG-ZJ3">
             <objects>
-                <viewController id="CFI-jc-756" sceneMemberID="viewController">
+                <viewController id="CFI-jc-756" customClass="AddEditBuildingViewController" customModule="MeterReaderKeeper" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="LCb-kj-ucv">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -203,11 +276,15 @@
                     <navigationItem key="navigationItem" title="Building Details" id="MLN-wT-kv6">
                         <barButtonItem key="rightBarButtonItem" style="plain" systemItem="save" id="5Ea-cH-2sC">
                             <connections>
-                                <action selector="saveTapped:" destination="dt8-dr-5Di" id="RPu-9C-yJf"/>
+                                <action selector="saveTapped:" destination="CFI-jc-756" id="uhL-nN-QxV"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
+                    <connections>
+                        <outlet property="floorsTextField" destination="cio-pI-ec7" id="5a0-li-wMl"/>
+                        <outlet property="nameTextField" destination="gRb-iz-2Jd" id="6LP-hw-M7p"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="X4x-CQ-jyA" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>

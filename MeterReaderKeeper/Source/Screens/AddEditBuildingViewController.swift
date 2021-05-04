@@ -25,18 +25,19 @@ class AddEditBuildingViewController: UIViewController {
                 floorsTextField.text = "\(floors.count)"
             }
         }
-        deleteButton.isHidden = building == nil
+//        deleteButton.isHidden = building == nil
     }
     
     @IBAction func saveTapped(_ sender: Any) {
         guard
             let nameText = nameTextField.text,
-            let floorsText = floorsTextField.text
+            let floorsText = floorsTextField.text,
+            let floorsInt = Int16(floorsText)
         else {
             return
         }
         
-        
+        MeterManager.shared.saveBuilding(withName: nameText, uuid: UUID(), floors: floorsInt)
         
         dismiss(animated: true, completion: nil)
     }
