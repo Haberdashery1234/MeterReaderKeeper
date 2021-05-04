@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C4690E52640E5A1009A11C0 /* AddEditBuildingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4690E42640E5A1009A11C0 /* AddEditBuildingViewController.swift */; };
 		7C4AF7FC263CD435002E65CB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C4AF7FA263CD435002E65CB /* Main.storyboard */; };
 		7C4AF7FE263CD436002E65CB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C4AF7FD263CD436002E65CB /* Assets.xcassets */; };
 		7C4AF801263CD436002E65CB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C4AF7FF263CD436002E65CB /* LaunchScreen.storyboard */; };
 		7C4AF80C263CD436002E65CB /* Meter_Reader_KeeperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4AF80B263CD436002E65CB /* Meter_Reader_KeeperTests.swift */; };
 		7C4AF817263CD436002E65CB /* Meter_Reader_KeeperUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4AF816263CD436002E65CB /* Meter_Reader_KeeperUITests.swift */; };
 		7C6EC9DF263F095100DFDAEE /* MeterReader.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 7C6EC9D6263F095100DFDAEE /* MeterReader.xcdatamodeld */; };
-		7C6EC9E0263F095100DFDAEE /* MeterQRReaderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6EC9D8263F095100DFDAEE /* MeterQRReaderViewController.swift */; };
 		7C6EC9E1263F095100DFDAEE /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6EC9D9263F095100DFDAEE /* HomeViewController.swift */; };
 		7C6EC9E2263F095100DFDAEE /* MeterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6EC9DA263F095100DFDAEE /* MeterManager.swift */; };
 		7C6EC9E3263F095100DFDAEE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6EC9DB263F095100DFDAEE /* AppDelegate.swift */; };
@@ -29,18 +29,27 @@
 			containerPortal = 7C4AF7E9263CD435002E65CB /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 7C4AF7F0263CD435002E65CB;
-			remoteInfo = "Meter Reader Keeper";
+			remoteInfo = MeterReaderKeeper;
 		};
 		7C4AF813263CD436002E65CB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7C4AF7E9263CD435002E65CB /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 7C4AF7F0263CD435002E65CB;
-			remoteInfo = "Meter Reader Keeper";
+			remoteInfo = MeterReaderKeeper;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7C4690C22640D75B009A11C0 /* Reading+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Reading+CoreDataClass.swift"; sourceTree = "<group>"; };
+		7C4690C42640D75B009A11C0 /* Meter+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Meter+CoreDataClass.swift"; sourceTree = "<group>"; };
+		7C4690C52640D75B009A11C0 /* Building+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Building+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		7C4690C62640D75B009A11C0 /* Meter+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Meter+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		7C4690C72640D75B009A11C0 /* Reading+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Reading+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		7C4690C82640D75B009A11C0 /* Building+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Building+CoreDataClass.swift"; sourceTree = "<group>"; };
+		7C4690DD2640E52F009A11C0 /* Floor+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Floor+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		7C4690DE2640E530009A11C0 /* Floor+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Floor+CoreDataClass.swift"; sourceTree = "<group>"; };
+		7C4690E42640E5A1009A11C0 /* AddEditBuildingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditBuildingViewController.swift; sourceTree = "<group>"; };
 		7C4AF7F1263CD435002E65CB /* MeterReaderKeeper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeterReaderKeeper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C4AF7FB263CD435002E65CB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		7C4AF7FD263CD436002E65CB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -53,7 +62,6 @@
 		7C4AF816263CD436002E65CB /* Meter_Reader_KeeperUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Meter_Reader_KeeperUITests.swift; sourceTree = "<group>"; };
 		7C4AF818263CD436002E65CB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7C6EC9D7263F095100DFDAEE /* Meter.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Meter.xcdatamodel; sourceTree = "<group>"; };
-		7C6EC9D8263F095100DFDAEE /* MeterQRReaderViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MeterQRReaderViewController.swift; sourceTree = "<group>"; };
 		7C6EC9D9263F095100DFDAEE /* HomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		7C6EC9DA263F095100DFDAEE /* MeterManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MeterManager.swift; sourceTree = "<group>"; };
 		7C6EC9DB263F095100DFDAEE /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -88,12 +96,27 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7C4690C02640D75B009A11C0 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				7C4690C82640D75B009A11C0 /* Building+CoreDataClass.swift */,
+				7C4690C52640D75B009A11C0 /* Building+CoreDataProperties.swift */,
+				7C4690DE2640E530009A11C0 /* Floor+CoreDataClass.swift */,
+				7C4690DD2640E52F009A11C0 /* Floor+CoreDataProperties.swift */,
+				7C4690C42640D75B009A11C0 /* Meter+CoreDataClass.swift */,
+				7C4690C62640D75B009A11C0 /* Meter+CoreDataProperties.swift */,
+				7C4690C22640D75B009A11C0 /* Reading+CoreDataClass.swift */,
+				7C4690C72640D75B009A11C0 /* Reading+CoreDataProperties.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		7C4AF7E8263CD435002E65CB = {
 			isa = PBXGroup;
 			children = (
-				7C4AF7F3263CD435002E65CB /* Meter Reader Keeper */,
-				7C4AF80A263CD436002E65CB /* Meter Reader KeeperTests */,
-				7C4AF815263CD436002E65CB /* Meter Reader KeeperUITests */,
+				7C4AF7F3263CD435002E65CB /* MeterReaderKeeper */,
+				7C4AF80A263CD436002E65CB /* MeterReaderKeeperTests */,
+				7C4AF815263CD436002E65CB /* MeterReaderKeeperUITests */,
 				7C4AF7F2263CD435002E65CB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -108,7 +131,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		7C4AF7F3263CD435002E65CB /* Meter Reader Keeper */ = {
+		7C4AF7F3263CD435002E65CB /* MeterReaderKeeper */ = {
 			isa = PBXGroup;
 			children = (
 				7C6EC9D5263F095100DFDAEE /* Source */,
@@ -117,36 +140,37 @@
 				7C4AF7FF263CD436002E65CB /* LaunchScreen.storyboard */,
 				7C4AF802263CD436002E65CB /* Info.plist */,
 			);
-			path = "Meter Reader Keeper";
+			path = MeterReaderKeeper;
 			sourceTree = "<group>";
 		};
-		7C4AF80A263CD436002E65CB /* Meter Reader KeeperTests */ = {
+		7C4AF80A263CD436002E65CB /* MeterReaderKeeperTests */ = {
 			isa = PBXGroup;
 			children = (
 				7C4AF80B263CD436002E65CB /* Meter_Reader_KeeperTests.swift */,
 				7C4AF80D263CD436002E65CB /* Info.plist */,
 			);
-			path = "Meter Reader KeeperTests";
+			path = MeterReaderKeeperTests;
 			sourceTree = "<group>";
 		};
-		7C4AF815263CD436002E65CB /* Meter Reader KeeperUITests */ = {
+		7C4AF815263CD436002E65CB /* MeterReaderKeeperUITests */ = {
 			isa = PBXGroup;
 			children = (
 				7C4AF816263CD436002E65CB /* Meter_Reader_KeeperUITests.swift */,
 				7C4AF818263CD436002E65CB /* Info.plist */,
 			);
-			path = "Meter Reader KeeperUITests";
+			path = MeterReaderKeeperUITests;
 			sourceTree = "<group>";
 		};
 		7C6EC9D5263F095100DFDAEE /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				7C4690C02640D75B009A11C0 /* Model */,
 				7C6EC9D6263F095100DFDAEE /* MeterReader.xcdatamodeld */,
-				7C6EC9D8263F095100DFDAEE /* MeterQRReaderViewController.swift */,
 				7C6EC9D9263F095100DFDAEE /* HomeViewController.swift */,
 				7C6EC9DB263F095100DFDAEE /* AppDelegate.swift */,
 				7C6EC9F0263F1C7100DFDAEE /* PreviousReadingsViewController.swift */,
 				7C6EC9DC263F095100DFDAEE /* AddEditMeterViewController.swift */,
+				7C4690E42640E5A1009A11C0 /* AddEditBuildingViewController.swift */,
 				7C6EC9DD263F095100DFDAEE /* SceneDelegate.swift */,
 				7C6EC9DE263F095100DFDAEE /* MetersTableViewController.swift */,
 				7CD68DF5263F7FC60012D65C /* Utility */,
@@ -178,7 +202,7 @@
 			dependencies = (
 			);
 			name = MeterReaderKeeper;
-			productName = "Meter Reader Keeper";
+			productName = MeterReaderKeeper;
 			productReference = 7C4AF7F1263CD435002E65CB /* MeterReaderKeeper.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -196,7 +220,7 @@
 				7C4AF809263CD436002E65CB /* PBXTargetDependency */,
 			);
 			name = MeterReaderKeeperTests;
-			productName = "Meter Reader KeeperTests";
+			productName = MeterReaderKeeperTests;
 			productReference = 7C4AF807263CD436002E65CB /* MeterReaderKeeperTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
@@ -214,7 +238,7 @@
 				7C4AF814263CD436002E65CB /* PBXTargetDependency */,
 			);
 			name = MeterReaderKeeperUITests;
-			productName = "Meter Reader KeeperUITests";
+			productName = MeterReaderKeeperUITests;
 			productReference = 7C4AF812263CD436002E65CB /* MeterReaderKeeperUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
@@ -295,7 +319,7 @@
 				7C6EC9E4263F095100DFDAEE /* AddEditMeterViewController.swift in Sources */,
 				7C6EC9E3263F095100DFDAEE /* AppDelegate.swift in Sources */,
 				7C6EC9DF263F095100DFDAEE /* MeterReader.xcdatamodeld in Sources */,
-				7C6EC9E0263F095100DFDAEE /* MeterQRReaderViewController.swift in Sources */,
+				7C4690E52640E5A1009A11C0 /* AddEditBuildingViewController.swift in Sources */,
 				7C6EC9E6263F095100DFDAEE /* MetersTableViewController.swift in Sources */,
 				7C6EC9E2263F095100DFDAEE /* MeterManager.swift in Sources */,
 				7C6EC9E1263F095100DFDAEE /* HomeViewController.swift in Sources */,
@@ -478,7 +502,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = CPLXYN9C23;
-				INFOPLIST_FILE = "Meter Reader Keeper/Info.plist";
+				INFOPLIST_FILE = MeterReaderKeeper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -497,7 +521,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = CPLXYN9C23;
-				INFOPLIST_FILE = "Meter Reader Keeper/Info.plist";
+				INFOPLIST_FILE = MeterReaderKeeper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -516,7 +540,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = CPLXYN9C23;
-				INFOPLIST_FILE = "Meter Reader KeeperTests/Info.plist";
+				INFOPLIST_FILE = MeterReaderKeeperTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -527,7 +551,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Meter Reader Keeper.app/Meter Reader Keeper";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MeterReaderKeeper.app/MeterReaderKeeper";
 			};
 			name = Debug;
 		};
@@ -538,7 +562,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = CPLXYN9C23;
-				INFOPLIST_FILE = "Meter Reader KeeperTests/Info.plist";
+				INFOPLIST_FILE = MeterReaderKeeperTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -549,7 +573,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Meter Reader Keeper.app/Meter Reader Keeper";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MeterReaderKeeper.app/MeterReaderKeeper";
 			};
 			name = Release;
 		};
@@ -559,7 +583,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = CPLXYN9C23;
-				INFOPLIST_FILE = "Meter Reader KeeperUITests/Info.plist";
+				INFOPLIST_FILE = MeterReaderKeeperUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -569,7 +593,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "Meter Reader Keeper";
+				TEST_TARGET_NAME = MeterReaderKeeper;
 			};
 			name = Debug;
 		};
@@ -579,7 +603,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = CPLXYN9C23;
-				INFOPLIST_FILE = "Meter Reader KeeperUITests/Info.plist";
+				INFOPLIST_FILE = MeterReaderKeeperUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -589,7 +613,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "Meter Reader Keeper";
+				TEST_TARGET_NAME = MeterReaderKeeper;
 			};
 			name = Release;
 		};

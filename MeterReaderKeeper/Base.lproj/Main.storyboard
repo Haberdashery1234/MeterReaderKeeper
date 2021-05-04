@@ -72,13 +72,13 @@
         <!--Meters-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController modalPresentationStyle="fullScreen" id="BYZ-38-t0r" customClass="MetersTableViewController" customModule="Meter_Reader_Keeper" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController modalPresentationStyle="fullScreen" id="BYZ-38-t0r" customClass="MetersTableViewController" customModule="MeterReaderKeeper" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="waS-Lk-72E">
-                                <rect key="frame" x="0.0" y="108" width="414" height="754"/>
+                                <rect key="frame" x="0.0" y="157" width="414" height="705"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="B7m-3L-LoK">
@@ -95,13 +95,24 @@
                                     <outlet property="delegate" destination="BYZ-38-t0r" id="RNn-k1-qwo"/>
                                 </connections>
                             </tableView>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="VQE-Dx-hRM">
+                                <rect key="frame" x="20" y="107" width="374" height="32"/>
+                                <segments>
+                                    <segment title="Buildings"/>
+                                    <segment title="Floors"/>
+                                    <segment title="Meters"/>
+                                </segments>
+                            </segmentedControl>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="waS-Lk-72E" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="9sP-Xb-ORa"/>
-                            <constraint firstItem="waS-Lk-72E" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="20" id="E2o-Xo-lo0"/>
+                            <constraint firstItem="VQE-Dx-hRM" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="IHy-nW-Iug"/>
+                            <constraint firstItem="VQE-Dx-hRM" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="19" id="WJF-B1-8x7"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="waS-Lk-72E" secondAttribute="bottom" id="XfI-mw-zhO"/>
+                            <constraint firstItem="waS-Lk-72E" firstAttribute="top" secondItem="VQE-Dx-hRM" secondAttribute="bottom" constant="19" id="diK-Od-bnb"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="VQE-Dx-hRM" secondAttribute="trailing" constant="20" id="hEg-AL-3aJ"/>
                             <constraint firstItem="waS-Lk-72E" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="srC-GN-6aa"/>
                         </constraints>
                     </view>
@@ -116,25 +127,96 @@
                                 </constraints>
                                 <state key="normal" image="plus" catalog="system"/>
                                 <connections>
-                                    <action selector="addMeter:" destination="BYZ-38-t0r" eventType="touchUpInside" id="sjM-DD-Q9X"/>
+                                    <action selector="addTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="kVX-e8-fOG"/>
                                 </connections>
                             </button>
                         </barButtonItem>
                     </navigationItem>
                     <connections>
                         <outlet property="tableView" destination="waS-Lk-72E" id="xgr-Oo-Dto"/>
-                        <segue destination="eBR-Zx-jeW" kind="show" id="hWv-Aj-UtQ"/>
                         <segue destination="dt8-dr-5Di" kind="show" identifier="MeterTableToMeterDetailsSegue" id="uAh-Uy-fw3"/>
+                        <segue destination="CFI-jc-756" kind="show" identifier="MeterTableToBuildingDetailsSegue" id="FKW-Xo-AjC"/>
+                        <segue destination="DN0-ma-r1J" kind="show" identifier="MeterTableToFloorDetailsSegue" id="8gI-tx-AUL"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="103" y="110"/>
+            <point key="canvasLocation" x="102.89855072463769" y="109.82142857142857"/>
+        </scene>
+        <!--Building Details-->
+        <scene sceneID="zTR-mG-ZJ3">
+            <objects>
+                <viewController id="CFI-jc-756" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="LCb-kj-ucv">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="4U0-jU-83m">
+                                <rect key="frame" x="20" y="108" width="374" height="160"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7Tj-3j-Z2A">
+                                        <rect key="frame" x="0.0" y="0.0" width="374" height="40"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="40" id="cad-mc-ZX2"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="gRb-iz-2Jd">
+                                        <rect key="frame" x="0.0" y="40" width="374" height="40"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="40" id="ehX-fo-2k0"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                    </textField>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Floors" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G01-pQ-hm7">
+                                        <rect key="frame" x="0.0" y="80" width="374" height="40"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="40" id="7Xj-GJ-kE6"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="cio-pI-ec7">
+                                        <rect key="frame" x="0.0" y="120" width="374" height="40"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="40" id="jGa-5I-iky"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                    </textField>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="HY7-8D-uDw"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="4U0-jU-83m" firstAttribute="leading" secondItem="HY7-8D-uDw" secondAttribute="leading" constant="20" id="8QH-yJ-CIg"/>
+                            <constraint firstItem="HY7-8D-uDw" firstAttribute="trailing" secondItem="4U0-jU-83m" secondAttribute="trailing" constant="20" id="IvR-5K-HJw"/>
+                            <constraint firstItem="4U0-jU-83m" firstAttribute="top" secondItem="HY7-8D-uDw" secondAttribute="top" constant="20" id="ePc-Z4-BuL"/>
+                        </constraints>
+                    </view>
+                    <toolbarItems/>
+                    <navigationItem key="navigationItem" title="Building Details" id="MLN-wT-kv6">
+                        <barButtonItem key="rightBarButtonItem" style="plain" systemItem="save" id="5Ea-cH-2sC">
+                            <connections>
+                                <action selector="saveTapped:" destination="dt8-dr-5Di" id="RPu-9C-yJf"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="X4x-CQ-jyA" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="880" y="-569"/>
         </scene>
         <!--Previous Readings View Controller-->
         <scene sceneID="0Ai-xS-CgR">
             <objects>
-                <viewController id="9iM-BM-ySN" customClass="PreviousReadingsViewController" customModule="Meter_Reader_Keeper" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="9iM-BM-ySN" customClass="PreviousReadingsViewController" customModule="MeterReaderKeeper" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="hNW-GW-Y0k">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -147,10 +229,10 @@
             </objects>
             <point key="canvasLocation" x="103" y="835"/>
         </scene>
-        <!--Title-->
+        <!--Meter Details-->
         <scene sceneID="5jZ-ec-z4B">
             <objects>
-                <viewController modalPresentationStyle="fullScreen" id="dt8-dr-5Di" customClass="AddEditMeterViewController" customModule="Meter_Reader_Keeper" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController modalPresentationStyle="fullScreen" id="dt8-dr-5Di" customClass="AddEditMeterViewController" customModule="MeterReaderKeeper" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="vU0-P3-tKK">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -219,7 +301,7 @@
                             <constraint firstItem="iIg-2F-AWA" firstAttribute="bottom" secondItem="4Ir-O1-AAR" secondAttribute="bottom" constant="-20" id="dhB-aU-tB7"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" title="Title" id="tlb-OZ-KzO">
+                    <navigationItem key="navigationItem" title="Meter Details" id="tlb-OZ-KzO">
                         <barButtonItem key="rightBarButtonItem" style="plain" systemItem="save" id="uoL-2T-G84">
                             <connections>
                                 <action selector="saveTapped:" destination="dt8-dr-5Di" id="2rD-bY-Sv5"/>
@@ -234,28 +316,12 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="AHd-rJ-Ru8" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="969.56521739130437" y="451.33928571428567"/>
-        </scene>
-        <!--MeterQR Reader View Controller-->
-        <scene sceneID="iuk-rQ-jAP">
-            <objects>
-                <viewController modalPresentationStyle="fullScreen" id="eBR-Zx-jeW" customClass="MeterQRReaderViewController" customModule="Meter_Reader_Keeper" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="SPV-Qk-mhF">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <viewLayoutGuide key="safeArea" id="uAf-GV-gev"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                    </view>
-                    <navigationItem key="navigationItem" id="Cnm-k6-eCt"/>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="DMZ-Hz-JU4" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="970" y="-232"/>
+            <point key="canvasLocation" x="880" y="828"/>
         </scene>
         <!--Previous Readings View Controller-->
         <scene sceneID="qfc-f8-Gto">
             <objects>
-                <viewController id="e6d-jP-xTO" customClass="PreviousReadingsViewController" customModule="Meter_Reader_Keeper" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="e6d-jP-xTO" customClass="PreviousReadingsViewController" customModule="MeterReaderKeeper" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="c1k-Zk-0YC">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -267,6 +333,95 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="QAg-wT-lBg" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="103" y="-569"/>
+        </scene>
+        <!--Meter Details-->
+        <scene sceneID="vXu-z1-JN2">
+            <objects>
+                <viewController modalPresentationStyle="fullScreen" id="DN0-ma-r1J" customClass="AddEditMeterViewController" customModule="MeterReaderKeeper" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Eff-Jc-2kG">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="FJi-gj-Pry">
+                                <rect key="frame" x="20" y="108" width="374" height="160"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Building" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uvD-yo-b08">
+                                        <rect key="frame" x="0.0" y="0.0" width="374" height="40"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="40" id="39J-tA-49O"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="9dM-jP-1AD">
+                                        <rect key="frame" x="0.0" y="40" width="374" height="40"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="40" id="1n3-HA-CSZ"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                    </textField>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Floor Number" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="T8e-1c-aqF">
+                                        <rect key="frame" x="0.0" y="80" width="374" height="40"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="40" id="0tw-q6-6xi"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="PH8-hW-o0q">
+                                        <rect key="frame" x="0.0" y="120" width="374" height="40"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="40" id="MQd-Yn-svo"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                    </textField>
+                                </subviews>
+                            </stackView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fJa-Yi-u13">
+                                <rect key="frame" x="20" y="812" width="374" height="30"/>
+                                <state key="normal" title="Delete">
+                                    <color key="titleColor" systemColor="systemRedColor"/>
+                                </state>
+                                <connections>
+                                    <action selector="deleteTapped:" destination="DN0-ma-r1J" eventType="touchUpInside" id="2K1-5e-5ir"/>
+                                </connections>
+                            </button>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="8vg-EP-9XZ">
+                                <rect key="frame" x="20" y="346" width="374" height="231"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="HkV-Lw-FzF"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="HkV-Lw-FzF" firstAttribute="trailing" secondItem="FJi-gj-Pry" secondAttribute="trailing" constant="20" id="3n4-gQ-k6w"/>
+                            <constraint firstItem="fJa-Yi-u13" firstAttribute="bottom" secondItem="HkV-Lw-FzF" secondAttribute="bottom" constant="-20" id="6o0-PF-jNy"/>
+                            <constraint firstItem="FJi-gj-Pry" firstAttribute="top" secondItem="HkV-Lw-FzF" secondAttribute="top" constant="20" id="BUy-qz-sHz"/>
+                            <constraint firstItem="HkV-Lw-FzF" firstAttribute="trailing" secondItem="fJa-Yi-u13" secondAttribute="trailing" constant="20" id="NIF-6k-Xas"/>
+                            <constraint firstItem="FJi-gj-Pry" firstAttribute="leading" secondItem="HkV-Lw-FzF" secondAttribute="leading" constant="20" id="PAR-Sa-WTB"/>
+                            <constraint firstItem="fJa-Yi-u13" firstAttribute="leading" secondItem="HkV-Lw-FzF" secondAttribute="leading" constant="20" id="vLI-G9-azW"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="Meter Details" id="IMx-8I-Gu3">
+                        <barButtonItem key="rightBarButtonItem" style="plain" systemItem="save" id="Ezy-r4-DRc">
+                            <connections>
+                                <action selector="saveTapped:" destination="DN0-ma-r1J" id="nZD-bh-zKc"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <connections>
+                        <outlet property="deleteButton" destination="fJa-Yi-u13" id="sCX-M1-99x"/>
+                        <outlet property="descriptionTextField" destination="PH8-hW-o0q" id="CL7-al-0HZ"/>
+                        <outlet property="nameTextField" destination="9dM-jP-1AD" id="AiK-fU-J4a"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ZOY-C5-KZg" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="880" y="110"/>
         </scene>
     </scenes>
     <resources>

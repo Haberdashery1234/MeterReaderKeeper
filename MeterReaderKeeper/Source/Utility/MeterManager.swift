@@ -13,7 +13,9 @@ class MeterManager {
     static let shared = MeterManager()
     
     var persistentContainer: NSPersistentContainer
-    var meters: [NSManagedObject] = []
+    var buildings: [Building] = []
+    var floors: [Floor] = []
+    var meters: [Meter] = []
     
     init() {
         persistentContainer = NSPersistentContainer(name: "MeterReader")
@@ -26,49 +28,45 @@ class MeterManager {
     }
     
     func load() {
-        let managedContext =
-            persistentContainer.viewContext
-          
-          let fetchRequest =
-            NSFetchRequest<NSManagedObject>(entityName: "Meter")
-          
-          do {
-            meters = try managedContext.fetch(fetchRequest)
-          } catch let error as NSError {
-            print("Could not fetch. \(error), \(error.userInfo)")
-          }
+        loadBuildings()
+        loadFloors()
+        loadMeters()
     }
     
-    func save(name: String, description: String, qrString: NSUUID, map: Data?, image: Data?) {
+    // MARK: - Meters
+    func loadMeters() {
         let managedContext = persistentContainer.viewContext
         
-        let entity = NSEntityDescription.entity(forEntityName: "Meter", in: managedContext)!
-        
-        let meter = NSManagedObject(entity: entity, insertInto: managedContext)
-        
-        meter.setValue(name, forKey: "name")
-        meter.setValue(description, forKey: "meterDescription")
-        meter.setValue(image, forKey: "image")
-        meter.setValue(qrString, forKey: "qrString")
+        let fetchRequest: NSFetchRequest<Meter> = Meter.fetchRequest()
         
         do {
-            try managedContext.save()
-            meters.append(meter)
+            meters = try managedContext.fetch(fetchRequest)
         } catch let error as NSError {
-            print("Could not save. \(error), \(error.userInfo)")
+            print("Could not fetch. \(error), \(error.userInfo)")
         }
     }
     
-    func delete(meter: NSManagedObject) {
+    func loadFloors() {
         let managedContext = persistentContainer.viewContext
         
-        managedContext.delete(meter)
+        let fetchRequest: NSFetchRequest<Floor> = Floor.fetchRequest()
         
         do {
-            try managedContext.save()
-            load()
+            floors = try managedContext.fetch(fetchRequest)
         } catch let error as NSError {
-            print("Could not delete. \(error), \(error.userInfo)")
+            print("Could not fetch. \(error), \(error.userInfo)")
+        }
+    }
+    
+    func loadBuildings() {
+        let managedContext = persistentContainer.viewContext
+        
+        let fetchRequest: NSFetchRequest<Building> = Building.fetchRequest()
+        
+        do {
+            buildings = try managedContext.fetch(fetchRequest)
+        } catch let error as NSError {
+            print("Could not fetch. \(error), \(error.userInfo)")
         }
     }
 }

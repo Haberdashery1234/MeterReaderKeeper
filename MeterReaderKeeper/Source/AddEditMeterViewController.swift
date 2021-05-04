@@ -15,7 +15,7 @@ class AddEditMeterViewController: UIViewController {
     
     @IBOutlet weak var deleteButton: UIButton!
     
-    var meter: NSManagedObject?
+    var meter: Meter?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -36,7 +36,7 @@ class AddEditMeterViewController: UIViewController {
         
         let qrUUID = NSUUID()
         
-        MeterManager.shared.save(name: nameText, description: descriptionText, qrString: qrUUID, map: nil, image: nil)
+//        MeterManager.shared.save(name: nameText, description: descriptionText, qrString: qrUUID, map: nil, image: nil)
         
         dismiss(animated: true, completion: nil)
     }
@@ -46,7 +46,7 @@ class AddEditMeterViewController: UIViewController {
             print("Nothing to delete.")
             return
         }
-        MeterManager.shared.delete(meter: meter)
+//        MeterManager.shared.delete(meter: meter)
         navigationController?.popViewController(animated: true)
     }
     
