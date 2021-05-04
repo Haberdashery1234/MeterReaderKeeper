@@ -263,11 +263,24 @@
                                     </textField>
                                 </subviews>
                             </stackView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Few-1h-eOf">
+                                <rect key="frame" x="20" y="763" width="374" height="30"/>
+                                <state key="normal" title="Delete">
+                                    <color key="titleColor" systemColor="systemRedColor"/>
+                                </state>
+                                <connections>
+                                    <action selector="deleteTapped:" destination="CFI-jc-756" eventType="touchUpInside" id="ROa-2H-iuk"/>
+                                    <action selector="deleteTapped:" destination="dt8-dr-5Di" eventType="touchUpInside" id="tmv-9X-cXU"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="HY7-8D-uDw"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="4U0-jU-83m" firstAttribute="leading" secondItem="HY7-8D-uDw" secondAttribute="leading" constant="20" id="8QH-yJ-CIg"/>
+                            <constraint firstItem="HY7-8D-uDw" firstAttribute="trailing" secondItem="Few-1h-eOf" secondAttribute="trailing" constant="20" id="ATT-jG-4IS"/>
+                            <constraint firstItem="Few-1h-eOf" firstAttribute="leading" secondItem="HY7-8D-uDw" secondAttribute="leading" constant="20" id="Atz-qV-gly"/>
+                            <constraint firstItem="Few-1h-eOf" firstAttribute="bottom" secondItem="HY7-8D-uDw" secondAttribute="bottom" constant="-20" id="Fdx-qB-tJW"/>
                             <constraint firstItem="HY7-8D-uDw" firstAttribute="trailing" secondItem="4U0-jU-83m" secondAttribute="trailing" constant="20" id="IvR-5K-HJw"/>
                             <constraint firstItem="4U0-jU-83m" firstAttribute="top" secondItem="HY7-8D-uDw" secondAttribute="top" constant="20" id="ePc-Z4-BuL"/>
                         </constraints>
@@ -282,6 +295,7 @@
                     </navigationItem>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
+                        <outlet property="deleteButton" destination="Few-1h-eOf" id="hY7-2E-b7s"/>
                         <outlet property="floorsTextField" destination="cio-pI-ec7" id="5a0-li-wMl"/>
                         <outlet property="nameTextField" destination="gRb-iz-2Jd" id="6LP-hw-M7p"/>
                     </connections>
@@ -409,18 +423,18 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="QAg-wT-lBg" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="103" y="-569"/>
+            <point key="canvasLocation" x="-871" y="834"/>
         </scene>
         <!--Meter Details-->
         <scene sceneID="vXu-z1-JN2">
             <objects>
-                <viewController modalPresentationStyle="fullScreen" id="DN0-ma-r1J" customClass="AddEditMeterViewController" customModule="MeterReaderKeeper" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController modalPresentationStyle="fullScreen" id="DN0-ma-r1J" customClass="AddEditFloorViewController" customModule="MeterReaderKeeper" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Eff-Jc-2kG">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="FJi-gj-Pry">
-                                <rect key="frame" x="20" y="108" width="374" height="160"/>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="FJi-gj-Pry">
+                                <rect key="frame" x="20" y="108" width="374" height="461"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Building" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uvD-yo-b08">
                                         <rect key="frame" x="0.0" y="0.0" width="374" height="40"/>
@@ -432,7 +446,7 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="9dM-jP-1AD">
-                                        <rect key="frame" x="0.0" y="40" width="374" height="40"/>
+                                        <rect key="frame" x="0.0" y="48" width="374" height="40"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="40" id="1n3-HA-CSZ"/>
                                         </constraints>
@@ -440,7 +454,7 @@
                                         <textInputTraits key="textInputTraits"/>
                                     </textField>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Floor Number" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="T8e-1c-aqF">
-                                        <rect key="frame" x="0.0" y="80" width="374" height="40"/>
+                                        <rect key="frame" x="0.0" y="96" width="374" height="40"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="40" id="0tw-q6-6xi"/>
                                         </constraints>
@@ -449,38 +463,35 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="PH8-hW-o0q">
-                                        <rect key="frame" x="0.0" y="120" width="374" height="40"/>
+                                        <rect key="frame" x="0.0" y="144" width="374" height="40"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="40" id="MQd-Yn-svo"/>
                                         </constraints>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits"/>
                                     </textField>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="8vg-EP-9XZ">
+                                        <rect key="frame" x="0.0" y="192" width="374" height="231"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="231" id="V4h-hm-mwb"/>
+                                        </constraints>
+                                    </imageView>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3Tc-EQ-fdn">
+                                        <rect key="frame" x="0.0" y="431" width="374" height="30"/>
+                                        <state key="normal" title="Add Map"/>
+                                        <connections>
+                                            <action selector="addMapTapped:" destination="DN0-ma-r1J" eventType="touchUpInside" id="RcF-m6-AgO"/>
+                                        </connections>
+                                    </button>
                                 </subviews>
                             </stackView>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fJa-Yi-u13">
-                                <rect key="frame" x="20" y="812" width="374" height="30"/>
-                                <state key="normal" title="Delete">
-                                    <color key="titleColor" systemColor="systemRedColor"/>
-                                </state>
-                                <connections>
-                                    <action selector="deleteTapped:" destination="DN0-ma-r1J" eventType="touchUpInside" id="2K1-5e-5ir"/>
-                                </connections>
-                            </button>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="8vg-EP-9XZ">
-                                <rect key="frame" x="20" y="346" width="374" height="231"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                            </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="HkV-Lw-FzF"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="HkV-Lw-FzF" firstAttribute="trailing" secondItem="FJi-gj-Pry" secondAttribute="trailing" constant="20" id="3n4-gQ-k6w"/>
-                            <constraint firstItem="fJa-Yi-u13" firstAttribute="bottom" secondItem="HkV-Lw-FzF" secondAttribute="bottom" constant="-20" id="6o0-PF-jNy"/>
                             <constraint firstItem="FJi-gj-Pry" firstAttribute="top" secondItem="HkV-Lw-FzF" secondAttribute="top" constant="20" id="BUy-qz-sHz"/>
-                            <constraint firstItem="HkV-Lw-FzF" firstAttribute="trailing" secondItem="fJa-Yi-u13" secondAttribute="trailing" constant="20" id="NIF-6k-Xas"/>
                             <constraint firstItem="FJi-gj-Pry" firstAttribute="leading" secondItem="HkV-Lw-FzF" secondAttribute="leading" constant="20" id="PAR-Sa-WTB"/>
-                            <constraint firstItem="fJa-Yi-u13" firstAttribute="leading" secondItem="HkV-Lw-FzF" secondAttribute="leading" constant="20" id="vLI-G9-azW"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Meter Details" id="IMx-8I-Gu3">
@@ -491,9 +502,10 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
-                        <outlet property="deleteButton" destination="fJa-Yi-u13" id="sCX-M1-99x"/>
-                        <outlet property="descriptionTextField" destination="PH8-hW-o0q" id="CL7-al-0HZ"/>
-                        <outlet property="nameTextField" destination="9dM-jP-1AD" id="AiK-fU-J4a"/>
+                        <outlet property="addMapButton" destination="3Tc-EQ-fdn" id="Y3N-Nt-gUI"/>
+                        <outlet property="buildingTextField" destination="9dM-jP-1AD" id="emG-ho-Uf0"/>
+                        <outlet property="currentMapImageView" destination="8vg-EP-9XZ" id="OUO-JR-Loa"/>
+                        <outlet property="floorTextField" destination="PH8-hW-o0q" id="s4t-Fz-syr"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ZOY-C5-KZg" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

@@ -34,7 +34,7 @@ class MeterManager {
     }
     
     // MARK: - Buildings
-    func saveBuilding(withName name: String, uuid: UUID, floors: Int16) {
+    func addBuilding(withName name: String, uuid: UUID, floors: Int16) {
         let managedContext = persistentContainer.viewContext
         
         let building = Building(context: managedContext)
@@ -50,7 +50,8 @@ class MeterManager {
         
         do {
             try managedContext.save()
-            buildings.append(building)
+            print("Saved building: \(String(describing: building.name)) with \(floors) floors")
+            load()
         } catch let error as NSError {
             print("Could not save. \(error), \(error.userInfo)")
         }
@@ -63,28 +64,41 @@ class MeterManager {
         
         do {
             buildings = try managedContext.fetch(fetchRequest)
+            buildings.sort { (build1, build2) -> Bool in
+                if let build1Name = build1.name, let build2Name = build2.name {
+                    return build1Name < build2Name
+                } else {
+                    return true
+                }
+            }
+            print("\(buildings.count) Buildings loaded")
         } catch let error as NSError {
             print("Could not fetch. \(error), \(error.userInfo)")
         }
     }
     
-    // MARK: - Floors
-    func saveFloor(with building: Building, number: Int16, map: Data?) {
+    func deleteBuilding(_ building: Building) {
         let managedContext = persistentContainer.viewContext
         
-        let floor = Floor(context: managedContext)
-        floor.building = building
-        floor.number = number
+        managedContext.delete(building)
         
-        saveFloor(floor)
+        do {
+            try managedContext.save()
+            print("Deleted building: \(String(describing: building.name))")
+            load()
+        } catch let error as NSError {
+            print("Could not save. \(error), \(error.userInfo)")
+        }
     }
     
+    // MARK: - Floors
     func saveFloor(_ floor: Floor) {
         let managedContext = persistentContainer.viewContext
         
         do {
             try managedContext.save()
-            floors.append(floor)
+            print("Saved floor: \(String(describing: floor.building?.name)) - \(floor.number)")
+            load()
         } catch let error as NSError {
             print("Could not save. \(error), \(error.userInfo)")
         }
@@ -97,6 +111,19 @@ class MeterManager {
         
         do {
             floors = try managedContext.fetch(fetchRequest)
+            floors.sort { (floor1, floor2) -> Bool in
+                if let floor1Build = floor1.building, let floor2Build = floor2.building,
+                   let floor1BuildName = floor1Build.name, let floor2BuildName = floor2Build.name {
+                    if floor1BuildName == floor2BuildName {
+                        return floor1.number < floor2.number
+                    } else {
+                        return floor1BuildName < floor2BuildName
+                    }
+                } else {
+                    return true
+                }
+            }
+            print("\(floors.count) floors loaded")
         } catch let error as NSError {
             print("Could not fetch. \(error), \(error.userInfo)")
         }
@@ -107,6 +134,10 @@ class MeterManager {
         
     }
     
+    func deleteMeter(_ meter: Meter) {
+        
+    }
+    
     func loadMeters() {
         let managedContext = persistentContainer.viewContext
         
@@ -114,6 +145,7 @@ class MeterManager {
         
         do {
             meters = try managedContext.fetch(fetchRequest)
+            print("\(meters.count) Meters loaded")
         } catch let error as NSError {
             print("Could not fetch. \(error), \(error.userInfo)")
         }

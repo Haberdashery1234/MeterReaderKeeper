@@ -25,7 +25,7 @@ class AddEditBuildingViewController: UIViewController {
                 floorsTextField.text = "\(floors.count)"
             }
         }
-//        deleteButton.isHidden = building == nil
+        deleteButton.isHidden = building == nil
     }
     
     @IBAction func saveTapped(_ sender: Any) {
@@ -37,9 +37,13 @@ class AddEditBuildingViewController: UIViewController {
             return
         }
         
-        MeterManager.shared.saveBuilding(withName: nameText, uuid: UUID(), floors: floorsInt)
+        if let building = building {
+            MeterManager.shared.updateBuilding(
+        } else {
+            MeterManager.shared.addBuilding(withName: nameText, uuid: UUID(), floors: floorsInt)
+        }
         
-        dismiss(animated: true, completion: nil)
+        navigationController?.popViewController(animated: true)
     }
     
     @IBAction func deleteTapped(_ sender: Any) {
@@ -47,6 +51,8 @@ class AddEditBuildingViewController: UIViewController {
             print("Nothing to delete.")
             return
         }
+        
+        MeterManager.shared.deleteBuilding(building)
         
         navigationController?.popViewController(animated: true)
     }

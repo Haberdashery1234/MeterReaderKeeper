@@ -39,11 +39,6 @@ class ManagementTableViewController: UIViewController {
         }
         alert.addAction(buildingAction)
         
-        let floorAction = UIAlertAction(title: "Floor", style: .default) { (_) in
-            self.performSegue(withIdentifier: self.floorDetailsSegue, sender: nil)
-        }
-        alert.addAction(floorAction)
-        
         if MeterManager.shared.floors.count > 0 {
             let meterAction = UIAlertAction(title: "Meter", style: .default) { (_) in
                 self.performSegue(withIdentifier: self.meterDetailsSegue, sender: nil)

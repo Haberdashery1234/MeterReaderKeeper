@@ -24,6 +24,7 @@
 		7CAAF440264199F000B5EFC2 /* BuildingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAAF43F264199F000B5EFC2 /* BuildingTableViewCell.swift */; };
 		7CAAF445264199FC00B5EFC2 /* FloorTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAAF444264199FC00B5EFC2 /* FloorTableViewCell.swift */; };
 		7CAAF44A26419A0600B5EFC2 /* MeterTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAAF44926419A0600B5EFC2 /* MeterTableViewCell.swift */; };
+		7CAAF4632641B80400B5EFC2 /* AddEditFloorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAAF4622641B80400B5EFC2 /* AddEditFloorViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +76,7 @@
 		7CAAF43F264199F000B5EFC2 /* BuildingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildingTableViewCell.swift; sourceTree = "<group>"; };
 		7CAAF444264199FC00B5EFC2 /* FloorTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloorTableViewCell.swift; sourceTree = "<group>"; };
 		7CAAF44926419A0600B5EFC2 /* MeterTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeterTableViewCell.swift; sourceTree = "<group>"; };
+		7CAAF4622641B80400B5EFC2 /* AddEditFloorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditFloorViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -187,6 +189,7 @@
 				7C6EC9D9263F095100DFDAEE /* HomeViewController.swift */,
 				7C6EC9DE263F095100DFDAEE /* ManagementTableViewController.swift */,
 				7C4690E42640E5A1009A11C0 /* AddEditBuildingViewController.swift */,
+				7CAAF4622641B80400B5EFC2 /* AddEditFloorViewController.swift */,
 				7C6EC9DC263F095100DFDAEE /* AddEditMeterViewController.swift */,
 				7C6EC9F0263F1C7100DFDAEE /* PreviousReadingsViewController.swift */,
 			);
@@ -351,6 +354,7 @@
 				7C6EC9E1263F095100DFDAEE /* HomeViewController.swift in Sources */,
 				7CAAF445264199FC00B5EFC2 /* FloorTableViewCell.swift in Sources */,
 				7C6EC9F1263F1C7100DFDAEE /* PreviousReadingsViewController.swift in Sources */,
+				7CAAF4632641B80400B5EFC2 /* AddEditFloorViewController.swift in Sources */,
 				7C6EC9E5263F095100DFDAEE /* SceneDelegate.swift in Sources */,
 				7CAAF440264199F000B5EFC2 /* BuildingTableViewCell.swift in Sources */,
 			);
