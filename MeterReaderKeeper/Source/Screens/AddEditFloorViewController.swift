@@ -18,8 +18,6 @@ class AddEditFloorViewController: UIViewController {
     @IBOutlet weak var floorTextField: UITextField!
     @IBOutlet weak var currentMapImageView: UIImageView!
     @IBOutlet weak var addMapButton: UIButton!
-    
-    @IBOutlet weak var deleteButton: UIButton!
 
     var buildingPickerView = UIPickerView()
     
@@ -51,7 +49,6 @@ class AddEditFloorViewController: UIViewController {
                 currentMapImageView.isHidden = true
             }
         }
-        deleteButton.isHidden = floor == nil
     }
     
     @IBAction func addMapTapped(_ sender: Any) {

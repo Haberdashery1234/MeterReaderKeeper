@@ -37,11 +37,7 @@ class AddEditBuildingViewController: UIViewController {
             return
         }
         
-        if let building = building {
-            MeterManager.shared.updateBuilding(
-        } else {
-            MeterManager.shared.addBuilding(withName: nameText, uuid: UUID(), floors: floorsInt)
-        }
+        MeterManager.shared.addBuilding(withName: nameText, floors: floorsInt)
         
         navigationController?.popViewController(animated: true)
     }

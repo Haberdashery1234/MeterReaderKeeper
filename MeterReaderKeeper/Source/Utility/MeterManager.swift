@@ -34,12 +34,11 @@ class MeterManager {
     }
     
     // MARK: - Buildings
-    func addBuilding(withName name: String, uuid: UUID, floors: Int16) {
+    func addBuilding(withName name: String, floors: Int16) {
         let managedContext = persistentContainer.viewContext
         
         let building = Building(context: managedContext)
         building.name = name
-        building.uuid = uuid
         
         for i in 1...floors {
             let floor = Floor(context: managedContext)
@@ -50,7 +49,7 @@ class MeterManager {
         
         do {
             try managedContext.save()
-            print("Saved building: \(String(describing: building.name)) with \(floors) floors")
+            print("Added building: \(String(describing: building.name)) with \(floors) floors")
             load()
         } catch let error as NSError {
             print("Could not save. \(error), \(error.userInfo)")
@@ -80,6 +79,12 @@ class MeterManager {
     func deleteBuilding(_ building: Building) {
         let managedContext = persistentContainer.viewContext
         
+        let buildFloors = floors.filter { (flr) -> Bool in
+            return flr.building == building
+        }
+        for floor in buildFloors {
+            managedContext.delete(floor)
+        }
         managedContext.delete(building)
         
         do {
@@ -130,12 +135,37 @@ class MeterManager {
     }
     
     // MARK: - Meters
-    func saveMeter() {
+    func addMeter(withName name: String, description: String, floor: Floor, qrString: String, image: Data?) {
+        let managedContext = persistentContainer.viewContext
         
+        let meter = Meter(context: managedContext)
+        meter.name = name
+        meter.meterDescription = description
+        meter.qrString = qrString
+        meter.image = image
+        meter.floor = floor
+        
+        do {
+            try managedContext.save()
+            print("Added meter: \(qrString)")
+            load()
+        } catch let error as NSError {
+            print("Could not save. \(error), \(error.userInfo)")
+        }
     }
     
     func deleteMeter(_ meter: Meter) {
+        let managedContext = persistentContainer.viewContext
         
+        managedContext.delete(meter)
+        
+        do {
+            try managedContext.save()
+            print("Deleted meter: \(String(describing: meter.name))")
+            load()
+        } catch let error as NSError {
+            print("Could not save. \(error), \(error.userInfo)")
+        }
     }
     
     func loadMeters() {
@@ -148,6 +178,26 @@ class MeterManager {
             print("\(meters.count) Meters loaded")
         } catch let error as NSError {
             print("Could not fetch. \(error), \(error.userInfo)")
+        }
+    }
+    
+    // MARK: - Readings
+    func addReading(toMeter meter: Meter, with kWh: Double) {
+        let managedContext = persistentContainer.viewContext
+        
+        let date = Calendar.current.startOfDay(for: Date())
+        
+        let reading = Reading(context: managedContext)
+        reading.kWh = kWh
+        reading.meter = meter
+        reading.date = date
+        
+        do {
+            try managedContext.save()
+            print("Added reading: \(kWh) kWh to meter: \(String(describing: meter.name))")
+            load()
+        } catch let error as NSError {
+            print("Could not save. \(error), \(error.userInfo)")
         }
     }
 }

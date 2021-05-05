@@ -9,6 +9,7 @@ import UIKit
 
 class FloorTableViewCell: UITableViewCell {
 
+    @IBOutlet weak var floorMapImageView: UIImageView!
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var metersLabel: UILabel!
 
@@ -24,6 +25,9 @@ class FloorTableViewCell: UITableViewCell {
         nameLabel.text = nameString
         if let meters = floor.meters {
             metersLabel.text = "\(meters.count) Meters"
+        }
+        if let mapData = floor.map {
+            floorMapImageView.image = UIImage(data: mapData)
         }
     }
 }

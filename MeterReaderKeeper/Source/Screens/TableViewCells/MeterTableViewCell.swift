@@ -9,15 +9,23 @@ import UIKit
 
 class MeterTableViewCell: UITableViewCell {
 
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        // Initialization code
+    @IBOutlet weak var meterImageView: UIImageView!
+    @IBOutlet weak var nameLabel: UILabel!
+    @IBOutlet weak var locationLabel: UILabel!
+
+    func setup(withMeter meter: Meter) {
+        nameLabel.text = meter.name
+        var locationString = ""
+        if
+            let floor = meter.floor,
+            let building = floor.building,
+            let buildingName = building.name
+        {
+            locationString += "\(buildingName) - Floor \(floor.number)"
+        }
+        locationLabel.text = locationString
+        if let imageData = meter.image {
+            meterImageView.image = UIImage(data: imageData)
+        }
     }
-
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-
-        // Configure the view for the selected state
-    }
-
 }

@@ -2,7 +2,7 @@
 //  Reading+CoreDataProperties.swift
 //  MeterReaderKeeper
 //
-//  Created by Christian Grise on 5/3/21.
+//  Created by Christian Grise on 5/4/21.
 //
 //
 
@@ -16,9 +16,9 @@ extension Reading {
         return NSFetchRequest<Reading>(entityName: "Reading")
     }
 
-    @NSManaged public var date: Date?
+    @NSManaged public var date: Date
     @NSManaged public var kWh: Double
-    @NSManaged public var meter: Meter?
+    @NSManaged public var meter: Meter
 
 }
 

@@ -132,19 +132,8 @@ extension ManagementTableViewController: UITableViewDataSource {
             return cell
         case 2:
             let cell = tableView.dequeueReusableCell(withIdentifier: "MeterCell") as? MeterTableViewCell ?? MeterTableViewCell(style: .default, reuseIdentifier: "MeterCell")
-//            let meter = MeterManager.shared.meters[indexPath.row]
-//            cell.textLabel?.text = meter.value(forKeyPath: "name") as? String
-//
-//            var locationString = ""
-//            if
-//                let floor = meter.floor,
-//                let building = floor.building,
-//                let buildingName = building.name
-//            {
-//                locationString = "\(buildingName) - Floor \(floor.number)"
-//            }
-//
-//            cell.detailTextLabel?.text = locationString
+            let meter = MeterManager.shared.meters[indexPath.row]
+            cell.setup(withMeter: meter)
             return cell
         default:
             let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
