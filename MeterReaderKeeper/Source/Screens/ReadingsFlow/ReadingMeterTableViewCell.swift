@@ -11,6 +11,8 @@ class ReadingMeterTableViewCell: UITableViewCell {
 
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var readingDoneCheckImageView: UIImageView!
+
+    var meter: Meter!
     
     func setup(withMeter meter: Meter) {
         nameLabel.text = meter.name
