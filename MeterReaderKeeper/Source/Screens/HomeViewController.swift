@@ -12,9 +12,13 @@ class HomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Do any additional setup after loading the view.
-        if MeterManager.shared.buildings.count == 0 {        
+    }
+    
+    @IBAction func seedData() {
+        if MeterManager.shared.buildings.count == 0 {
             DataSeeder.shared.seedData()
+        } else {
+            DataSeeder.shared.seedMoreReadings()
         }
     }
     

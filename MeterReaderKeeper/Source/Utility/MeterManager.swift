@@ -138,15 +138,16 @@ class MeterManager {
     }
     
     // MARK: - Meters
-    func addMeter(withName name: String, description: String, floor: Floor, qrString: String, image: Data?) -> Meter {
+    func addMeter(withName name: String, description: String, floor: Floor, image: Data?, buildingName: String) -> Meter {
         let managedContext = persistentContainer.viewContext
         
         let meter = Meter(context: managedContext)
         meter.name = name
         meter.meterDescription = description
-        meter.qrString = qrString
         meter.image = image
         meter.floor = floor
+        let qrString = "\(buildingName)::\(floor.number)::\(name)"
+        meter.qrString = qrString
         
         do {
             try managedContext.save()
@@ -186,10 +187,8 @@ class MeterManager {
     }
     
     // MARK: - Readings
-    func addReading(toMeter meter: Meter, with kWh: Double) {
+    func addReading(toMeter meter: Meter, withKWH kWh: Double, date: Date) {
         let managedContext = persistentContainer.viewContext
-        
-        let date = Calendar.current.startOfDay(for: Date())
         
         meter.latestReading = date
         let reading = Reading(context: managedContext)

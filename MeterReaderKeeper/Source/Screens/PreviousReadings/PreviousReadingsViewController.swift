@@ -129,7 +129,7 @@ class PreviousReadingsViewController: UIViewController, UIToolbarDelegate {
         MeterManager.shared.loadAllReadings()
 
         buildings = MeterManager.shared.buildings
-        dates = Array(MeterManager.shared.allReadingsDates.keys)
+        dates = Array(MeterManager.shared.allReadingsDates.keys).sorted().reversed()
         
         if MeterManager.shared.buildings.count == 1 {
             building = MeterManager.shared.buildings[0]

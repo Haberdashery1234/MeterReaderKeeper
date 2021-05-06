@@ -16,7 +16,7 @@ extension Building {
         return NSFetchRequest<Building>(entityName: "Building")
     }
 
-    @NSManaged public var name: String?
+    @NSManaged public var name: String
     @NSManaged public var floors: NSOrderedSet
 
 }

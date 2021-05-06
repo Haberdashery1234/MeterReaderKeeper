@@ -34,6 +34,11 @@ class ReadingsMainViewController: UIViewController {
             readingVC?.meter = sender as? Meter
         }
     }
+    
+    @IBAction func scanQRCodeTapped(_ sender: Any) {
+        performSegue(withIdentifier: "TakeReadingsMainToQRScannerSegue", sender: nil)
+    }
+    
 }
 
 extension ReadingsMainViewController: UITableViewDataSource {

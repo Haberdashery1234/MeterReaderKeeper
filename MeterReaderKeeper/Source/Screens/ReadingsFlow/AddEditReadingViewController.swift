@@ -11,6 +11,7 @@ class AddEditReadingViewController: UIViewController {
     
     @IBOutlet weak var buildingNameLabel: UILabel!
     @IBOutlet weak var floorLabel: UILabel!
+    @IBOutlet weak var descriptionLabel: UILabel!
     @IBOutlet weak var readingTextField: UITextField!
     @IBOutlet weak var meterImageView: UIImageView!
     
@@ -21,7 +22,23 @@ class AddEditReadingViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Do any additional setup after loading the view.
+        if let meter = meter {
+            if
+                let floor = meter.floor,
+                let building = floor.building,
+                let buildingName = building.name {
+                buildingNameLabel.text = buildingName
+                floorLabel.text = "Floor \(floor.number)"
+                descriptionLabel.text = meter.meterDescription
+                if let meterImageData = meter.image {
+                    meterImageView.image = UIImage(data: meterImageData)
+                }
+            }
+        }
+        
+        if let reading = reading {
+            readingTextField.text = "\(reading.kWh)"
+        }
     }
     
     @IBAction func saveTapped(_ sender: Any) {
@@ -37,7 +54,8 @@ class AddEditReadingViewController: UIViewController {
         if let reading = reading {
             MeterManager.shared.updateReading(reading, with: meterReading)
         } else {
-            MeterManager.shared.addReading(toMeter: meter, with: meterReading)
+            let date = Calendar.current.startOfDay(for: Date())
+            MeterManager.shared.addReading(toMeter: meter, withKWH: meterReading, date: date)
         }
         navigationController?.popViewController(animated: true)
     }

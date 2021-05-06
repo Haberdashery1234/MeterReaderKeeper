@@ -33,7 +33,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="50" translatesAutoresizingMaskIntoConstraints="NO" id="tPK-Xx-z8T">
-                                <rect key="frame" x="50" y="278" width="314" height="340"/>
+                                <rect key="frame" x="50" y="213" width="314" height="470"/>
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Y2O-lr-sa0">
                                         <rect key="frame" x="4" y="0.0" width="306" height="80"/>
@@ -66,7 +66,17 @@
                                         <state key="normal" title="Previous Readings"/>
                                         <connections>
                                             <action selector="previousReadingsTapped:" destination="2BO-Gn-qfn" eventType="touchUpInside" id="C8Y-5q-79V"/>
-                                            <action selector="previousReadingsTapped:" destination="ZpY-b7-aZp" eventType="touchUpInside" id="awx-pW-qOC"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YBf-HW-3u0" userLabel="Add Test Data">
+                                        <rect key="frame" x="37.5" y="390" width="239" height="80"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="80" id="kwy-OX-ike"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="40"/>
+                                        <state key="normal" title="Add Test Data"/>
+                                        <connections>
+                                            <action selector="seedData" destination="2BO-Gn-qfn" eventType="touchUpInside" id="gtf-ab-9MF"/>
                                         </connections>
                                     </button>
                                 </subviews>
@@ -85,7 +95,6 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="mzh-hn-FWO" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-                <exit id="ZpY-b7-aZp" userLabel="Exit" sceneMemberID="exit"/>
             </objects>
             <point key="canvasLocation" x="-871" y="110"/>
         </scene>
@@ -877,26 +886,38 @@
                                 </constraints>
                                 <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                 <state key="normal" image="qrcode.viewfinder" catalog="system"/>
+                                <connections>
+                                    <action selector="scanQRCodeTapped:" destination="x72-Hb-o1O" eventType="touchUpInside" id="cuM-SU-sAe"/>
+                                </connections>
                             </button>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="SCA-3r-SgF">
                                 <rect key="frame" x="20" y="170" width="374" height="692"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="ReadingMeterCell" rowHeight="57" id="2We-Ii-TQc" customClass="ReadingMeterTableViewCell" customModule="MeterReaderKeeper" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="28" width="374" height="57"/>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="ReadingMeterCell" rowHeight="71" id="2We-Ii-TQc" customClass="ReadingMeterTableViewCell" customModule="MeterReaderKeeper" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="28" width="374" height="71"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="2We-Ii-TQc" id="3qv-6v-QPm">
-                                            <rect key="frame" x="0.0" y="0.0" width="374" height="57"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="374" height="71"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PYp-7a-eGP">
-                                                    <rect key="frame" x="20" y="18" width="42" height="21"/>
+                                                    <rect key="frame" x="20" y="16" width="42" height="20"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="20" id="uqf-sY-mO2"/>
+                                                    </constraints>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2gI-qN-vpT">
+                                                    <rect key="frame" x="20" y="38" width="33" height="16"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
                                                 <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="checkmark" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="0s6-uT-o7x">
-                                                    <rect key="frame" x="314" y="10.5" width="40" height="36.5"/>
+                                                    <rect key="frame" x="314" y="17.5" width="40" height="36.5"/>
                                                     <color key="tintColor" systemColor="systemGreenColor"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="40" id="e3Z-8D-hWy"/>
@@ -906,13 +927,18 @@
                                             </subviews>
                                             <constraints>
                                                 <constraint firstItem="0s6-uT-o7x" firstAttribute="centerY" secondItem="3qv-6v-QPm" secondAttribute="centerY" id="3Te-8U-KyU"/>
-                                                <constraint firstItem="PYp-7a-eGP" firstAttribute="centerY" secondItem="3qv-6v-QPm" secondAttribute="centerY" id="BaS-Lv-WTn"/>
                                                 <constraint firstItem="0s6-uT-o7x" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="PYp-7a-eGP" secondAttribute="trailing" constant="20" id="HSm-q0-85z"/>
                                                 <constraint firstAttribute="trailing" secondItem="0s6-uT-o7x" secondAttribute="trailing" constant="20" id="Ri1-qD-BQJ"/>
                                                 <constraint firstItem="PYp-7a-eGP" firstAttribute="leading" secondItem="3qv-6v-QPm" secondAttribute="leadingMargin" id="bFJ-5r-FSK"/>
+                                                <constraint firstItem="0s6-uT-o7x" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="2gI-qN-vpT" secondAttribute="trailing" constant="20" id="eCT-na-Qsg"/>
+                                                <constraint firstItem="2gI-qN-vpT" firstAttribute="top" secondItem="PYp-7a-eGP" secondAttribute="bottom" constant="2" id="gEm-NT-uct"/>
+                                                <constraint firstItem="2gI-qN-vpT" firstAttribute="leading" secondItem="3qv-6v-QPm" secondAttribute="leadingMargin" id="i2R-Wa-qZm"/>
+                                                <constraint firstAttribute="bottomMargin" secondItem="2gI-qN-vpT" secondAttribute="bottom" constant="6" id="qH1-KV-bpD"/>
+                                                <constraint firstItem="PYp-7a-eGP" firstAttribute="top" secondItem="3qv-6v-QPm" secondAttribute="topMargin" constant="5" id="urV-yc-ZdD"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                         <connections>
+                                            <outlet property="locationLabel" destination="2gI-qN-vpT" id="ebn-ph-ta8"/>
                                             <outlet property="nameLabel" destination="PYp-7a-eGP" id="cwV-8z-q8g"/>
                                             <outlet property="readingDoneCheckImageView" destination="0s6-uT-o7x" id="tHI-Hd-fuE"/>
                                         </connections>
@@ -951,11 +977,27 @@
                     <connections>
                         <outlet property="metersTableView" destination="SCA-3r-SgF" id="jVP-sm-kIw"/>
                         <segue destination="Bhp-E5-6C8" kind="show" identifier="ReadingMainToAddReadingSegue" id="YUE-gI-QtA"/>
+                        <segue destination="Rgc-zG-Izx" kind="presentation" identifier="TakeReadingsMainToQRScannerSegue" id="GwO-Sn-T2j"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cAV-aO-rz4" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="102.89855072463769" y="-589.28571428571422"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="6Lj-14-Hxy">
+            <objects>
+                <viewController id="Rgc-zG-Izx" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="oaN-Aq-U6L">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="842"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <viewLayoutGuide key="safeArea" id="dQv-Tf-ZDg"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="mw5-yr-Dhu" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="880" y="-1281"/>
         </scene>
         <!--Add Edit Reading View Controller-->
         <scene sceneID="4v0-dt-uCu">
@@ -972,7 +1014,7 @@
                                 </constraints>
                             </imageView>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="no0-xA-fcQ">
-                                <rect key="frame" x="20" y="108" width="374" height="105"/>
+                                <rect key="frame" x="20" y="108" width="374" height="140.5"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Building Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1eb-hp-eck">
                                         <rect key="frame" x="132" y="0.0" width="110.5" height="20.5"/>
@@ -986,8 +1028,14 @@
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Meter Description" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1G7-a5-gCF">
+                                        <rect key="frame" x="119" y="71" width="136.5" height="20.5"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="4sn-iP-eVr">
-                                        <rect key="frame" x="105" y="71" width="164.5" height="34"/>
+                                        <rect key="frame" x="105" y="106.5" width="164.5" height="34"/>
                                         <subviews>
                                             <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="trailing" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Meter Reading" textAlignment="right" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="YaB-qf-tmz">
                                                 <rect key="frame" x="0.0" y="0.0" width="122" height="34"/>
@@ -1026,6 +1074,7 @@
                     </navigationItem>
                     <connections>
                         <outlet property="buildingNameLabel" destination="1eb-hp-eck" id="MMM-pu-hMB"/>
+                        <outlet property="descriptionLabel" destination="1G7-a5-gCF" id="Jpi-ML-KDx"/>
                         <outlet property="floorLabel" destination="dJd-10-gUP" id="QIH-Vv-zBe"/>
                         <outlet property="meterImageView" destination="OYU-EF-eQu" id="8B4-ZN-4es"/>
                         <outlet property="readingTextField" destination="YaB-qf-tmz" id="thy-AS-sFC"/>

@@ -69,8 +69,8 @@ class AddEditMeterViewController: UIViewController {
                 building = meterBuilding
                 floor = meterFloor
             }
-            nameTextField.text = meter.value(forKey: "name") as? String
-            descriptionTextField.text = meter.value(forKey: "meterDescription") as? String
+            nameTextField.text = meter.name
+            descriptionTextField.text = meter.meterDescription
         }
         deleteButton.isHidden = meter == nil
     }
@@ -86,10 +86,7 @@ class AddEditMeterViewController: UIViewController {
             return
         }
         
-        let uuid = NSUUID()
-        let qrString = "\(uuid)-\(buildingName)-\(floor.number)-\(nameText)"
-        
-        _ = MeterManager.shared.addMeter(withName: nameText, description: descriptionText, floor: floor, qrString: qrString, image: meterImageImageView.image?.pngData())
+        _ = MeterManager.shared.addMeter(withName: nameText, description: descriptionText, floor: floor, image: meterImageImageView.image?.pngData(), buildingName: buildingName)
         
         navigationController?.popViewController(animated: true)
     }
