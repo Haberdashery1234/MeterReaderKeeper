@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import MessageUI
 
 class ReadingsMainViewController: UIViewController {
 
@@ -49,8 +50,38 @@ class ReadingsMainViewController: UIViewController {
         }
     }
     
+    @IBAction func sendButtonTapped(_ sender: Any) {
+
+        guard
+            let building = building,
+            let csvData = MeterManager.shared.getCSVData(forBuilding: building)
+        else {
+            print("Building is nil or csvData is nil")
+            return
+        }
+        if MFMailComposeViewController.canSendMail() {
+            let mail = MFMailComposeViewController()
+            mail.mailComposeDelegate = self
+            mail.setToRecipients([])
+            mail.setMessageBody("Readings from today!", isHTML: false)
+            mail.addAttachmentData(csvData, mimeType: "text/csv", fileName: "ReadingsCSV.csv")
+            
+            present(mail, animated: true)
+        } else {
+            let alertController = UIAlertController(title: "", message: "Email is not configured on this device", preferredStyle: .alert)
+            alertController.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+            present(alertController, animated: true)
+        }
+    }
+    
     @IBAction func scanQRCodeTapped(_ sender: Any) {
         performSegue(withIdentifier: "TakeReadingsMainToQRScannerSegue", sender: nil)
+    }
+}
+
+extension ReadingsMainViewController: MFMailComposeViewControllerDelegate {
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+        controller.dismiss(animated: true)
     }
 }
 

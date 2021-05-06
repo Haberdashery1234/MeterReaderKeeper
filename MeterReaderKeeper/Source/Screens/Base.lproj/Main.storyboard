@@ -972,7 +972,11 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="Z2Y-9p-NVl">
-                        <barButtonItem key="rightBarButtonItem" style="done" systemItem="action" id="qLl-bL-NHJ"/>
+                        <barButtonItem key="rightBarButtonItem" style="done" systemItem="action" id="qLl-bL-NHJ">
+                            <connections>
+                                <action selector="sendButtonTapped:" destination="x72-Hb-o1O" id="7wg-3U-tfz"/>
+                            </connections>
+                        </barButtonItem>
                     </navigationItem>
                     <connections>
                         <outlet property="metersTableView" destination="SCA-3r-SgF" id="jVP-sm-kIw"/>

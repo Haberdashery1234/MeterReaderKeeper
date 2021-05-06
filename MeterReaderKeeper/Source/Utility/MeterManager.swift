@@ -339,4 +339,62 @@ class MeterManager {
         }
         return readings
     }
+    
+    // MARK: - CSV Data
+    func getCSVData(forBuilding building: Building) -> Data? {
+        var csvString = ""
+        if let buildingName = building.name {
+            csvString.append("\(buildingName)")
+            if let buildFloors = building.floors?.array as? [Floor] {
+                for floor in buildFloors {
+                    csvString.append("\nFloor \(floor.number)\n")
+                    if let floorMeters = floor.meters?.array as? [Meter] {
+                        for meter in floorMeters {
+                            if
+                                var readings = meter.readings?.array as? [Reading],
+                                let meterName = meter.name {
+                                readings.sort { (r1, r2) -> Bool in
+                                    guard let r1Date = r1.date, let r2Date = r2.date else {
+                                        return true
+                                    }
+                                    return r1Date > r2Date
+                                }
+                                if readings.count > 0 {
+                                    let latestReading = readings[0]
+                                    if let latestReadingDate = latestReading.date,
+                                       latestReadingDate == Calendar.current.startOfDay(for: Date())
+                                    {
+                                        let formatter = DateFormatter()
+                                        formatter.dateStyle = .short
+                                        formatter.timeStyle = .none
+                                        let latestReadingString = formatter.string(from: latestReadingDate)
+                                        
+                                        let meterId = "\(buildingName)::\(floor.number)::\(meterName)"
+                                        let latestReadingKWH = String(format: "%.2f kWh", latestReading.kWh)
+                                        csvString.append(",\(meterId),\(latestReadingKWH),\(latestReadingString)\n")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        let fileManager = FileManager.default
+        do {
+            let path = try fileManager.url(for: .documentDirectory, in: .allDomainsMask, appropriateFor: nil, create: false)
+            let fileURL = path.appendingPathComponent("ReadingsCSVFile.csv")
+            try csvString.write(to: fileURL, atomically: true, encoding: .utf8)
+         
+            if fileManager.fileExists(atPath: fileURL.path){
+                if let csvData = NSData(contentsOfFile: fileURL.path) {
+                    return csvData as Data
+                }
+            }
+        } catch {
+            print("error creating file")
+        }
+        return nil
+    }
 }
