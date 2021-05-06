@@ -13,7 +13,10 @@ class BuildingTableViewCell: UITableViewCell {
     @IBOutlet weak var floorsLabel: UILabel!
     @IBOutlet weak var metersLabel: UILabel!
     
+    var building = Building()
+    
     func setup(withBuilding building: Building) {
+        self.building = building
         nameLabel.text = building.name
         if let floors = building.floors {
             floorsLabel.text = "\(floors.count) Floors"

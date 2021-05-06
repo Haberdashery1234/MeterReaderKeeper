@@ -16,6 +16,9 @@ class MeterManager {
     var buildings: [Building] = []
     var floors: [Floor] = []
     var meters: [Meter] = []
+    var allReadings: [Reading] = []
+    var allReadingsStructured: [Building : [Floor : [Meter : [Reading]]]] = [:]
+    var allReadingsDates: [Date : [Reading]] = [:]
     
     init() {
         persistentContainer = NSPersistentContainer(name: "MeterReader")
@@ -135,7 +138,7 @@ class MeterManager {
     }
     
     // MARK: - Meters
-    func addMeter(withName name: String, description: String, floor: Floor, qrString: String, image: Data?) {
+    func addMeter(withName name: String, description: String, floor: Floor, qrString: String, image: Data?) -> Meter {
         let managedContext = persistentContainer.viewContext
         
         let meter = Meter(context: managedContext)
@@ -152,6 +155,7 @@ class MeterManager {
         } catch let error as NSError {
             print("Could not save. \(error), \(error.userInfo)")
         }
+        return meter
     }
     
     func deleteMeter(_ meter: Meter) {
@@ -187,6 +191,7 @@ class MeterManager {
         
         let date = Calendar.current.startOfDay(for: Date())
         
+        meter.latestReading = date
         let reading = Reading(context: managedContext)
         reading.kWh = kWh
         reading.meter = meter
@@ -199,5 +204,140 @@ class MeterManager {
         } catch let error as NSError {
             print("Could not save. \(error), \(error.userInfo)")
         }
+    }
+    
+    func updateReading(_ reading: Reading, with kWh: Double) {
+        let managedContext = persistentContainer.viewContext
+        
+        let date = Calendar.current.startOfDay(for: Date())
+
+        if let meter = reading.meter {
+            meter.latestReading = date
+        }
+        
+        reading.kWh = kWh
+        reading.date = date
+        
+        do {
+            try managedContext.save()
+            print("Updated reading")
+            load()
+        } catch let error as NSError {
+            print("Could not save. \(error), \(error.userInfo)")
+        }
+    }
+    
+    func loadAllReadings() {
+        let managedContext = persistentContainer.viewContext
+        
+        let fetchRequest: NSFetchRequest<Reading> = Reading.fetchRequest()
+        
+        do {
+            allReadings = try managedContext.fetch(fetchRequest)
+            print("\(allReadings.count) readings loaded")
+            structureReadings()
+            groupReadingsByDate()
+        } catch let error as NSError {
+            print("Could not fetch. \(error), \(error.userInfo)")
+        }
+    }
+    
+    private func groupReadingsByDate() {
+        var localReadingsByDate: [Date : [Reading]] = [:]
+        for reading in allReadings {
+            if let date = reading.date {
+                if localReadingsByDate[date] == nil {
+                    localReadingsByDate[date] = [Reading]()
+                }
+                localReadingsByDate[date]?.append(reading)
+            }
+        }
+        allReadingsDates = localReadingsByDate
+    }
+    
+    private func structureReadings() {
+        var localMeters = [Meter : [Reading]]()
+        for reading in allReadings {
+            if let meter = reading.meter {
+                if localMeters[meter] == nil {
+                    localMeters[meter] = [Reading]()
+                }
+                localMeters[meter]?.append(reading)
+            }
+        }
+        
+        var localFloors = [Floor : [Meter : [Reading]]]()
+        for (meter, readings) in localMeters {
+            if let floor = meter.floor {
+                if localFloors[floor] == nil {
+                    localFloors[floor] = [Meter : [Reading]]()
+                }
+                var thisMeter = [Meter : [Reading]]()
+                thisMeter[meter] = readings
+                localFloors[floor]?.merge(thisMeter, uniquingKeysWith: { (r1, _) -> [Reading] in r1 })
+            }
+        }
+        
+        var localBuildings = [Building : [Floor : [Meter : [Reading]]]]()
+        for (floor, meters) in localFloors {
+            if let building = floor.building {
+                if localBuildings[building] == nil {
+                    localBuildings[building] = [Floor : [Meter : [Reading]]]()
+                }
+                var thisFloor = [Floor : [Meter : [Reading]]]()
+                thisFloor[floor] = meters
+                localBuildings[building]?.merge(thisFloor, uniquingKeysWith: { (r1, _) -> [Meter : [Reading]] in r1 })
+            }
+        }
+        
+        allReadingsStructured = localBuildings
+    }
+    
+    func getReadings(forDate date: Date) -> [Reading] {
+        return allReadingsDates[date] ?? []
+    }
+    
+    func getReadings(forBuilding building: Building) -> [Reading] {
+        guard let floorsDict = allReadingsStructured[building] else {
+            print("No floors in building")
+            return []
+        }
+        var readings = [Reading]()
+        for (_, floorMeters) in floorsDict {
+            for (_, meterReadings) in floorMeters {
+                readings.append(contentsOf: meterReadings)
+            }
+        }
+        return readings
+    }
+    
+    func getReadings(forFloor floor: Floor) -> [Reading] {
+        guard
+            let building = floor.building,
+            let floorsDict = allReadingsStructured[building],
+            let meterDict = floorsDict[floor]
+        else {
+            print("No meters in floor")
+            return []
+        }
+        var readings = [Reading]()
+        for (_, meterReadings) in meterDict {
+            readings.append(contentsOf: meterReadings)
+        }
+        return readings
+    }
+    
+    func getReadings(forMeter meter: Meter) -> [Reading] {
+        guard
+            let floor = meter.floor,
+            let building = floor.building,
+            let floorsDict = allReadingsStructured[building],
+            let meterDict = floorsDict[floor],
+            let readings = meterDict[meter]
+        else {
+            print("No readings for meter")
+            return []
+        }
+        return readings
     }
 }

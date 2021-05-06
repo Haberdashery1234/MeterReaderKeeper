@@ -13,7 +13,10 @@ class FloorTableViewCell: UITableViewCell {
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var metersLabel: UILabel!
 
+    var floor = Floor()
+    
     func setup(withFloor floor: Floor) {
+        self.floor = floor
         var nameString = ""
         if
             let building = floor.building,

@@ -7,28 +7,32 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7C4690E52640E5A1009A11C0 /* AddEditBuildingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4690E42640E5A1009A11C0 /* AddEditBuildingViewController.swift */; };
 		7C4AF7FC263CD435002E65CB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C4AF7FA263CD435002E65CB /* Main.storyboard */; };
 		7C4AF7FE263CD436002E65CB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C4AF7FD263CD436002E65CB /* Assets.xcassets */; };
 		7C4AF801263CD436002E65CB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C4AF7FF263CD436002E65CB /* LaunchScreen.storyboard */; };
 		7C4AF80C263CD436002E65CB /* Meter_Reader_KeeperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4AF80B263CD436002E65CB /* Meter_Reader_KeeperTests.swift */; };
 		7C4AF817263CD436002E65CB /* Meter_Reader_KeeperUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4AF816263CD436002E65CB /* Meter_Reader_KeeperUITests.swift */; };
+		7C685CA72643376800981B6D /* PreviousReadingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C685CA62643376800981B6D /* PreviousReadingTableViewCell.swift */; };
+		7C685CB026433B1700981B6D /* AddEditMeterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C685CAC26433B1700981B6D /* AddEditMeterViewController.swift */; };
+		7C685CB126433B1700981B6D /* AddEditFloorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C685CAD26433B1700981B6D /* AddEditFloorViewController.swift */; };
+		7C685CB226433B1700981B6D /* ManagementTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C685CAE26433B1700981B6D /* ManagementTableViewController.swift */; };
+		7C685CB326433B1700981B6D /* AddEditBuildingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C685CAF26433B1700981B6D /* AddEditBuildingViewController.swift */; };
+		7C685CEE2643443300981B6D /* KeyboardAccessory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C685CED2643443300981B6D /* KeyboardAccessory.swift */; };
+		7C685CF32643453800981B6D /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C685CF22643453800981B6D /* Constants.swift */; };
+		7C685CFB26436C4D00981B6D /* DataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C685CFA26436C4D00981B6D /* DataSeeder.swift */; };
 		7C6EC9DF263F095100DFDAEE /* MeterReader.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 7C6EC9D6263F095100DFDAEE /* MeterReader.xcdatamodeld */; };
 		7C6EC9E1263F095100DFDAEE /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6EC9D9263F095100DFDAEE /* HomeViewController.swift */; };
 		7C6EC9E2263F095100DFDAEE /* MeterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6EC9DA263F095100DFDAEE /* MeterManager.swift */; };
 		7C6EC9E3263F095100DFDAEE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6EC9DB263F095100DFDAEE /* AppDelegate.swift */; };
-		7C6EC9E4263F095100DFDAEE /* AddEditMeterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6EC9DC263F095100DFDAEE /* AddEditMeterViewController.swift */; };
 		7C6EC9E5263F095100DFDAEE /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6EC9DD263F095100DFDAEE /* SceneDelegate.swift */; };
-		7C6EC9E6263F095100DFDAEE /* ManagementTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6EC9DE263F095100DFDAEE /* ManagementTableViewController.swift */; };
 		7C6EC9F1263F1C7100DFDAEE /* PreviousReadingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6EC9F0263F1C7100DFDAEE /* PreviousReadingsViewController.swift */; };
-		7C925A60264220FF00CB3982 /* ReadingsBuildingSelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C925A5F264220FF00CB3982 /* ReadingsBuildingSelectionViewController.swift */; };
-		7C925A68264225A500CB3982 /* ReadingsMainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C925A67264225A500CB3982 /* ReadingsMainViewController.swift */; };
-		7C925A6D26422F7B00CB3982 /* ReadingMeterTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C925A6C26422F7B00CB3982 /* ReadingMeterTableViewCell.swift */; };
 		7CAAF440264199F000B5EFC2 /* BuildingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAAF43F264199F000B5EFC2 /* BuildingTableViewCell.swift */; };
 		7CAAF445264199FC00B5EFC2 /* FloorTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAAF444264199FC00B5EFC2 /* FloorTableViewCell.swift */; };
 		7CAAF44A26419A0600B5EFC2 /* MeterTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAAF44926419A0600B5EFC2 /* MeterTableViewCell.swift */; };
-		7CAAF4632641B80400B5EFC2 /* AddEditFloorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAAF4622641B80400B5EFC2 /* AddEditFloorViewController.swift */; };
-		7CB0D1D72642D36600DBE2F3 /* AddEditReadingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CB0D1D62642D36600DBE2F3 /* AddEditReadingViewController.swift */; };
+		7CCE61A42643338200012A9D /* ReadingsBuildingSelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCE619F2643338200012A9D /* ReadingsBuildingSelectionViewController.swift */; };
+		7CCE61A52643338200012A9D /* ReadingMeterTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCE61A02643338200012A9D /* ReadingMeterTableViewCell.swift */; };
+		7CCE61A62643338200012A9D /* AddEditReadingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCE61A12643338200012A9D /* AddEditReadingViewController.swift */; };
+		7CCE61A72643338200012A9D /* ReadingsMainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCE61A22643338200012A9D /* ReadingsMainViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,7 +53,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		7C4690E42640E5A1009A11C0 /* AddEditBuildingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditBuildingViewController.swift; sourceTree = "<group>"; };
 		7C4AF7F1263CD435002E65CB /* MeterReaderKeeper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeterReaderKeeper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C4AF7FB263CD435002E65CB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		7C4AF7FD263CD436002E65CB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -61,17 +64,20 @@
 		7C4AF812263CD436002E65CB /* MeterReaderKeeperUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MeterReaderKeeperUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C4AF816263CD436002E65CB /* Meter_Reader_KeeperUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Meter_Reader_KeeperUITests.swift; sourceTree = "<group>"; };
 		7C4AF818263CD436002E65CB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7C685CA62643376800981B6D /* PreviousReadingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviousReadingTableViewCell.swift; sourceTree = "<group>"; };
+		7C685CAC26433B1700981B6D /* AddEditMeterViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddEditMeterViewController.swift; sourceTree = "<group>"; };
+		7C685CAD26433B1700981B6D /* AddEditFloorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddEditFloorViewController.swift; sourceTree = "<group>"; };
+		7C685CAE26433B1700981B6D /* ManagementTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ManagementTableViewController.swift; sourceTree = "<group>"; };
+		7C685CAF26433B1700981B6D /* AddEditBuildingViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddEditBuildingViewController.swift; sourceTree = "<group>"; };
+		7C685CED2643443300981B6D /* KeyboardAccessory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardAccessory.swift; sourceTree = "<group>"; };
+		7C685CF22643453800981B6D /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		7C685CFA26436C4D00981B6D /* DataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataSeeder.swift; sourceTree = "<group>"; };
 		7C6EC9D7263F095100DFDAEE /* Meter.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Meter.xcdatamodel; sourceTree = "<group>"; };
-		7C6EC9D9263F095100DFDAEE /* HomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
+		7C6EC9D9263F095100DFDAEE /* HomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = HomeViewController.swift; path = Screens/HomeViewController.swift; sourceTree = "<group>"; };
 		7C6EC9DA263F095100DFDAEE /* MeterManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MeterManager.swift; sourceTree = "<group>"; };
 		7C6EC9DB263F095100DFDAEE /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		7C6EC9DC263F095100DFDAEE /* AddEditMeterViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddEditMeterViewController.swift; sourceTree = "<group>"; };
 		7C6EC9DD263F095100DFDAEE /* SceneDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		7C6EC9DE263F095100DFDAEE /* ManagementTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ManagementTableViewController.swift; sourceTree = "<group>"; };
 		7C6EC9F0263F1C7100DFDAEE /* PreviousReadingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviousReadingsViewController.swift; sourceTree = "<group>"; };
-		7C925A5F264220FF00CB3982 /* ReadingsBuildingSelectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingsBuildingSelectionViewController.swift; sourceTree = "<group>"; };
-		7C925A67264225A500CB3982 /* ReadingsMainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingsMainViewController.swift; sourceTree = "<group>"; };
-		7C925A6C26422F7B00CB3982 /* ReadingMeterTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingMeterTableViewCell.swift; sourceTree = "<group>"; };
 		7C925A822642343700CB3982 /* Building+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Building+CoreDataClass.swift"; sourceTree = "<group>"; };
 		7C925A832642343700CB3982 /* Building+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Building+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		7C925A842642343700CB3982 /* Reading+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Reading+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -83,8 +89,10 @@
 		7CAAF43F264199F000B5EFC2 /* BuildingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildingTableViewCell.swift; sourceTree = "<group>"; };
 		7CAAF444264199FC00B5EFC2 /* FloorTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloorTableViewCell.swift; sourceTree = "<group>"; };
 		7CAAF44926419A0600B5EFC2 /* MeterTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeterTableViewCell.swift; sourceTree = "<group>"; };
-		7CAAF4622641B80400B5EFC2 /* AddEditFloorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditFloorViewController.swift; sourceTree = "<group>"; };
-		7CB0D1D62642D36600DBE2F3 /* AddEditReadingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditReadingViewController.swift; sourceTree = "<group>"; };
+		7CCE619F2643338200012A9D /* ReadingsBuildingSelectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadingsBuildingSelectionViewController.swift; sourceTree = "<group>"; };
+		7CCE61A02643338200012A9D /* ReadingMeterTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadingMeterTableViewCell.swift; sourceTree = "<group>"; };
+		7CCE61A12643338200012A9D /* AddEditReadingViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddEditReadingViewController.swift; sourceTree = "<group>"; };
+		7CCE61A22643338200012A9D /* ReadingsMainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadingsMainViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -177,11 +185,23 @@
 			path = MeterReaderKeeperUITests;
 			sourceTree = "<group>";
 		};
+		7C685CAB26433B1700981B6D /* Management */ = {
+			isa = PBXGroup;
+			children = (
+				7C685CAF26433B1700981B6D /* AddEditBuildingViewController.swift */,
+				7C685CAD26433B1700981B6D /* AddEditFloorViewController.swift */,
+				7C685CAC26433B1700981B6D /* AddEditMeterViewController.swift */,
+				7C685CAE26433B1700981B6D /* ManagementTableViewController.swift */,
+			);
+			path = Management;
+			sourceTree = "<group>";
+		};
 		7C6EC9D5263F095100DFDAEE /* Source */ = {
 			isa = PBXGroup;
 			children = (
 				7C4690C02640D75B009A11C0 /* Model */,
 				7CAAF43D264199AA00B5EFC2 /* Screens */,
+				7C6EC9D9263F095100DFDAEE /* HomeViewController.swift */,
 				7CD68DF5263F7FC60012D65C /* Utility */,
 				7C6EC9D6263F095100DFDAEE /* MeterReader.xcdatamodeld */,
 				7C6EC9DB263F095100DFDAEE /* AppDelegate.swift */,
@@ -190,28 +210,13 @@
 			path = Source;
 			sourceTree = "<group>";
 		};
-		7C925A5E264220D200CB3982 /* ReadingsFlow */ = {
-			isa = PBXGroup;
-			children = (
-				7C925A5F264220FF00CB3982 /* ReadingsBuildingSelectionViewController.swift */,
-				7C925A67264225A500CB3982 /* ReadingsMainViewController.swift */,
-				7C925A6C26422F7B00CB3982 /* ReadingMeterTableViewCell.swift */,
-				7CB0D1D62642D36600DBE2F3 /* AddEditReadingViewController.swift */,
-			);
-			path = ReadingsFlow;
-			sourceTree = "<group>";
-		};
 		7CAAF43D264199AA00B5EFC2 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+				7CCE61A32643338200012A9D /* PreviousReadings */,
+				7C685CAB26433B1700981B6D /* Management */,
+				7CCE619E2643338200012A9D /* ReadingsFlow */,
 				7CAAF43E264199AA00B5EFC2 /* TableViewCells */,
-				7C925A5E264220D200CB3982 /* ReadingsFlow */,
-				7C6EC9D9263F095100DFDAEE /* HomeViewController.swift */,
-				7C6EC9DE263F095100DFDAEE /* ManagementTableViewController.swift */,
-				7C4690E42640E5A1009A11C0 /* AddEditBuildingViewController.swift */,
-				7CAAF4622641B80400B5EFC2 /* AddEditFloorViewController.swift */,
-				7C6EC9DC263F095100DFDAEE /* AddEditMeterViewController.swift */,
-				7C6EC9F0263F1C7100DFDAEE /* PreviousReadingsViewController.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -226,10 +231,33 @@
 			path = TableViewCells;
 			sourceTree = "<group>";
 		};
+		7CCE619E2643338200012A9D /* ReadingsFlow */ = {
+			isa = PBXGroup;
+			children = (
+				7CCE619F2643338200012A9D /* ReadingsBuildingSelectionViewController.swift */,
+				7CCE61A22643338200012A9D /* ReadingsMainViewController.swift */,
+				7CCE61A12643338200012A9D /* AddEditReadingViewController.swift */,
+				7CCE61A02643338200012A9D /* ReadingMeterTableViewCell.swift */,
+			);
+			path = ReadingsFlow;
+			sourceTree = "<group>";
+		};
+		7CCE61A32643338200012A9D /* PreviousReadings */ = {
+			isa = PBXGroup;
+			children = (
+				7C6EC9F0263F1C7100DFDAEE /* PreviousReadingsViewController.swift */,
+				7C685CA62643376800981B6D /* PreviousReadingTableViewCell.swift */,
+			);
+			path = PreviousReadings;
+			sourceTree = "<group>";
+		};
 		7CD68DF5263F7FC60012D65C /* Utility */ = {
 			isa = PBXGroup;
 			children = (
 				7C6EC9DA263F095100DFDAEE /* MeterManager.swift */,
+				7C685CED2643443300981B6D /* KeyboardAccessory.swift */,
+				7C685CF22643453800981B6D /* Constants.swift */,
+				7C685CFA26436C4D00981B6D /* DataSeeder.swift */,
 			);
 			path = Utility;
 			sourceTree = "<group>";
@@ -364,23 +392,27 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7C925A60264220FF00CB3982 /* ReadingsBuildingSelectionViewController.swift in Sources */,
-				7C6EC9E4263F095100DFDAEE /* AddEditMeterViewController.swift in Sources */,
 				7C6EC9E3263F095100DFDAEE /* AppDelegate.swift in Sources */,
 				7C6EC9DF263F095100DFDAEE /* MeterReader.xcdatamodeld in Sources */,
-				7C925A6D26422F7B00CB3982 /* ReadingMeterTableViewCell.swift in Sources */,
+				7C685CEE2643443300981B6D /* KeyboardAccessory.swift in Sources */,
+				7CCE61A62643338200012A9D /* AddEditReadingViewController.swift in Sources */,
 				7CAAF44A26419A0600B5EFC2 /* MeterTableViewCell.swift in Sources */,
-				7C4690E52640E5A1009A11C0 /* AddEditBuildingViewController.swift in Sources */,
-				7C6EC9E6263F095100DFDAEE /* ManagementTableViewController.swift in Sources */,
+				7CCE61A42643338200012A9D /* ReadingsBuildingSelectionViewController.swift in Sources */,
+				7C685CFB26436C4D00981B6D /* DataSeeder.swift in Sources */,
+				7C685CA72643376800981B6D /* PreviousReadingTableViewCell.swift in Sources */,
+				7C685CB326433B1700981B6D /* AddEditBuildingViewController.swift in Sources */,
+				7C685CB126433B1700981B6D /* AddEditFloorViewController.swift in Sources */,
+				7CCE61A52643338200012A9D /* ReadingMeterTableViewCell.swift in Sources */,
 				7C6EC9E2263F095100DFDAEE /* MeterManager.swift in Sources */,
 				7C6EC9E1263F095100DFDAEE /* HomeViewController.swift in Sources */,
+				7CCE61A72643338200012A9D /* ReadingsMainViewController.swift in Sources */,
 				7CAAF445264199FC00B5EFC2 /* FloorTableViewCell.swift in Sources */,
-				7C925A68264225A500CB3982 /* ReadingsMainViewController.swift in Sources */,
 				7C6EC9F1263F1C7100DFDAEE /* PreviousReadingsViewController.swift in Sources */,
-				7CAAF4632641B80400B5EFC2 /* AddEditFloorViewController.swift in Sources */,
+				7C685CF32643453800981B6D /* Constants.swift in Sources */,
+				7C685CB026433B1700981B6D /* AddEditMeterViewController.swift in Sources */,
 				7C6EC9E5263F095100DFDAEE /* SceneDelegate.swift in Sources */,
 				7CAAF440264199F000B5EFC2 /* BuildingTableViewCell.swift in Sources */,
-				7CB0D1D72642D36600DBE2F3 /* AddEditReadingViewController.swift in Sources */,
+				7C685CB226433B1700981B6D /* ManagementTableViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -24,10 +24,10 @@
             </objects>
             <point key="canvasLocation" x="-1738" y="110"/>
         </scene>
-        <!--View Controller-->
+        <!--Home View Controller-->
         <scene sceneID="bhe-3P-fSA">
             <objects>
-                <viewController id="2BO-Gn-qfn" sceneMemberID="viewController">
+                <viewController id="2BO-Gn-qfn" customClass="HomeViewController" customModule="MeterReaderKeeper" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="bt2-ac-Ma2">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -65,7 +65,8 @@
                                         <fontDescription key="fontDescription" type="system" pointSize="40"/>
                                         <state key="normal" title="Previous Readings"/>
                                         <connections>
-                                            <segue destination="e6d-jP-xTO" kind="show" id="u0k-5F-o3g"/>
+                                            <action selector="previousReadingsTapped:" destination="2BO-Gn-qfn" eventType="touchUpInside" id="C8Y-5q-79V"/>
+                                            <action selector="previousReadingsTapped:" destination="ZpY-b7-aZp" eventType="touchUpInside" id="awx-pW-qOC"/>
                                         </connections>
                                     </button>
                                 </subviews>
@@ -79,8 +80,12 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="rBn-Rv-IuA"/>
+                    <connections>
+                        <segue destination="e6d-jP-xTO" kind="show" identifier="HomeToPreviousReadingsSegue" id="fmm-gv-W3G"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="mzh-hn-FWO" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+                <exit id="ZpY-b7-aZp" userLabel="Exit" sceneMemberID="exit"/>
             </objects>
             <point key="canvasLocation" x="-871" y="110"/>
         </scene>
@@ -521,14 +526,203 @@
                     <view key="view" contentMode="scaleToFill" id="c1k-Zk-0YC">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="Pyn-Si-tI6">
+                                <rect key="frame" x="134.5" y="97" width="145" height="32"/>
+                                <segments>
+                                    <segment title="Location"/>
+                                    <segment title="Date"/>
+                                </segments>
+                                <connections>
+                                    <action selector="previousMethodChanged:" destination="e6d-jP-xTO" eventType="valueChanged" id="5Az-fK-Ms6"/>
+                                </connections>
+                            </segmentedControl>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="pdZ-EB-VYd">
+                                <rect key="frame" x="20" y="136" width="374" height="120"/>
+                                <subviews>
+                                    <stackView hidden="YES" opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="8oR-zX-GJB" userLabel="DateStack">
+                                        <rect key="frame" x="0.0" y="-40" width="374" height="40"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Date" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="a80-qM-Ju4">
+                                                <rect key="frame" x="0.0" y="0.0" width="112.5" height="40"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="40" id="Ybm-vc-YiM"/>
+                                                </constraints>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="nhg-ik-s74">
+                                                <rect key="frame" x="112.5" y="0.0" width="261.5" height="40"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="40" id="has-ng-5nT"/>
+                                                </constraints>
+                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                <textInputTraits key="textInputTraits"/>
+                                                <connections>
+                                                    <outlet property="delegate" destination="e6d-jP-xTO" id="GST-Av-FHK"/>
+                                                </connections>
+                                            </textField>
+                                        </subviews>
+                                    </stackView>
+                                    <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1aZ-fy-0Tl" userLabel="BuildingStack">
+                                        <rect key="frame" x="0.0" y="0.0" width="374" height="40"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Building" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mGg-UW-lUc">
+                                                <rect key="frame" x="0.0" y="0.0" width="112.5" height="40"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="40" id="xfS-wS-RSj"/>
+                                                </constraints>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="YoQ-Ao-F7q">
+                                                <rect key="frame" x="112.5" y="0.0" width="261.5" height="40"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="40" id="xvV-4q-B9l"/>
+                                                </constraints>
+                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                <textInputTraits key="textInputTraits"/>
+                                                <connections>
+                                                    <outlet property="delegate" destination="e6d-jP-xTO" id="OVB-J1-FQo"/>
+                                                </connections>
+                                            </textField>
+                                        </subviews>
+                                    </stackView>
+                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="war-f6-oDW" userLabel="FloorStack">
+                                        <rect key="frame" x="0.0" y="40" width="374" height="40"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Floor Number" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="a6k-09-s4s">
+                                                <rect key="frame" x="0.0" y="0.0" width="104.5" height="40"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="40" id="qae-66-8um"/>
+                                                </constraints>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="iwW-T4-FCw">
+                                                <rect key="frame" x="112.5" y="0.0" width="261.5" height="40"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="40" id="jal-Jo-Dff"/>
+                                                </constraints>
+                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                <textInputTraits key="textInputTraits" keyboardType="numberPad"/>
+                                                <connections>
+                                                    <outlet property="delegate" destination="e6d-jP-xTO" id="Ro3-PH-ULS"/>
+                                                </connections>
+                                            </textField>
+                                        </subviews>
+                                    </stackView>
+                                    <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="wOn-ci-3wG" userLabel="MeterStack">
+                                        <rect key="frame" x="0.0" y="80" width="374" height="40"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Meter" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2qK-4S-Q5A">
+                                                <rect key="frame" x="0.0" y="0.0" width="112.5" height="40"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="40" id="bcN-HP-ROJ"/>
+                                                </constraints>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Hc3-np-g5N">
+                                                <rect key="frame" x="112.5" y="0.0" width="261.5" height="40"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="40" id="nso-hd-96q"/>
+                                                </constraints>
+                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                <textInputTraits key="textInputTraits" keyboardType="numberPad"/>
+                                                <connections>
+                                                    <outlet property="delegate" destination="e6d-jP-xTO" id="mSr-Cu-gmp"/>
+                                                </connections>
+                                            </textField>
+                                        </subviews>
+                                    </stackView>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="iwW-T4-FCw" firstAttribute="width" secondItem="Hc3-np-g5N" secondAttribute="width" id="6Q0-Yk-v8w"/>
+                                    <constraint firstItem="YoQ-Ao-F7q" firstAttribute="width" secondItem="iwW-T4-FCw" secondAttribute="width" id="dkd-R6-7pe"/>
+                                    <constraint firstItem="nhg-ik-s74" firstAttribute="width" secondItem="YoQ-Ao-F7q" secondAttribute="width" id="rYy-cb-Nfx"/>
+                                </constraints>
+                            </stackView>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="unP-Co-s4I">
+                                <rect key="frame" x="20" y="264" width="374" height="598"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <prototypes>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="PreviousReadingCell" id="w1O-tt-gHT" customClass="PreviousReadingTableViewCell" customModule="MeterReaderKeeper" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="28" width="374" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="w1O-tt-gHT" id="3zd-gG-mc2">
+                                            <rect key="frame" x="0.0" y="0.0" width="374" height="44"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="D1N-Wy-KDn">
+                                                    <rect key="frame" x="20" y="11.5" width="41.5" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lCt-bX-wII">
+                                                    <rect key="frame" x="312.5" y="12" width="41.5" height="20.5"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="D1N-Wy-KDn" firstAttribute="top" secondItem="3zd-gG-mc2" secondAttribute="top" constant="11.5" id="5eO-Sk-rTD"/>
+                                                <constraint firstItem="lCt-bX-wII" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="D1N-Wy-KDn" secondAttribute="trailing" constant="20" id="Wfb-zZ-a1x"/>
+                                                <constraint firstItem="D1N-Wy-KDn" firstAttribute="centerY" secondItem="3zd-gG-mc2" secondAttribute="centerY" id="X2O-Rj-Aw7"/>
+                                                <constraint firstItem="lCt-bX-wII" firstAttribute="centerY" secondItem="3zd-gG-mc2" secondAttribute="centerY" id="YH1-mt-5AQ"/>
+                                                <constraint firstItem="D1N-Wy-KDn" firstAttribute="leading" secondItem="3zd-gG-mc2" secondAttribute="leadingMargin" id="dck-c4-jY4"/>
+                                                <constraint firstItem="lCt-bX-wII" firstAttribute="trailing" secondItem="3zd-gG-mc2" secondAttribute="trailingMargin" id="sj0-bT-ES4"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="readingDetailsLabel" destination="D1N-Wy-KDn" id="bMP-DY-1hG"/>
+                                            <outlet property="readingValueLabel" destination="lCt-bX-wII" id="Wkg-ef-kZ3"/>
+                                        </connections>
+                                    </tableViewCell>
+                                </prototypes>
+                                <connections>
+                                    <outlet property="dataSource" destination="e6d-jP-xTO" id="x0y-G1-40e"/>
+                                    <outlet property="delegate" destination="e6d-jP-xTO" id="sgU-sn-Evz"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
                         <viewLayoutGuide key="safeArea" id="j79-Ka-c6t"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="j79-Ka-c6t" firstAttribute="trailing" secondItem="unP-Co-s4I" secondAttribute="trailing" constant="20" id="17Y-cS-TxA"/>
+                            <constraint firstItem="unP-Co-s4I" firstAttribute="top" secondItem="pdZ-EB-VYd" secondAttribute="bottom" constant="8" id="90Z-Sz-2M1"/>
+                            <constraint firstItem="Pyn-Si-tI6" firstAttribute="centerX" secondItem="j79-Ka-c6t" secondAttribute="centerX" id="Ycx-Wq-cnZ"/>
+                            <constraint firstItem="j79-Ka-c6t" firstAttribute="leading" secondItem="pdZ-EB-VYd" secondAttribute="leading" constant="-20" id="YgC-DV-GJl"/>
+                            <constraint firstItem="unP-Co-s4I" firstAttribute="leading" secondItem="j79-Ka-c6t" secondAttribute="leading" constant="20" id="ZrZ-3r-P2U"/>
+                            <constraint firstItem="pdZ-EB-VYd" firstAttribute="top" secondItem="Pyn-Si-tI6" secondAttribute="bottom" constant="8" id="bNT-9c-wLX"/>
+                            <constraint firstItem="unP-Co-s4I" firstAttribute="bottom" secondItem="j79-Ka-c6t" secondAttribute="bottom" id="iyv-hB-ogs"/>
+                            <constraint firstItem="Pyn-Si-tI6" firstAttribute="top" secondItem="j79-Ka-c6t" secondAttribute="top" constant="9" id="nMq-Iu-nmv"/>
+                            <constraint firstItem="j79-Ka-c6t" firstAttribute="trailing" secondItem="pdZ-EB-VYd" secondAttribute="trailing" constant="20" id="zd2-wt-Bn9"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="kRj-Va-EYb"/>
+                    <connections>
+                        <outlet property="buildingStackView" destination="1aZ-fy-0Tl" id="RPQ-ek-Axx"/>
+                        <outlet property="buildingTextField" destination="YoQ-Ao-F7q" id="gzJ-Uk-5cJ"/>
+                        <outlet property="dateStackView" destination="8oR-zX-GJB" id="us3-uG-r7s"/>
+                        <outlet property="dateTextField" destination="nhg-ik-s74" id="aSY-c2-BAa"/>
+                        <outlet property="floorStackView" destination="war-f6-oDW" id="a0A-fe-whW"/>
+                        <outlet property="floorTextField" destination="iwW-T4-FCw" id="3kG-eh-eK7"/>
+                        <outlet property="meterStackView" destination="wOn-ci-3wG" id="MZb-5j-hcI"/>
+                        <outlet property="meterTextField" destination="Hc3-np-g5N" id="fao-0e-Bna"/>
+                        <outlet property="previousReadingsSegmentedControl" destination="Pyn-Si-tI6" id="xcq-WM-OGc"/>
+                        <outlet property="readingsTableView" destination="unP-Co-s4I" id="ryv-oR-AvH"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="QAg-wT-lBg" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-871" y="834"/>
+            <point key="canvasLocation" x="-871.01449275362324" y="833.70535714285711"/>
         </scene>
         <!--Floor Details-->
         <scene sceneID="vXu-z1-JN2">
@@ -798,7 +992,7 @@
                                             <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="trailing" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Meter Reading" textAlignment="right" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="YaB-qf-tmz">
                                                 <rect key="frame" x="0.0" y="0.0" width="122" height="34"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                <textInputTraits key="textInputTraits"/>
+                                                <textInputTraits key="textInputTraits" keyboardType="decimalPad"/>
                                             </textField>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="kWh" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gTa-GJ-pVf">
                                                 <rect key="frame" x="130" y="0.0" width="34.5" height="34"/>

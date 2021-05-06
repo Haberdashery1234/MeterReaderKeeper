@@ -13,7 +13,10 @@ class MeterTableViewCell: UITableViewCell {
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var locationLabel: UILabel!
 
+    var meter = Meter()
+    
     func setup(withMeter meter: Meter) {
+        self.meter = meter
         nameLabel.text = meter.name
         var locationString = ""
         if

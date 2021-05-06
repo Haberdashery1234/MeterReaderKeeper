@@ -89,7 +89,7 @@ class AddEditMeterViewController: UIViewController {
         let uuid = NSUUID()
         let qrString = "\(uuid)-\(buildingName)-\(floor.number)-\(nameText)"
         
-        MeterManager.shared.addMeter(withName: nameText, description: descriptionText, floor: floor, qrString: qrString, image: meterImageImageView.image?.pngData())
+        _ = MeterManager.shared.addMeter(withName: nameText, description: descriptionText, floor: floor, qrString: qrString, image: meterImageImageView.image?.pngData())
         
         navigationController?.popViewController(animated: true)
     }

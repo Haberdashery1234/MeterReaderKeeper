@@ -25,7 +25,21 @@ class AddEditReadingViewController: UIViewController {
     }
     
     @IBAction func saveTapped(_ sender: Any) {
+        guard
+            let meterReadingString = readingTextField.text,
+            let meter = meter,
+            let meterReading = Double(meterReadingString)
+        else {
+            print("Missing required data")
+            return
+        }
         
+        if let reading = reading {
+            MeterManager.shared.updateReading(reading, with: meterReading)
+        } else {
+            MeterManager.shared.addReading(toMeter: meter, with: meterReading)
+        }
+        navigationController?.popViewController(animated: true)
     }
     
 }

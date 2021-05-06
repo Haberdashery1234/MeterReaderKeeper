@@ -16,6 +16,7 @@ extension Meter {
         return NSFetchRequest<Meter>(entityName: "Meter")
     }
 
+    @NSManaged public var latestReading: Date?
     @NSManaged public var image: Data?
     @NSManaged public var meterDescription: String?
     @NSManaged public var name: String

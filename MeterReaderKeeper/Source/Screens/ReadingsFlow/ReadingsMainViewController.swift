@@ -27,6 +27,13 @@ class ReadingsMainViewController: UIViewController {
             metersTableView.reloadData()
         }
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "ReadingMainToAddReadingSegue" {
+            let readingVC = segue.destination as? AddEditReadingViewController
+            readingVC?.meter = sender as? Meter
+        }
+    }
 }
 
 extension ReadingsMainViewController: UITableViewDataSource {
@@ -56,5 +63,11 @@ extension ReadingsMainViewController: UITableViewDataSource {
 }
 
 extension ReadingsMainViewController: UITableViewDelegate {
-    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let cell = tableView.cellForRow(at: indexPath) as? ReadingMeterTableViewCell
+        if let meter = cell?.meter {
+            performSegue(withIdentifier: "ReadingMainToAddReadingSegue", sender: meter)
+        }
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
 }
