@@ -14,6 +14,7 @@ class ReadingMeterTableViewCell: UITableViewCell {
     @IBOutlet weak var readingDoneCheckImageView: UIImageView!
 
     var meter = Meter()
+    var reading: Reading?
     
     func setup(withMeter meter: Meter) {
         readingDoneCheckImageView.isHidden = true
@@ -25,9 +26,11 @@ class ReadingMeterTableViewCell: UITableViewCell {
         }
         if let readings = meter.readings {
             let date = Calendar.current.startOfDay(for: Date()) as NSDate
-            let todaysReadings = readings.filtered(using: NSPredicate(format: "date == %@", date))
-            if todaysReadings.count > 0 {
-                readingMade()
+            if let todaysReadings = readings.filtered(using: NSPredicate(format: "date == %@", date)).array as? [Reading] {
+                if todaysReadings.count > 0 {
+                    reading = todaysReadings[0]
+                    readingMade()
+                }
             }
         }
     }

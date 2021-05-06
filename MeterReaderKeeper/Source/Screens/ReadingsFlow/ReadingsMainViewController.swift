@@ -13,10 +13,21 @@ class ReadingsMainViewController: UIViewController {
     
     var building: Building?
     var floors = [Floor]()
+    var meters = [Meter]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        if let building = building {
+            if let buildFloors = building.floors?.array as? [Floor] {
+                floors = buildFloors
+                for floor in floors {
+                    if let floorMeters = floor.meters {
+                        meters.append(contentsOf: floorMeters.array as! [Meter])
+                    }
+                }
+            }
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -32,13 +43,33 @@ class ReadingsMainViewController: UIViewController {
         if segue.identifier == "ReadingMainToAddReadingSegue" {
             let readingVC = segue.destination as? AddEditReadingViewController
             readingVC?.meter = sender as? Meter
+        } else if segue.identifier == "TakeReadingsMainToQRScannerSegue" {
+            let qrVC = segue.destination as? QrScannerViewController
+            qrVC?.scannerDelegate = self
         }
     }
     
     @IBAction func scanQRCodeTapped(_ sender: Any) {
         performSegue(withIdentifier: "TakeReadingsMainToQRScannerSegue", sender: nil)
     }
-    
+}
+
+extension ReadingsMainViewController: QRScannerDelegate {
+    func scannedCode(_ codeString: String, errorCompletion: (NSError?) -> ()) {
+        print("\(codeString)")
+        let filteredMeters = meters.filter { (meter) -> Bool in
+            return meter.qrString == codeString
+        }
+        
+        if filteredMeters.count == 1 {
+            let meter = filteredMeters[0]
+            performSegue(withIdentifier: "ReadingMainToAddReadingSegue", sender: meter)
+            dismiss(animated: true, completion: nil)
+        } else {
+            let error = NSError(domain: "MeterScannerFailed", code: filteredMeters.count, userInfo: nil)
+            errorCompletion(error)
+        }
+    }
 }
 
 extension ReadingsMainViewController: UITableViewDataSource {

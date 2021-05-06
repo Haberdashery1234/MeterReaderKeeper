@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C26BCA726442D0A004D7FED /* QrScannerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C26BCA626442D0A004D7FED /* QrScannerViewController.swift */; };
 		7C4AF7FC263CD435002E65CB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C4AF7FA263CD435002E65CB /* Main.storyboard */; };
 		7C4AF7FE263CD436002E65CB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C4AF7FD263CD436002E65CB /* Assets.xcassets */; };
 		7C4AF801263CD436002E65CB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C4AF7FF263CD436002E65CB /* LaunchScreen.storyboard */; };
@@ -53,6 +54,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7C26BCA626442D0A004D7FED /* QrScannerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QrScannerViewController.swift; sourceTree = "<group>"; };
 		7C4AF7F1263CD435002E65CB /* MeterReaderKeeper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeterReaderKeeper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C4AF7FB263CD435002E65CB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		7C4AF7FD263CD436002E65CB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -159,7 +161,6 @@
 			isa = PBXGroup;
 			children = (
 				7C6EC9D5263F095100DFDAEE /* Source */,
-				7C4AF7FA263CD435002E65CB /* Main.storyboard */,
 				7C4AF7FD263CD436002E65CB /* Assets.xcassets */,
 				7C4AF7FF263CD436002E65CB /* LaunchScreen.storyboard */,
 				7C4AF802263CD436002E65CB /* Info.plist */,
@@ -213,6 +214,7 @@
 		7CAAF43D264199AA00B5EFC2 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+				7C4AF7FA263CD435002E65CB /* Main.storyboard */,
 				7CCE61A32643338200012A9D /* PreviousReadings */,
 				7C685CAB26433B1700981B6D /* Management */,
 				7CCE619E2643338200012A9D /* ReadingsFlow */,
@@ -236,6 +238,7 @@
 			children = (
 				7CCE619F2643338200012A9D /* ReadingsBuildingSelectionViewController.swift */,
 				7CCE61A22643338200012A9D /* ReadingsMainViewController.swift */,
+				7C26BCA626442D0A004D7FED /* QrScannerViewController.swift */,
 				7CCE61A12643338200012A9D /* AddEditReadingViewController.swift */,
 				7CCE61A02643338200012A9D /* ReadingMeterTableViewCell.swift */,
 			);
@@ -392,6 +395,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C26BCA726442D0A004D7FED /* QrScannerViewController.swift in Sources */,
 				7C6EC9E3263F095100DFDAEE /* AppDelegate.swift in Sources */,
 				7C6EC9DF263F095100DFDAEE /* MeterReader.xcdatamodeld in Sources */,
 				7C685CEE2643443300981B6D /* KeyboardAccessory.swift in Sources */,

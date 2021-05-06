@@ -984,16 +984,31 @@
             </objects>
             <point key="canvasLocation" x="102.89855072463769" y="-589.28571428571422"/>
         </scene>
-        <!--View Controller-->
+        <!--Qr Scanner View Controller-->
         <scene sceneID="6Lj-14-Hxy">
             <objects>
-                <viewController id="Rgc-zG-Izx" sceneMemberID="viewController">
+                <viewController id="Rgc-zG-Izx" customClass="QrScannerViewController" customModule="MeterReaderKeeper" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="oaN-Aq-U6L">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="yah-MN-7Li">
+                                <rect key="frame" x="0.0" y="0.0" width="414" height="808"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            </view>
+                        </subviews>
                         <viewLayoutGuide key="safeArea" id="dQv-Tf-ZDg"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="yah-MN-7Li" firstAttribute="leading" secondItem="dQv-Tf-ZDg" secondAttribute="leading" id="1ds-Ey-ANb"/>
+                            <constraint firstItem="dQv-Tf-ZDg" firstAttribute="bottom" secondItem="yah-MN-7Li" secondAttribute="bottom" id="53R-kc-rfK"/>
+                            <constraint firstItem="dQv-Tf-ZDg" firstAttribute="trailing" secondItem="yah-MN-7Li" secondAttribute="trailing" id="M7L-en-Tyi"/>
+                            <constraint firstItem="yah-MN-7Li" firstAttribute="top" secondItem="dQv-Tf-ZDg" secondAttribute="top" id="ufS-xX-iLl"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="previewView" destination="yah-MN-7Li" id="Xum-aY-ekv"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="mw5-yr-Dhu" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
