@@ -2,13 +2,35 @@
 //  Building+CoreDataProperties.swift
 //  MeterReaderKeeper
 //
-//  Created by Christian Grise on 5/4/21.
+//  Created by Christian Grise on 5/6/21.
 //
 //
 
 import Foundation
 import CoreData
 
+@objc(Building)
+public class Building: NSManagedObject {
+    
+    var buildingFloors: [Floor] {
+        get {
+            return floors.array as! [Floor]
+        }
+    }
+    
+    func getExportDictionary() -> [String : Any] {
+        var exportDict = [String : Any]()
+        exportDict["name"] = name
+        
+        var localFloors = [[String : Any]]()
+        for floor in buildingFloors {
+            localFloors.append(floor.getExportDictionary())
+        }
+        exportDict["floors"] = localFloors
+        return exportDict
+    }
+    
+}
 
 extension Building {
 

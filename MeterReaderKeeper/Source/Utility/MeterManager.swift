@@ -37,26 +37,30 @@ class MeterManager {
     }
     
     // MARK: - Buildings
-    func addBuilding(withName name: String, floors: Int16) {
+    func addBuilding(withName name: String, floors: Int16, autoCreateFloors: Bool? = true) -> Building? {
         let managedContext = persistentContainer.viewContext
         
         let building = Building(context: managedContext)
         building.name = name
         
-        for i in 1...floors {
-            let floor = Floor(context: managedContext)
-            floor.building = building
-            floor.number = i
-            saveFloor(floor)
+        if autoCreateFloors == true {
+            for i in 1...floors {
+                let floor = Floor(context: managedContext)
+                floor.building = building
+                floor.number = i
+                saveFloor(floor)
+            }
         }
         
         do {
             try managedContext.save()
             print("Added building: \(String(describing: building.name)) with \(floors) floors")
             load()
+            return building
         } catch let error as NSError {
             print("Could not save. \(error), \(error.userInfo)")
         }
+        return nil
     }
 
     func loadBuildings() {
@@ -67,11 +71,7 @@ class MeterManager {
         do {
             buildings = try managedContext.fetch(fetchRequest)
             buildings.sort { (build1, build2) -> Bool in
-                if let build1Name = build1.name, let build2Name = build2.name {
-                    return build1Name < build2Name
-                } else {
-                    return true
-                }
+                return build1.name < build2.name
             }
             print("\(buildings.count) Buildings loaded")
         } catch let error as NSError {
@@ -100,12 +100,31 @@ class MeterManager {
     }
     
     // MARK: - Floors
+    func addFloor(toBuilding building: Building, number: Int16, mapData: Data) -> Floor? {
+        let managedContext = persistentContainer.viewContext
+        
+        let floor = Floor(context: managedContext)
+        floor.building = building
+        floor.number = number
+        floor.map = mapData
+        
+        do {
+            try managedContext.save()
+            print("Saved floor: \(String(describing: building.name)) - \(floor.number)")
+            load()
+            return floor
+        } catch let error as NSError {
+            print("Could not save. \(error), \(error.userInfo)")
+            return nil
+        }
+    }
+    
     func saveFloor(_ floor: Floor) {
         let managedContext = persistentContainer.viewContext
         
         do {
             try managedContext.save()
-            print("Saved floor: \(String(describing: floor.building?.name)) - \(floor.number)")
+            print("Saved floor: \(String(describing: floor.building.name)) - \(floor.number)")
             load()
         } catch let error as NSError {
             print("Could not save. \(error), \(error.userInfo)")
@@ -120,15 +139,12 @@ class MeterManager {
         do {
             floors = try managedContext.fetch(fetchRequest)
             floors.sort { (floor1, floor2) -> Bool in
-                if let floor1Build = floor1.building, let floor2Build = floor2.building,
-                   let floor1BuildName = floor1Build.name, let floor2BuildName = floor2Build.name {
-                    if floor1BuildName == floor2BuildName {
-                        return floor1.number < floor2.number
-                    } else {
-                        return floor1BuildName < floor2BuildName
-                    }
+                let floor1BuildName = floor1.building.name
+                let floor2BuildName = floor2.building.name
+                if floor1BuildName == floor2BuildName {
+                    return floor1.number < floor2.number
                 } else {
-                    return true
+                    return floor1BuildName < floor2BuildName
                 }
             }
             print("\(floors.count) floors loaded")
@@ -138,7 +154,7 @@ class MeterManager {
     }
     
     // MARK: - Meters
-    func addMeter(withName name: String, description: String, floor: Floor, image: Data?, buildingName: String) -> Meter {
+    func addMeter(withName name: String, description: String, floor: Floor, image: Data?, buildingName: String) -> Meter? {
         let managedContext = persistentContainer.viewContext
         
         let meter = Meter(context: managedContext)
@@ -153,10 +169,11 @@ class MeterManager {
             try managedContext.save()
             print("Added meter: \(qrString)")
             load()
+            return meter
         } catch let error as NSError {
             print("Could not save. \(error), \(error.userInfo)")
         }
-        return meter
+        return nil
     }
     
     func deleteMeter(_ meter: Meter) {
@@ -210,9 +227,7 @@ class MeterManager {
         
         let date = Calendar.current.startOfDay(for: Date())
 
-        if let meter = reading.meter {
-            meter.latestReading = date
-        }
+        reading.meter.latestReading = date
         
         reading.kWh = kWh
         reading.date = date
@@ -244,12 +259,10 @@ class MeterManager {
     private func groupReadingsByDate() {
         var localReadingsByDate: [Date : [Reading]] = [:]
         for reading in allReadings {
-            if let date = reading.date {
-                if localReadingsByDate[date] == nil {
-                    localReadingsByDate[date] = [Reading]()
-                }
-                localReadingsByDate[date]?.append(reading)
+            if localReadingsByDate[reading.date] == nil {
+                localReadingsByDate[reading.date] = [Reading]()
             }
+            localReadingsByDate[reading.date]?.append(reading)
         }
         allReadingsDates = localReadingsByDate
     }
@@ -257,39 +270,101 @@ class MeterManager {
     private func structureReadings() {
         var localMeters = [Meter : [Reading]]()
         for reading in allReadings {
-            if let meter = reading.meter {
-                if localMeters[meter] == nil {
-                    localMeters[meter] = [Reading]()
-                }
-                localMeters[meter]?.append(reading)
+            if localMeters[reading.meter] == nil {
+                localMeters[reading.meter] = [Reading]()
             }
+            localMeters[reading.meter]?.append(reading)
         }
         
         var localFloors = [Floor : [Meter : [Reading]]]()
         for (meter, readings) in localMeters {
-            if let floor = meter.floor {
-                if localFloors[floor] == nil {
-                    localFloors[floor] = [Meter : [Reading]]()
-                }
-                var thisMeter = [Meter : [Reading]]()
-                thisMeter[meter] = readings
-                localFloors[floor]?.merge(thisMeter, uniquingKeysWith: { (r1, _) -> [Reading] in r1 })
+            if localFloors[meter.floor] == nil {
+                localFloors[meter.floor] = [Meter : [Reading]]()
             }
+            var thisMeter = [Meter : [Reading]]()
+            thisMeter[meter] = readings
+            localFloors[meter.floor]?.merge(thisMeter, uniquingKeysWith: { (r1, _) -> [Reading] in r1 })
         }
         
         var localBuildings = [Building : [Floor : [Meter : [Reading]]]]()
         for (floor, meters) in localFloors {
-            if let building = floor.building {
-                if localBuildings[building] == nil {
-                    localBuildings[building] = [Floor : [Meter : [Reading]]]()
-                }
-                var thisFloor = [Floor : [Meter : [Reading]]]()
-                thisFloor[floor] = meters
-                localBuildings[building]?.merge(thisFloor, uniquingKeysWith: { (r1, _) -> [Meter : [Reading]] in r1 })
+            if localBuildings[floor.building] == nil {
+                localBuildings[floor.building] = [Floor : [Meter : [Reading]]]()
             }
+            var thisFloor = [Floor : [Meter : [Reading]]]()
+            thisFloor[floor] = meters
+            localBuildings[floor.building]?.merge(thisFloor, uniquingKeysWith: { (r1, _) -> [Meter : [Reading]] in r1 })
         }
         
         allReadingsStructured = localBuildings
+    }
+    
+    func saveDataToPlist() {
+        
+        var exportArray = [[String : Any]]()
+        for building in buildings {
+            exportArray.append(building.getExportDictionary())
+        }
+        do {
+            let fileManager = FileManager.default
+            let path = try fileManager.url(for: .documentDirectory, in: .allDomainsMask, appropriateFor: nil, create: false)
+            let fileURL = path.appendingPathComponent("ExportData.plist")
+            let data: Data = try NSKeyedArchiver.archivedData(withRootObject: exportArray, requiringSecureCoding: true)
+            let readingsPlist = try PropertyListSerialization.propertyList(from: data, options: PropertyListSerialization.MutabilityOptions.mutableContainersAndLeaves, format: nil) as! NSDictionary
+            readingsPlist.write(toFile: fileURL.absoluteString, atomically: true)
+        } catch let error as NSError {
+            print("An error occurred while writing to plist: \(error.localizedDescription)")
+        }
+    }
+    
+//    func savePlistDictToCoreData(_ dict: [[String : Any]]) {
+//        for buildingDict in dict {
+//            if
+//                let buildingName = buildingDict["name"] as? String,
+//                let floorsArray = buildingDict["floors"] as? [[String : Any]]
+//               {
+//                if let building = addBuilding(withName: buildingName, floors: Int16(floorsArray.count), autoCreateFloors: false) {
+//
+//                    for floorDict in floorsArray {
+//                        if let floorNumber = Int16(floorDict["number"] as! String) {
+//                            var metersArray = [[String : Any]]()
+//                            if let dictMetersArray = floorDict["meters"] as? [[String : Any]] {
+//                                metersArray = dictMetersArray
+//                            }
+//                            var mapData = Data()
+//                            if let dictMapData = floorDict["map"] as? Data {
+//                                mapData = dictMapData
+//                            }
+//                            if let floor = addFloor(toBuilding: building, number: floorNumber, mapData: mapData) {
+//                                for meterDict in metersArray {
+//                                    if let meterName = meterDict["name"] as? String {
+//                                        let meterDescription = meterDict["meterDescription"] as? String ?? ""
+//                                        let meterImage = meterDict["image"] as? Data
+//                                        let latestReading = meterDict["latestReading"] as? Date
+//                                        if let meter = addMeter(withName: meterName, description: meterDescription, floor: floor, image: meterImage, buildingName: building.name) {
+//                                            if let dictReadingsArray = meterDict["readings"] as? [[String : Any]] {
+//                                                for readingDict in dictReadingsArray {
+//                                                    if
+//                                                        let kWhString = readingDict["kWh"] as? String,
+//                                                        let kWh = Double(kWhString),
+//                                                        let date = readingDict["date"] as? Date {
+//                                                        addReading(toMeter: meter, withKWH: kWh, date: date)
+//                                                    }
+//                                                }
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+    
+    func saveAllReadingsToPlist() {
+        
     }
     
     func getReadings(forDate date: Date) -> [Reading] {
@@ -312,8 +387,7 @@ class MeterManager {
     
     func getReadings(forFloor floor: Floor) -> [Reading] {
         guard
-            let building = floor.building,
-            let floorsDict = allReadingsStructured[building],
+            let floorsDict = allReadingsStructured[floor.building],
             let meterDict = floorsDict[floor]
         else {
             print("No meters in floor")
@@ -328,10 +402,8 @@ class MeterManager {
     
     func getReadings(forMeter meter: Meter) -> [Reading] {
         guard
-            let floor = meter.floor,
-            let building = floor.building,
-            let floorsDict = allReadingsStructured[building],
-            let meterDict = floorsDict[floor],
+            let floorsDict = allReadingsStructured[meter.floor.building],
+            let meterDict = floorsDict[meter.floor],
             let readings = meterDict[meter]
         else {
             print("No readings for meter")
@@ -342,40 +414,28 @@ class MeterManager {
     
     // MARK: - CSV Data
     func getCSVData(forBuilding building: Building) -> Data? {
-        var csvString = ""
-        if let buildingName = building.name {
-            csvString.append("\(buildingName)")
-            if let buildFloors = building.floors?.array as? [Floor] {
-                for floor in buildFloors {
-                    csvString.append("\nFloor \(floor.number)\n")
-                    if let floorMeters = floor.meters?.array as? [Meter] {
-                        for meter in floorMeters {
-                            if
-                                var readings = meter.readings?.array as? [Reading],
-                                let meterName = meter.name {
-                                readings.sort { (r1, r2) -> Bool in
-                                    guard let r1Date = r1.date, let r2Date = r2.date else {
-                                        return true
-                                    }
-                                    return r1Date > r2Date
-                                }
-                                if readings.count > 0 {
-                                    let latestReading = readings[0]
-                                    if let latestReadingDate = latestReading.date,
-                                       latestReadingDate == Calendar.current.startOfDay(for: Date())
-                                    {
-                                        let formatter = DateFormatter()
-                                        formatter.dateStyle = .short
-                                        formatter.timeStyle = .none
-                                        let latestReadingString = formatter.string(from: latestReadingDate)
-                                        
-                                        let meterId = "\(buildingName)::\(floor.number)::\(meterName)"
-                                        let latestReadingKWH = String(format: "%.2f kWh", latestReading.kWh)
-                                        csvString.append(",\(meterId),\(latestReadingKWH),\(latestReadingString)\n")
-                                    }
-                                }
-                            }
-                        }
+        var csvString = "\(building.name)"
+        let buildFloors = building.buildingFloors
+        for floor in buildFloors {
+            csvString.append("\nFloor \(floor.number)\n")
+            let floorMeters = floor.floorMeters
+            for meter in floorMeters {
+                var readings = meter.meterReadings
+                readings.sort { (r1, r2) -> Bool in
+                    return r1.date > r2.date
+                }
+                if readings.count > 0 {
+                    let latestReading = readings[0]
+                    let latestReadingDate = latestReading.date
+                    if latestReadingDate == Calendar.current.startOfDay(for: Date()) {
+                        let formatter = DateFormatter()
+                        formatter.dateStyle = .short
+                        formatter.timeStyle = .none
+                        let latestReadingString = formatter.string(from: latestReadingDate)
+                        
+                        let meterId = "\(building.name)::\(floor.number)::\(meter.name)"
+                        let latestReadingKWH = String(format: "%.2f kWh", latestReading.kWh)
+                        csvString.append(",\(meterId),\(latestReadingKWH),\(latestReadingString)\n")
                     }
                 }
             }

@@ -18,15 +18,8 @@ class MeterTableViewCell: UITableViewCell {
     func setup(withMeter meter: Meter) {
         self.meter = meter
         nameLabel.text = meter.name
-        var locationString = ""
-        if
-            let floor = meter.floor,
-            let building = floor.building,
-            let buildingName = building.name
-        {
-            locationString += "\(buildingName) - Floor \(floor.number)"
-        }
-        locationLabel.text = locationString
+        let floor = meter.floor
+        locationLabel.text =  "\(floor.building.name) - Floor \(floor.number)"
         if let imageData = meter.image {
             meterImageView.image = UIImage(data: imageData)
         }

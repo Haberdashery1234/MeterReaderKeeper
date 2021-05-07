@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="19H524" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="Building" representedClassName="Building" syncable="YES" codeGenerationType="class">
-        <attribute name="name" attributeType="String"/>
+    <entity name="Building" representedClassName="Building" syncable="YES">
+        <attribute name="name" attributeType="String" defaultValueString=""/>
         <relationship name="floors" toMany="YES" minCount="1" deletionRule="Cascade" ordered="YES" destinationEntity="Floor" inverseName="building" inverseEntity="Floor"/>
     </entity>
-    <entity name="Floor" representedClassName="Floor" syncable="YES" codeGenerationType="class">
+    <entity name="Floor" representedClassName="Floor" syncable="YES">
         <attribute name="map" optional="YES" attributeType="Binary"/>
         <attribute name="number" attributeType="Integer 16" minValueString="1" defaultValueString="1" usesScalarValueType="YES"/>
         <relationship name="building" maxCount="1" deletionRule="Nullify" destinationEntity="Building" inverseName="floors" inverseEntity="Building"/>
         <relationship name="meters" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="Meter" inverseName="floor" inverseEntity="Meter"/>
     </entity>
-    <entity name="Meter" representedClassName="Meter" syncable="YES" codeGenerationType="class">
+    <entity name="Meter" representedClassName="Meter" syncable="YES">
         <attribute name="image" optional="YES" attributeType="Binary"/>
         <attribute name="latestReading" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="meterDescription" optional="YES" attributeType="String"/>
-        <attribute name="name" attributeType="String" minValueString="1"/>
-        <attribute name="qrString" attributeType="String" minValueString="1"/>
+        <attribute name="meterDescription" attributeType="String" defaultValueString=""/>
+        <attribute name="name" attributeType="String" minValueString="0" defaultValueString=""/>
+        <attribute name="qrString" attributeType="String" minValueString="0" defaultValueString=""/>
         <relationship name="floor" maxCount="1" deletionRule="Nullify" destinationEntity="Floor" inverseName="meters" inverseEntity="Floor"/>
-        <relationship name="readings" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="Reading" inverseName="meter" inverseEntity="Reading"/>
+        <relationship name="readings" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="Reading" inverseName="meter" inverseEntity="Reading"/>
     </entity>
-    <entity name="Reading" representedClassName="Reading" syncable="YES" codeGenerationType="class">
+    <entity name="Reading" representedClassName="Reading" syncable="YES">
         <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="kWh" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="meter" maxCount="1" deletionRule="Nullify" destinationEntity="Meter" inverseName="readings" inverseEntity="Meter"/>
@@ -27,7 +27,7 @@
     <elements>
         <element name="Building" positionX="-470.73828125" positionY="-89.01171875" width="128" height="73"/>
         <element name="Floor" positionX="-197.5546875" positionY="-88.59375" width="128" height="103"/>
-        <element name="Meter" positionX="-345.48828125" positionY="48.30078125" width="128" height="148"/>
+        <element name="Meter" positionX="-345.48828125" positionY="48.30078125" width="128" height="28"/>
         <element name="Reading" positionX="-60.7734375" positionY="67.17578125" width="128" height="88"/>
     </elements>
 </model>

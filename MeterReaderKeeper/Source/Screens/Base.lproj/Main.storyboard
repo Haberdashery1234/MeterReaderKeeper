@@ -33,7 +33,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="50" translatesAutoresizingMaskIntoConstraints="NO" id="tPK-Xx-z8T">
-                                <rect key="frame" x="50" y="213" width="314" height="470"/>
+                                <rect key="frame" x="50" y="148" width="314" height="600"/>
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Y2O-lr-sa0">
                                         <rect key="frame" x="4" y="0.0" width="306" height="80"/>
@@ -77,6 +77,17 @@
                                         <state key="normal" title="Add Test Data"/>
                                         <connections>
                                             <action selector="seedData" destination="2BO-Gn-qfn" eventType="touchUpInside" id="gtf-ab-9MF"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uff-H3-mg9" userLabel="Add Test Data">
+                                        <rect key="frame" x="57" y="520" width="200" height="80"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="80" id="J7c-ZD-DuM"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="40"/>
+                                        <state key="normal" title="Export Data"/>
+                                        <connections>
+                                            <action selector="exportData:" destination="2BO-Gn-qfn" eventType="touchUpInside" id="VfY-Qe-hXp"/>
                                         </connections>
                                     </button>
                                 </subviews>

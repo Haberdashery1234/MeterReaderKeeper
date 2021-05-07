@@ -38,9 +38,8 @@ class AddEditFloorViewController: UIViewController {
             building = MeterManager.shared.buildings[0]
         }
         
-        if
-            let floor = floor,
-            let building = floor.building {
+        if let floor = floor {
+            let building = floor.building
             buildingTextField.text = building.name
             floorTextField.text = "\(floor.number)"
             if let mapData = floor.map {

@@ -56,9 +56,7 @@ class PreviousReadingsViewController: UIViewController, UIToolbarDelegate {
         didSet {
             if let building = building {
                 buildingTextField.text = building.name
-                if let buildFloors = building.floors {
-                    floors = buildFloors.array as! [Floor]
-                }
+                floors = building.buildingFloors
             } else {
                 buildingTextField.text = "All"
             }
@@ -71,9 +69,7 @@ class PreviousReadingsViewController: UIViewController, UIToolbarDelegate {
         didSet {
             if let floor = floor {
                 floorTextField.text = "Floor \(floor.number)"
-                if let floorMeters = floor.meters {
-                    meters = floorMeters.array as! [Meter]
-                }
+                meters = floor.floorMeters
             } else {
                 floorTextField.text = "All"
             }
@@ -125,8 +121,6 @@ class PreviousReadingsViewController: UIViewController, UIToolbarDelegate {
         
         datePickerView.dataSource = self
         datePickerView.delegate = self
-        
-        MeterManager.shared.loadAllReadings()
 
         buildings = MeterManager.shared.buildings
         dates = Array(MeterManager.shared.allReadingsDates.keys).sorted().reversed()

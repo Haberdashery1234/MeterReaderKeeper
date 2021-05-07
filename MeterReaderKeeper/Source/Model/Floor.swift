@@ -2,13 +2,35 @@
 //  Floor+CoreDataProperties.swift
 //  MeterReaderKeeper
 //
-//  Created by Christian Grise on 5/4/21.
+//  Created by Christian Grise on 5/6/21.
 //
 //
 
 import Foundation
 import CoreData
 
+@objc(Floor)
+public class Floor: NSManagedObject {
+
+    var floorMeters: [Meter] {
+        get {
+            return meters.array as! [Meter]
+        }
+    }
+    
+    func getExportDictionary() -> [String : Any] {
+        var exportDict = [String : Any]()
+        exportDict["number"] = number
+        exportDict["map"] = map
+        
+        var localMeters = [[String : Any]]()
+        for meter in floorMeters {
+            localMeters.append(meter.getExportDictionary())
+        }
+        exportDict["meters"] = localMeters
+        return exportDict
+    }
+}
 
 extension Floor {
 
@@ -19,7 +41,7 @@ extension Floor {
     @NSManaged public var map: Data?
     @NSManaged public var number: Int16
     @NSManaged public var building: Building
-    @NSManaged public var meters: NSOrderedSet?
+    @NSManaged public var meters: NSOrderedSet
 
 }
 

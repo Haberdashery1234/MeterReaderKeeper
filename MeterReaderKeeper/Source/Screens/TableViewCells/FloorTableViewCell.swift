@@ -17,18 +17,9 @@ class FloorTableViewCell: UITableViewCell {
     
     func setup(withFloor floor: Floor) {
         self.floor = floor
-        var nameString = ""
-        if
-            let building = floor.building,
-            let buildingName = building.name
-        {
-            nameString += "\(buildingName) - "
-        }
-        nameString += "Floor \(floor.number)"
+        let nameString = "\(floor.building.name) - Floor \(floor.number)"
         nameLabel.text = nameString
-        if let meters = floor.meters {
-            metersLabel.text = "\(meters.count) Meters"
-        }
+        metersLabel.text = "\(floor.floorMeters.count) Meters"
         if let mapData = floor.map {
             floorMapImageView.image = UIImage(data: mapData)
         }

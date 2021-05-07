@@ -8,6 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		7C26BCA726442D0A004D7FED /* QrScannerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C26BCA626442D0A004D7FED /* QrScannerViewController.swift */; };
+		7C26BCC726448391004D7FED /* TestData.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7C26BCC626448391004D7FED /* TestData.plist */; };
+		7C26BD282644DE6B004D7FED /* Floor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C26BD202644DE6B004D7FED /* Floor.swift */; };
+		7C26BD2A2644DE6B004D7FED /* Meter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C26BD222644DE6B004D7FED /* Meter.swift */; };
+		7C26BD2C2644DE6B004D7FED /* Building.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C26BD242644DE6B004D7FED /* Building.swift */; };
+		7C26BD2E2644DE6B004D7FED /* Reading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C26BD262644DE6B004D7FED /* Reading.swift */; };
 		7C4AF7FC263CD435002E65CB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C4AF7FA263CD435002E65CB /* Main.storyboard */; };
 		7C4AF7FE263CD436002E65CB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C4AF7FD263CD436002E65CB /* Assets.xcassets */; };
 		7C4AF801263CD436002E65CB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C4AF7FF263CD436002E65CB /* LaunchScreen.storyboard */; };
@@ -55,6 +60,11 @@
 
 /* Begin PBXFileReference section */
 		7C26BCA626442D0A004D7FED /* QrScannerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QrScannerViewController.swift; sourceTree = "<group>"; };
+		7C26BCC626448391004D7FED /* TestData.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = TestData.plist; sourceTree = "<group>"; };
+		7C26BD202644DE6B004D7FED /* Floor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Floor.swift; sourceTree = "<group>"; };
+		7C26BD222644DE6B004D7FED /* Meter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Meter.swift; sourceTree = "<group>"; };
+		7C26BD242644DE6B004D7FED /* Building.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Building.swift; sourceTree = "<group>"; };
+		7C26BD262644DE6B004D7FED /* Reading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reading.swift; sourceTree = "<group>"; };
 		7C4AF7F1263CD435002E65CB /* MeterReaderKeeper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeterReaderKeeper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C4AF7FB263CD435002E65CB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		7C4AF7FD263CD436002E65CB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -80,14 +90,6 @@
 		7C6EC9DB263F095100DFDAEE /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7C6EC9DD263F095100DFDAEE /* SceneDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		7C6EC9F0263F1C7100DFDAEE /* PreviousReadingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviousReadingsViewController.swift; sourceTree = "<group>"; };
-		7C925A822642343700CB3982 /* Building+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Building+CoreDataClass.swift"; sourceTree = "<group>"; };
-		7C925A832642343700CB3982 /* Building+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Building+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		7C925A842642343700CB3982 /* Reading+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Reading+CoreDataClass.swift"; sourceTree = "<group>"; };
-		7C925A852642343700CB3982 /* Reading+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Reading+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		7C925A862642343700CB3982 /* Meter+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Meter+CoreDataClass.swift"; sourceTree = "<group>"; };
-		7C925A872642343700CB3982 /* Meter+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Meter+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		7C925A882642343700CB3982 /* Floor+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Floor+CoreDataClass.swift"; sourceTree = "<group>"; };
-		7C925A892642343700CB3982 /* Floor+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Floor+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		7CAAF43F264199F000B5EFC2 /* BuildingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildingTableViewCell.swift; sourceTree = "<group>"; };
 		7CAAF444264199FC00B5EFC2 /* FloorTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloorTableViewCell.swift; sourceTree = "<group>"; };
 		7CAAF44926419A0600B5EFC2 /* MeterTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeterTableViewCell.swift; sourceTree = "<group>"; };
@@ -125,14 +127,10 @@
 		7C4690C02640D75B009A11C0 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				7C925A822642343700CB3982 /* Building+CoreDataClass.swift */,
-				7C925A832642343700CB3982 /* Building+CoreDataProperties.swift */,
-				7C925A882642343700CB3982 /* Floor+CoreDataClass.swift */,
-				7C925A892642343700CB3982 /* Floor+CoreDataProperties.swift */,
-				7C925A862642343700CB3982 /* Meter+CoreDataClass.swift */,
-				7C925A872642343700CB3982 /* Meter+CoreDataProperties.swift */,
-				7C925A842642343700CB3982 /* Reading+CoreDataClass.swift */,
-				7C925A852642343700CB3982 /* Reading+CoreDataProperties.swift */,
+				7C26BD242644DE6B004D7FED /* Building.swift */,
+				7C26BD202644DE6B004D7FED /* Floor.swift */,
+				7C26BD222644DE6B004D7FED /* Meter.swift */,
+				7C26BD262644DE6B004D7FED /* Reading.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -261,6 +259,7 @@
 				7C685CED2643443300981B6D /* KeyboardAccessory.swift */,
 				7C685CF22643453800981B6D /* Constants.swift */,
 				7C685CFA26436C4D00981B6D /* DataSeeder.swift */,
+				7C26BCC626448391004D7FED /* TestData.plist */,
 			);
 			path = Utility;
 			sourceTree = "<group>";
@@ -370,6 +369,7 @@
 			files = (
 				7C4AF801263CD436002E65CB /* LaunchScreen.storyboard in Resources */,
 				7C4AF7FE263CD436002E65CB /* Assets.xcassets in Resources */,
+				7C26BCC726448391004D7FED /* TestData.plist in Resources */,
 				7C4AF7FC263CD435002E65CB /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -396,11 +396,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				7C26BCA726442D0A004D7FED /* QrScannerViewController.swift in Sources */,
+				7C26BD2A2644DE6B004D7FED /* Meter.swift in Sources */,
 				7C6EC9E3263F095100DFDAEE /* AppDelegate.swift in Sources */,
 				7C6EC9DF263F095100DFDAEE /* MeterReader.xcdatamodeld in Sources */,
 				7C685CEE2643443300981B6D /* KeyboardAccessory.swift in Sources */,
 				7CCE61A62643338200012A9D /* AddEditReadingViewController.swift in Sources */,
 				7CAAF44A26419A0600B5EFC2 /* MeterTableViewCell.swift in Sources */,
+				7C26BD282644DE6B004D7FED /* Floor.swift in Sources */,
 				7CCE61A42643338200012A9D /* ReadingsBuildingSelectionViewController.swift in Sources */,
 				7C685CFB26436C4D00981B6D /* DataSeeder.swift in Sources */,
 				7C685CA72643376800981B6D /* PreviousReadingTableViewCell.swift in Sources */,
@@ -409,11 +411,13 @@
 				7CCE61A52643338200012A9D /* ReadingMeterTableViewCell.swift in Sources */,
 				7C6EC9E2263F095100DFDAEE /* MeterManager.swift in Sources */,
 				7C6EC9E1263F095100DFDAEE /* HomeViewController.swift in Sources */,
+				7C26BD2C2644DE6B004D7FED /* Building.swift in Sources */,
 				7CCE61A72643338200012A9D /* ReadingsMainViewController.swift in Sources */,
 				7CAAF445264199FC00B5EFC2 /* FloorTableViewCell.swift in Sources */,
 				7C6EC9F1263F1C7100DFDAEE /* PreviousReadingsViewController.swift in Sources */,
 				7C685CF32643453800981B6D /* Constants.swift in Sources */,
 				7C685CB026433B1700981B6D /* AddEditMeterViewController.swift in Sources */,
+				7C26BD2E2644DE6B004D7FED /* Reading.swift in Sources */,
 				7C6EC9E5263F095100DFDAEE /* SceneDelegate.swift in Sources */,
 				7CAAF440264199F000B5EFC2 /* BuildingTableViewCell.swift in Sources */,
 				7C685CB226433B1700981B6D /* ManagementTableViewController.swift in Sources */,

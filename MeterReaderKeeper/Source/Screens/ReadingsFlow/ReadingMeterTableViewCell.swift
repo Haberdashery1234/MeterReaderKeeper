@@ -20,18 +20,19 @@ class ReadingMeterTableViewCell: UITableViewCell {
         readingDoneCheckImageView.isHidden = true
         self.meter = meter
         nameLabel.text = meter.name
-        if let floor = meter.floor {
-            let floorNumber = floor.number
-            locationLabel.text = "Floor \(floorNumber)"
+        
+        let floorNumber = meter.floor.number
+        locationLabel.text = "Floor \(floorNumber)"
+        
+        let meterReadings = meter.meterReadings
+        let date = Calendar.current.startOfDay(for: Date())
+        let todaysReadings = meterReadings.filter { (reading) -> Bool in
+            return reading.date == date
         }
-        if let readings = meter.readings {
-            let date = Calendar.current.startOfDay(for: Date()) as NSDate
-            if let todaysReadings = readings.filtered(using: NSPredicate(format: "date == %@", date)).array as? [Reading] {
-                if todaysReadings.count > 0 {
-                    reading = todaysReadings[0]
-                    readingMade()
-                }
-            }
+        
+        if todaysReadings.count > 0 {
+            reading = todaysReadings[0]
+            readingMade()
         }
     }
     

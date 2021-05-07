@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>name</key>
+		<string>121 Seaport</string>
+		<key>floors</key>
+		<array>
+			<dict>
+				<key>map</key>
+				<data></data>
+				<key>number</key>
+				<integer>1</integer>
+				<key>meters</key>
+				<array>
+					<dict>
+						<key>name</key>
+						<string>nameValue</string>
+						<key>meterDescription</key>
+						<string>meterDescriptionValue</string>
+						<key>qrString</key>
+						<string>qrStringValue</string>
+						<key>latestReading</key>
+						<date>2021-05-06T21:24:49Z</date>
+						<key>image</key>
+						<data></data>
+						<key>readings</key>
+						<array>
+							<dict>
+								<key>date</key>
+								<date>2021-05-06T21:12:11Z</date>
+								<key>kWh</key>
+								<integer>0</integer>
+							</dict>
+						</array>
+					</dict>
+				</array>
+			</dict>
+		</array>
+	</dict>
+</array>
+</plist>

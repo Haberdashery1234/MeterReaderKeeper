@@ -33,9 +33,7 @@ class AddEditMeterViewController: UIViewController {
         didSet {
             if let building = building {
                 buildingTextField.text = building.name
-                if let buildFloors = building.floors {
-                    floors = buildFloors.array as! [Floor]
-                }
+                floors = building.buildingFloors
             }
         }
     }
@@ -64,11 +62,8 @@ class AddEditMeterViewController: UIViewController {
         }
         
         if let meter = meter {
-            if let meterFloor = meter.floor,
-               let meterBuilding = meterFloor.building {
-                building = meterBuilding
-                floor = meterFloor
-            }
+            floor = meter.floor
+            building = floor!.building
             nameTextField.text = meter.name
             descriptionTextField.text = meter.meterDescription
         }
@@ -78,7 +73,6 @@ class AddEditMeterViewController: UIViewController {
     @IBAction func saveTapped(_ sender: Any) {
         guard
             let building = building,
-            let buildingName = building.name,
             let floor = floor,
             let nameText = nameTextField.text,
             let descriptionText = descriptionTextField.text
@@ -86,7 +80,7 @@ class AddEditMeterViewController: UIViewController {
             return
         }
         
-        _ = MeterManager.shared.addMeter(withName: nameText, description: descriptionText, floor: floor, image: meterImageImageView.image?.pngData(), buildingName: buildingName)
+        _ = MeterManager.shared.addMeter(withName: nameText, description: descriptionText, floor: floor, image: meterImageImageView.image?.pngData(), buildingName: building.name)
         
         navigationController?.popViewController(animated: true)
     }

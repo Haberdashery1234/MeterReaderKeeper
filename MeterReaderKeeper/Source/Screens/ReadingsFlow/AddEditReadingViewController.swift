@@ -23,16 +23,14 @@ class AddEditReadingViewController: UIViewController {
         super.viewDidLoad()
 
         if let meter = meter {
-            if
-                let floor = meter.floor,
-                let building = floor.building,
-                let buildingName = building.name {
-                buildingNameLabel.text = buildingName
-                floorLabel.text = "Floor \(floor.number)"
-                descriptionLabel.text = meter.meterDescription
-                if let meterImageData = meter.image {
-                    meterImageView.image = UIImage(data: meterImageData)
-                }
+            let floor = meter.floor
+            let building = floor.building
+            let buildingName = building.name
+            buildingNameLabel.text = buildingName
+            floorLabel.text = "Floor \(floor.number)"
+            descriptionLabel.text = meter.meterDescription
+            if let meterImageData = meter.image {
+                meterImageView.image = UIImage(data: meterImageData)
             }
         }
         

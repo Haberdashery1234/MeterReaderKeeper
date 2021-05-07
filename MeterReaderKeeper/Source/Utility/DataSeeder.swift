@@ -27,25 +27,22 @@ class DataSeeder {
         ]
         
         for name in buildings {
-            manager.addBuilding(withName: name, floors: Int16(Int.random(in: 5...35)))
+            _ = manager.addBuilding(withName: name, floors: Int16(Int.random(in: 5...35)))
             
             for building in manager.buildings {
-                if let floors = building.floors?.array as? [Floor] {
-                    for floor in floors {
-                        let numberOfMeters = Int.random(in: 3...8)
-                        for i in 1...numberOfMeters {
-                            if let buildingName = building.name {
-                                let meterName = "\(randomString(length: 5))-\(i)"
-                                let meterDescription = "This is a short description for \(meterName)"
-                                
-                                let meter = manager.addMeter(withName: meterName, description: meterDescription, floor: floor, image: nil, buildingName: buildingName)
-                                
-                                let randomDays = Int.random(in: -30...0)
-                                var date = Calendar.current.startOfDay(for: Date())
-                                date = Calendar.current.date(byAdding: .day, value: randomDays, to: date) ?? Date()
-                                
-                                manager.addReading(toMeter: meter, withKWH: Double.random(in: 10000...50000), date: date)
-                            }
+                let floors = building.buildingFloors
+                for floor in floors {
+                    let numberOfMeters = Int.random(in: 3...8)
+                    for i in 1...numberOfMeters {
+                        let meterName = "\(randomString(length: 5))-\(i)"
+                        let meterDescription = "This is a short description for \(meterName)"
+                        
+                        if let meter = manager.addMeter(withName: meterName, description: meterDescription, floor: floor, image: nil, buildingName: building.name) {
+                            let randomDays = Int.random(in: -30...0)
+                            var date = Calendar.current.startOfDay(for: Date())
+                            date = Calendar.current.date(byAdding: .day, value: randomDays, to: date) ?? Date()
+                            
+                            manager.addReading(toMeter: meter, withKWH: Double.random(in: 10000...50000), date: date)
                         }
                     }
                 }
@@ -56,15 +53,13 @@ class DataSeeder {
     func seedMoreReadings() {
         let manager = MeterManager.shared
         for building in manager.buildings {
-            if let floors = building.floors?.array as? [Floor] {
-                for floor in floors {
-                    if let meters = floor.meters?.array as? [Meter] {
-                        for meter in meters {
-                            let date = Calendar.current.startOfDay(for: Date())
-                            
-                            manager.addReading(toMeter: meter, withKWH: Double.random(in: 10000...50000), date: date)
-                        }
-                    }
+            let floors = building.buildingFloors
+            for floor in floors {
+                let meters = floor.floorMeters
+                for meter in meters {
+                    let date = Calendar.current.startOfDay(for: Date())
+                    
+                    manager.addReading(toMeter: meter, withKWH: Double.random(in: 10000...50000), date: date)
                 }
             }
         }

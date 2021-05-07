@@ -18,15 +18,10 @@ class PreviousReadingTableViewCell: UITableViewCell {
         self.reading = reading
         readingValueLabel.text = String(format: "%.2f kWh", reading.kWh)
         var locationString = ""
-        if
-            let meter = reading.meter,
-            let meterName = meter.name,
-            let floor = meter.floor,
-            let building = floor.building,
-            let buildingName = building.name
-        {
-            locationString += "\(meterName)\n\(buildingName) - Floor \(floor.number)"
-        }
+        let meter = reading.meter
+        let floor = meter.floor
+        let building = floor.building
+        locationString += "\(meter.name)\n\(building.name) - Floor \(floor.number)"
         readingDetailsLabel.text = locationString
     }
 }

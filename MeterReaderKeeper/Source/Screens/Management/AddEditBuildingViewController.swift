@@ -21,9 +21,7 @@ class AddEditBuildingViewController: UIViewController {
         super.viewDidLoad()
         if let building = building {
             nameTextField.text = building.name
-            if let floors = building.floors {
-                floorsTextField.text = "\(floors.count)"
-            }
+            floorsTextField.text = "\(building.floors.count)"
         }
         deleteButton.isHidden = building == nil
     }
@@ -37,7 +35,7 @@ class AddEditBuildingViewController: UIViewController {
             return
         }
         
-        MeterManager.shared.addBuilding(withName: nameText, floors: floorsInt)
+        _ = MeterManager.shared.addBuilding(withName: nameText, floors: floorsInt)
         
         navigationController?.popViewController(animated: true)
     }

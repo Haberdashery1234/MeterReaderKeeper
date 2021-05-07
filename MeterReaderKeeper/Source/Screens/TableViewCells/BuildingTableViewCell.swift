@@ -18,9 +18,8 @@ class BuildingTableViewCell: UITableViewCell {
     func setup(withBuilding building: Building) {
         self.building = building
         nameLabel.text = building.name
-        if let floors = building.floors {
-            floorsLabel.text = "\(floors.count) Floors"
-        }
+        floorsLabel.text = "\(building.floors.count) Floors"
+        
         // TODO: - Implement meter count by building
         metersLabel.text = "XX Meters"
     }

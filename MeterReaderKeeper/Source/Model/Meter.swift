@@ -2,13 +2,39 @@
 //  Meter+CoreDataProperties.swift
 //  MeterReaderKeeper
 //
-//  Created by Christian Grise on 5/4/21.
+//  Created by Christian Grise on 5/6/21.
 //
 //
 
 import Foundation
 import CoreData
 
+@objc(Meter)
+public class Meter: NSManagedObject {
+
+    var meterReadings: [Reading] {
+        get {
+            return readings.array as! [Reading]
+        }
+    }
+    
+    func getExportDictionary() -> [String : Any] {
+        var exportDict = [String : Any]()
+        exportDict["image"] = image
+        exportDict["latestReading"] = latestReading
+        exportDict["meterDescription"] = meterDescription
+        exportDict["latestReading"] = latestReading
+        exportDict["name"] = name
+        exportDict["qrString"] = qrString
+        
+        var localReadings = [[String : Any]]()
+        for reading in meterReadings {
+            localReadings.append(reading.getExportDictionary())
+        }
+        exportDict["readings"] = localReadings
+        return exportDict
+    }
+}
 
 extension Meter {
 
@@ -16,13 +42,13 @@ extension Meter {
         return NSFetchRequest<Meter>(entityName: "Meter")
     }
 
+    @NSManaged public var image: Data?
+    @NSManaged public var latestReading: Date?
+    @NSManaged public var meterDescription: String
     @NSManaged public var name: String
     @NSManaged public var qrString: String
-    @NSManaged public var image: Data?
-    @NSManaged public var meterDescription: String?
-    @NSManaged public var latestReading: Date?
-    @NSManaged public var readings: NSOrderedSet?
     @NSManaged public var floor: Floor
+    @NSManaged public var readings: NSOrderedSet
 
 }
 

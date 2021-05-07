@@ -20,13 +20,9 @@ class ReadingsMainViewController: UIViewController {
         super.viewDidLoad()
 
         if let building = building {
-            if let buildFloors = building.floors?.array as? [Floor] {
-                floors = buildFloors
-                for floor in floors {
-                    if let floorMeters = floor.meters {
-                        meters.append(contentsOf: floorMeters.array as! [Meter])
-                    }
-                }
+            floors = building.buildingFloors
+            for floor in floors {
+                meters.append(contentsOf: floor.floorMeters)
             }
         }
     }
@@ -109,22 +105,13 @@ extension ReadingsMainViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if let meters = floors[section].meters {
-            return meters.count
-        } else {
-            return 0
-        }
+        return floors[section].meters.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ReadingMeterCell") as? ReadingMeterTableViewCell ?? ReadingMeterTableViewCell(style: .default, reuseIdentifier: "ReadingMeterCell")
-        if
-            let meters = floors[indexPath.section].meters,
-            let metersArray = meters.array as? [Meter]
-        {
-            let meter = metersArray[indexPath.row]
-            cell.setup(withMeter: meter)
-        }
+        let meter = floors[indexPath.section].floorMeters[indexPath.row]
+        cell.setup(withMeter: meter)
         return cell
     }
 }
