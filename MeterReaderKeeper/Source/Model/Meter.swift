@@ -20,7 +20,7 @@ public class Meter: NSManagedObject {
     
     func getExportDictionary() -> [String : Any] {
         var exportDict = [String : Any]()
-        exportDict["image"] = image
+        exportDict["image"] = UIService.shared.getExportSizeImageData(from: image, ofMaxSizeMB: 0.25)
         exportDict["latestReading"] = latestReading
         exportDict["meterDescription"] = meterDescription
         exportDict["latestReading"] = latestReading
@@ -42,8 +42,8 @@ extension Meter {
         return NSFetchRequest<Meter>(entityName: "Meter")
     }
 
-    @NSManaged public var image: Data?
-    @NSManaged public var latestReading: Date?
+    @NSManaged public var image: Data
+    @NSManaged public var latestReading: Date
     @NSManaged public var meterDescription: String
     @NSManaged public var name: String
     @NSManaged public var qrString: String

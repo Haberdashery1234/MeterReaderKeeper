@@ -20,8 +20,6 @@ class FloorTableViewCell: UITableViewCell {
         let nameString = "\(floor.building.name) - Floor \(floor.number)"
         nameLabel.text = nameString
         metersLabel.text = "\(floor.floorMeters.count) Meters"
-        if let mapData = floor.map {
-            floorMapImageView.image = UIImage(data: mapData)
-        }
+        floorMapImageView.image = UIImage(data: floor.map)
     }
 }

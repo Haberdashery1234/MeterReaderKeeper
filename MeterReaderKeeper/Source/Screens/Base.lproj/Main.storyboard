@@ -493,6 +493,7 @@
                                         <rect key="frame" x="0.0" y="621" width="374" height="30"/>
                                         <state key="normal" title="Add Map"/>
                                         <connections>
+                                            <action selector="addImageTapped:" destination="dt8-dr-5Di" eventType="touchUpInside" id="SUY-I5-4y1"/>
                                             <action selector="addMapTapped:" destination="DN0-ma-r1J" eventType="touchUpInside" id="VX0-CV-HxC"/>
                                         </connections>
                                     </button>

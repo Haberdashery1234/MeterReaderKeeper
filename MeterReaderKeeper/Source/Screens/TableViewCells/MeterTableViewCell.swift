@@ -20,8 +20,6 @@ class MeterTableViewCell: UITableViewCell {
         nameLabel.text = meter.name
         let floor = meter.floor
         locationLabel.text =  "\(floor.building.name) - Floor \(floor.number)"
-        if let imageData = meter.image {
-            meterImageView.image = UIImage(data: imageData)
-        }
+        meterImageView.image = UIImage(data: meter.image)
     }
 }

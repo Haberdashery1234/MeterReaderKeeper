@@ -29,9 +29,7 @@ class AddEditReadingViewController: UIViewController {
             buildingNameLabel.text = buildingName
             floorLabel.text = "Floor \(floor.number)"
             descriptionLabel.text = meter.meterDescription
-            if let meterImageData = meter.image {
-                meterImageView.image = UIImage(data: meterImageData)
-            }
+            meterImageView.image = UIImage(data: meter.image)
         }
         
         if let reading = reading {

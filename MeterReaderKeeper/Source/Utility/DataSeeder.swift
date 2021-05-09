@@ -37,7 +37,7 @@ class DataSeeder {
                         let meterName = "\(randomString(length: 5))-\(i)"
                         let meterDescription = "This is a short description for \(meterName)"
                         
-                        if let meter = manager.addMeter(withName: meterName, description: meterDescription, floor: floor, image: nil, buildingName: building.name) {
+                        if let meter = manager.addMeter(withName: meterName, description: meterDescription, floor: floor, image: Data(), buildingName: building.name) {
                             let randomDays = Int.random(in: -30...0)
                             var date = Calendar.current.startOfDay(for: Date())
                             date = Calendar.current.date(byAdding: .day, value: randomDays, to: date) ?? Date()

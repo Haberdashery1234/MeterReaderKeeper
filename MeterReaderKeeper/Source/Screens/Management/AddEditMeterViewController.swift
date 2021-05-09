@@ -80,7 +80,15 @@ class AddEditMeterViewController: UIViewController {
             return
         }
         
-        _ = MeterManager.shared.addMeter(withName: nameText, description: descriptionText, floor: floor, image: meterImageImageView.image?.pngData(), buildingName: building.name)
+        var imageData = Data()
+        if let image = meterImageImageView.image {
+            imageData = image.pngData() ?? Data()
+        }
+        if let meter = meter {
+            _ = MeterManager.shared.updateMeter(meter, withName: nameText, description: descriptionText, floor: floor, image: imageData, buildingName: building.name)
+        } else {
+            _ = MeterManager.shared.addMeter(withName: nameText, description: descriptionText, floor: floor, image: imageData, buildingName: building.name)
+        }
         
         navigationController?.popViewController(animated: true)
     }
@@ -94,6 +102,15 @@ class AddEditMeterViewController: UIViewController {
         navigationController?.popViewController(animated: true)
     }
     
+    @IBAction func addImageTapped(_ sender: Any) {
+        if UIImagePickerController.isSourceTypeAvailable(UIImagePickerController.SourceType.photoLibrary) {
+            let imagePicker = UIImagePickerController()
+            imagePicker.delegate = self
+            imagePicker.sourceType = UIImagePickerController.SourceType.photoLibrary
+            imagePicker.allowsEditing = true
+            self.present(imagePicker, animated: true, completion: nil)
+        }
+    }
 }
 
 extension AddEditMeterViewController : UIPickerViewDelegate {
@@ -131,7 +148,7 @@ extension AddEditMeterViewController : UIPickerViewDataSource {
     }
 }
 
-extension AddEditMeterViewController: UIImagePickerControllerDelegate {
+extension AddEditMeterViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         if let pickedImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
             meterImageImageView.contentMode = .scaleAspectFit

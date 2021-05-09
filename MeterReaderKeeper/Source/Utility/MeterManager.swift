@@ -12,6 +12,14 @@ class MeterManager {
     
     static let shared = MeterManager()
     
+    var exportURL: URL {
+        get {
+            let documentDirectoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last!
+            let writableFileURL = documentDirectoryURL.appendingPathComponent("exportData.plist", isDirectory: false)
+            return writableFileURL
+        }
+    }
+    
     var persistentContainer: NSPersistentContainer
     var buildings: [Building] = []
     var floors: [Floor] = []
@@ -27,6 +35,13 @@ class MeterManager {
                 fatalError("Failed to load Core Data stack: \(error)")
             }
         }
+        
+        if !FileManager.default.fileExists(atPath: exportURL.path) {
+            FileManager.default.createFile(atPath: exportURL.path, contents: nil, attributes: nil)
+            print("created exportData.plist file successfully")
+            return
+        }
+        
         load()
     }
     
@@ -48,6 +63,7 @@ class MeterManager {
                 let floor = Floor(context: managedContext)
                 floor.building = building
                 floor.number = i
+                floor.map = Data()
                 saveFloor(floor)
             }
         }
@@ -154,10 +170,31 @@ class MeterManager {
     }
     
     // MARK: - Meters
-    func addMeter(withName name: String, description: String, floor: Floor, image: Data?, buildingName: String) -> Meter? {
+    func addMeter(withName name: String, description: String, floor: Floor, image: Data, buildingName: String) -> Meter? {
         let managedContext = persistentContainer.viewContext
         
         let meter = Meter(context: managedContext)
+        meter.name = name
+        meter.meterDescription = description
+        meter.image = image
+        meter.floor = floor
+        let qrString = "\(buildingName)::\(floor.number)::\(name)"
+        meter.qrString = qrString
+        
+        do {
+            try managedContext.save()
+            print("Added meter: \(qrString)")
+            load()
+            return meter
+        } catch let error as NSError {
+            print("Could not save. \(error), \(error.userInfo)")
+        }
+        return nil
+    }
+    
+    func updateMeter(_ meter: Meter, withName name: String, description: String, floor: Floor, image: Data, buildingName: String) -> Meter? {
+        let managedContext = persistentContainer.viewContext
+        
         meter.name = name
         meter.meterDescription = description
         meter.image = image
@@ -301,17 +338,12 @@ class MeterManager {
     
     func saveDataToPlist() {
         
-        var exportArray = [[String : Any]]()
+        let exportArray = NSMutableArray()
         for building in buildings {
-            exportArray.append(building.getExportDictionary())
+            exportArray.add(building.getExportDictionary())
         }
         do {
-            let fileManager = FileManager.default
-            let path = try fileManager.url(for: .documentDirectory, in: .allDomainsMask, appropriateFor: nil, create: false)
-            let fileURL = path.appendingPathComponent("ExportData.plist")
-            let data: Data = try NSKeyedArchiver.archivedData(withRootObject: exportArray, requiringSecureCoding: true)
-            let readingsPlist = try PropertyListSerialization.propertyList(from: data, options: PropertyListSerialization.MutabilityOptions.mutableContainersAndLeaves, format: nil) as! NSDictionary
-            readingsPlist.write(toFile: fileURL.absoluteString, atomically: true)
+            try exportArray.write(to: exportURL)
         } catch let error as NSError {
             print("An error occurred while writing to plist: \(error.localizedDescription)")
         }

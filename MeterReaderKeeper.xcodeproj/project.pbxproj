@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C0D5ECC2645BC8A0081318C /* UIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0D5ECB2645BC8A0081318C /* UIService.swift */; };
 		7C26BCA726442D0A004D7FED /* QrScannerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C26BCA626442D0A004D7FED /* QrScannerViewController.swift */; };
 		7C26BCC726448391004D7FED /* TestData.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7C26BCC626448391004D7FED /* TestData.plist */; };
 		7C26BD282644DE6B004D7FED /* Floor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C26BD202644DE6B004D7FED /* Floor.swift */; };
@@ -59,6 +60,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7C0D5ECB2645BC8A0081318C /* UIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIService.swift; sourceTree = "<group>"; };
 		7C26BCA626442D0A004D7FED /* QrScannerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QrScannerViewController.swift; sourceTree = "<group>"; };
 		7C26BCC626448391004D7FED /* TestData.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = TestData.plist; sourceTree = "<group>"; };
 		7C26BD202644DE6B004D7FED /* Floor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Floor.swift; sourceTree = "<group>"; };
@@ -187,10 +189,10 @@
 		7C685CAB26433B1700981B6D /* Management */ = {
 			isa = PBXGroup;
 			children = (
+				7C685CAE26433B1700981B6D /* ManagementTableViewController.swift */,
 				7C685CAF26433B1700981B6D /* AddEditBuildingViewController.swift */,
 				7C685CAD26433B1700981B6D /* AddEditFloorViewController.swift */,
 				7C685CAC26433B1700981B6D /* AddEditMeterViewController.swift */,
-				7C685CAE26433B1700981B6D /* ManagementTableViewController.swift */,
 			);
 			path = Management;
 			sourceTree = "<group>";
@@ -256,6 +258,7 @@
 			isa = PBXGroup;
 			children = (
 				7C6EC9DA263F095100DFDAEE /* MeterManager.swift */,
+				7C0D5ECB2645BC8A0081318C /* UIService.swift */,
 				7C685CED2643443300981B6D /* KeyboardAccessory.swift */,
 				7C685CF22643453800981B6D /* Constants.swift */,
 				7C685CFA26436C4D00981B6D /* DataSeeder.swift */,
@@ -408,6 +411,7 @@
 				7C685CA72643376800981B6D /* PreviousReadingTableViewCell.swift in Sources */,
 				7C685CB326433B1700981B6D /* AddEditBuildingViewController.swift in Sources */,
 				7C685CB126433B1700981B6D /* AddEditFloorViewController.swift in Sources */,
+				7C0D5ECC2645BC8A0081318C /* UIService.swift in Sources */,
 				7CCE61A52643338200012A9D /* ReadingMeterTableViewCell.swift in Sources */,
 				7C6EC9E2263F095100DFDAEE /* MeterManager.swift in Sources */,
 				7C6EC9E1263F095100DFDAEE /* HomeViewController.swift in Sources */,

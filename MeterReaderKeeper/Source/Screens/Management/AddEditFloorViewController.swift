@@ -39,11 +39,11 @@ class AddEditFloorViewController: UIViewController {
         }
         
         if let floor = floor {
-            let building = floor.building
-            buildingTextField.text = building.name
+            building = floor.building
+            buildingTextField.text = building?.name
             floorTextField.text = "\(floor.number)"
-            if let mapData = floor.map {
-                currentMapImageView.image = UIImage(data: mapData)
+            if floor.map != Data() {
+                currentMapImageView.image = UIImage(data: floor.map)
             } else {
                 currentMapImageView.isHidden = true
             }
@@ -70,7 +70,10 @@ class AddEditFloorViewController: UIViewController {
             return
         }
         
-        let mapData = currentMapImageView.image?.pngData()
+        var mapData = Data()
+        if let image = currentMapImageView.image {
+            mapData = image.pngData() ?? Data()
+        }
         guard let floor = floor else {
             print("Floor is nil")
             return

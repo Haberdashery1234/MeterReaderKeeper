@@ -21,7 +21,7 @@ public class Floor: NSManagedObject {
     func getExportDictionary() -> [String : Any] {
         var exportDict = [String : Any]()
         exportDict["number"] = number
-        exportDict["map"] = map
+        exportDict["map"] = UIService.shared.getExportSizeImageData(from: map, ofMaxSizeMB: 0.25)
         
         var localMeters = [[String : Any]]()
         for meter in floorMeters {
@@ -38,7 +38,7 @@ extension Floor {
         return NSFetchRequest<Floor>(entityName: "Floor")
     }
 
-    @NSManaged public var map: Data?
+    @NSManaged public var map: Data
     @NSManaged public var number: Int16
     @NSManaged public var building: Building
     @NSManaged public var meters: NSOrderedSet
