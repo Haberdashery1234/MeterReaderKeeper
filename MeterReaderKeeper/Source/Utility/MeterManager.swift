@@ -240,11 +240,25 @@ class MeterManager {
         }
     }
     
+    func getMeters(forBuilding building: Building) -> [Meter] {
+        var meters = [Meter]()
+        for floor in building.buildingFloors {
+            meters.append(contentsOf: floor.floorMeters)
+        }
+        return meters
+    }
+    
+    func getMeters(forFloor floor: Floor) -> [Meter] {
+        return floor.floorMeters
+    }
+    
     // MARK: - Readings
     func addReading(toMeter meter: Meter, withKWH kWh: Double, date: Date) {
         let managedContext = persistentContainer.viewContext
         
-        meter.latestReading = date
+        if date > meter.latestReading {
+            meter.latestReading = date
+        }
         let reading = Reading(context: managedContext)
         reading.kWh = kWh
         reading.meter = meter

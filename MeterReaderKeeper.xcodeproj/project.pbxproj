@@ -216,8 +216,8 @@
 			children = (
 				7C4AF7FA263CD435002E65CB /* Main.storyboard */,
 				7CCE61A32643338200012A9D /* PreviousReadings */,
-				7C685CAB26433B1700981B6D /* Management */,
 				7CCE619E2643338200012A9D /* ReadingsFlow */,
+				7C685CAB26433B1700981B6D /* Management */,
 				7CAAF43E264199AA00B5EFC2 /* TableViewCells */,
 			);
 			path = Screens;
@@ -238,9 +238,9 @@
 			children = (
 				7CCE619F2643338200012A9D /* ReadingsBuildingSelectionViewController.swift */,
 				7CCE61A22643338200012A9D /* ReadingsMainViewController.swift */,
+				7CCE61A02643338200012A9D /* ReadingMeterTableViewCell.swift */,
 				7C26BCA626442D0A004D7FED /* QrScannerViewController.swift */,
 				7CCE61A12643338200012A9D /* AddEditReadingViewController.swift */,
-				7CCE61A02643338200012A9D /* ReadingMeterTableViewCell.swift */,
 			);
 			path = ReadingsFlow;
 			sourceTree = "<group>";

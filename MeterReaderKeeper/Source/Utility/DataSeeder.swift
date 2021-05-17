@@ -38,11 +38,12 @@ class DataSeeder {
                         let meterDescription = "This is a short description for \(meterName)"
                         
                         if let meter = manager.addMeter(withName: meterName, description: meterDescription, floor: floor, image: Data(), buildingName: building.name) {
-                            let randomDays = Int.random(in: -30...0)
-                            var date = Calendar.current.startOfDay(for: Date())
-                            date = Calendar.current.date(byAdding: .day, value: randomDays, to: date) ?? Date()
                             
-                            manager.addReading(toMeter: meter, withKWH: Double.random(in: 10000...50000), date: date)
+                            for i in 0...4 {
+                                var date = Calendar.current.startOfDay(for: Date())
+                                date = Calendar.current.date(byAdding: .day, value: i*30, to: date) ?? Date()
+                                manager.addReading(toMeter: meter, withKWH: Double.random(in: 10000...30000), date: date)
+                            }
                         }
                     }
                 }
