@@ -32,6 +32,7 @@ class ReadingsMainViewController: UIViewController {
             meters = MeterManager.shared.getMeters(forFloor: floor)
         }
     }
+    var allBuildingMeters = [Meter]()
     var meters = [Meter]() {
         didSet {
             if metersTableView != nil {
@@ -53,8 +54,9 @@ class ReadingsMainViewController: UIViewController {
         if let building = building {
             floors = building.buildingFloors
             for floor in floors {
-                meters.append(contentsOf: floor.floorMeters)
+                allBuildingMeters.append(contentsOf: floor.floorMeters)
             }
+            floor = building.buildingFloors[0]
         }
         
         floorPickerView.dataSource = self
@@ -73,8 +75,14 @@ class ReadingsMainViewController: UIViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "ReadingMainToAddReadingSegue" {
             let readingVC = segue.destination as? AddEditReadingViewController
-            readingVC?.reading = sender as? Reading
-            readingVC?.meter = readingVC?.reading?.meter
+            if let senderDict = sender as? [String:Any] {
+                if let reading = senderDict["reading"] as? Reading {
+                    readingVC?.reading = reading
+                    readingVC?.meter = reading.meter
+                } else if let meter = senderDict["meter"] as? Meter {
+                    readingVC?.meter = meter
+                }
+            }
         } else if segue.identifier == "TakeReadingsMainToQRScannerSegue" {
             let qrVC = segue.destination as? QrScannerViewController
             qrVC?.scannerDelegate = self
@@ -141,13 +149,13 @@ extension ReadingsMainViewController: MFMailComposeViewControllerDelegate {
 extension ReadingsMainViewController: QRScannerDelegate {
     func scannedCode(_ codeString: String, errorCompletion: (NSError?) -> ()) {
         print("\(codeString)")
-        let filteredMeters = meters.filter { (meter) -> Bool in
+        let filteredMeters = allBuildingMeters.filter { (meter) -> Bool in
             return meter.qrString == codeString
         }
         
         if filteredMeters.count == 1 {
             let meter = filteredMeters[0]
-            performSegue(withIdentifier: "ReadingMainToAddReadingSegue", sender: meter)
+            performSegue(withIdentifier: "ReadingMainToAddReadingSegue", sender: ["meter" : meter])
             dismiss(animated: true, completion: nil)
         } else {
             let error = NSError(domain: "MeterScannerFailed", code: filteredMeters.count, userInfo: nil)
@@ -177,7 +185,7 @@ extension ReadingsMainViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let cell = tableView.cellForRow(at: indexPath) as? ReadingMeterTableViewCell
         if let reading = cell?.reading {
-            performSegue(withIdentifier: "ReadingMainToAddReadingSegue", sender: reading)
+            performSegue(withIdentifier: "ReadingMainToAddReadingSegue", sender: ["reading" : reading])
         }
         tableView.deselectRow(at: indexPath, animated: true)
     }
