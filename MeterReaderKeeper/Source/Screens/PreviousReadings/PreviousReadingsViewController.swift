@@ -7,246 +7,260 @@
 
 import UIKit
 
-class PreviousReadingsViewController: UIViewController, UIToolbarDelegate {
-
-    @IBOutlet weak var dateTextField: UITextField! {
-        didSet {
-            dateTextField.inputView = datePickerView
-            dateTextField.inputAccessoryView = keyboardToolbar
-        }
-    }
+class PreviousReadingsViewController: UIViewController {
     
-    @IBOutlet weak var buildingTextField: UITextField! {
-        didSet {
-            buildingTextField.inputView = buildingPickerView
-            buildingTextField.inputAccessoryView = keyboardToolbar
-        }
-    }
-    @IBOutlet weak var floorTextField: UITextField! {
-        didSet {
-            floorTextField.inputView = floorPickerView
-            floorTextField.inputAccessoryView = keyboardToolbar
-        }
-    }
-    @IBOutlet weak var meterTextField: UITextField! {
-        didSet {
-            meterTextField.inputView = meterPickerView
-            meterTextField.inputAccessoryView = keyboardToolbar
-        }
-    }
+    // MARK: - Properties
+    weak var coordinator: AppCoordinator?
     
-    @IBOutlet weak var previousReadingsSegmentedControl: UISegmentedControl!
+    private var buildings = [Building]()
+    private var building: Building?
+    private var floors = [Floor]()
+    private var floor: Floor?
+    private var meters = [Meter]()
+    private var meter: Meter?
+    private var dates = [Date]()
+    private var date: Date?
+    private var readings = [Reading]()
     
-    var activeField: UITextField?
+    // MARK: - UI Components
+    private lazy var segmentedControl: UISegmentedControl = {
+        let items = ["Date", "Building", "Floor", "Meter"]
+        let control = UISegmentedControl(items: items)
+        control.selectedSegmentIndex = 0
+        control.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
+        control.translatesAutoresizingMaskIntoConstraints = false
+        return control
+    }()
     
-    @IBOutlet weak var dateStackView: UIStackView!
-    @IBOutlet weak var buildingStackView: UIStackView!
-    @IBOutlet weak var floorStackView: UIStackView!
-    @IBOutlet weak var meterStackView: UIStackView!
+    // Filter TextFields
+    private lazy var dateTextField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "All"
+        textField.borderStyle = .roundedRect
+        textField.inputView = datePickerView
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        return textField
+    }()
     
-    @IBOutlet weak var readingsTableView: UITableView!
+    private lazy var buildingTextField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "All"
+        textField.borderStyle = .roundedRect
+        textField.inputView = buildingPickerView
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        return textField
+    }()
     
-    var datePickerView = UIPickerView()
-    var buildingPickerView = UIPickerView()
-    var floorPickerView = UIPickerView()
-    var meterPickerView = UIPickerView()
+    private lazy var floorTextField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "All"
+        textField.borderStyle = .roundedRect
+        textField.inputView = floorPickerView
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        return textField
+    }()
     
-    var buildings = [Building]()
-    var building: Building? {
-        didSet {
-            if let building = building {
-                buildingTextField.text = building.name
-                floors = building.buildingFloors
-            } else {
-                buildingTextField.text = "All"
-            }
-            floor = nil
-        }
-    }
+    private lazy var meterTextField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "All"
+        textField.borderStyle = .roundedRect
+        textField.inputView = meterPickerView
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        return textField
+    }()
     
-    var floors = [Floor]()
-    var floor: Floor? {
-        didSet {
-            if let floor = floor {
-                floorTextField.text = "Floor \(floor.number)"
-                meters = floor.floorMeters
-            } else {
-                floorTextField.text = "All"
-            }
-            meter = nil
-        }
-    }
+    private lazy var tableView: UITableView = {
+        let tableView = UITableView(frame: .zero, style: .plain)
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "ReadingCell")
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        return tableView
+    }()
     
-    var meters = [Meter]()
-    var meter: Meter? {
-        didSet {
-            if let meter = meter {
-                meterTextField.text = meter.name
-            } else {
-                meterTextField.text = "All"
-            }
-        }
-    }
-    var dates = [Date]()
-    var date: Date? {
-        didSet {
-            if let date = date {
-                let formatter = DateFormatter()
-                formatter.dateStyle = .short
-                formatter.timeStyle = .none
-                dateTextField.text = formatter.string(from: date)
-            } else {
-                dateTextField.text = "All"
-            }
-        }
-    }
+    // Pickers
+    private lazy var datePickerView: UIPickerView = {
+        let picker = UIPickerView()
+        picker.dataSource = self
+        picker.delegate = self
+        return picker
+    }()
     
-    var readings = [Reading]()
+    private lazy var buildingPickerView: UIPickerView = {
+        let picker = UIPickerView()
+        picker.dataSource = self
+        picker.delegate = self
+        return picker
+    }()
     
-    @objc var keyboardToolbar = KeyboardToolbar.init(type: .done)
+    private lazy var floorPickerView: UIPickerView = {
+        let picker = UIPickerView()
+        picker.dataSource = self
+        picker.delegate = self
+        return picker
+    }()
     
+    private lazy var meterPickerView: UIPickerView = {
+        let picker = UIPickerView()
+        picker.dataSource = self
+        picker.delegate = self
+        return picker
+    }()
+    
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        keyboardToolbar.delegate = self
-        
-        buildingPickerView.dataSource = self
-        buildingPickerView.delegate = self
-        
-        floorPickerView.dataSource = self
-        floorPickerView.delegate = self
-        
-        meterPickerView.dataSource = self
-        meterPickerView.delegate = self
-        
-        datePickerView.dataSource = self
-        datePickerView.delegate = self
-
-        buildings = MeterManager.shared.buildings
-        dates = Array(MeterManager.shared.allReadingsDates.keys).sorted().reversed()
-        
-        if MeterManager.shared.buildings.count == 1 {
-            building = MeterManager.shared.buildings[0]
-        }
-        
-        building = nil
-        date = nil
-        
-        updateReadings()
+        setupUI()
+        setupConstraints()
+        loadData()
+        applyFilters()
     }
     
-    func updateReadings() {
-        print("Updating readings")
-        if previousReadingsSegmentedControl.selectedSegmentIndex == 0 {
-            if let meter = meter {
-                readings = MeterManager.shared.getReadings(forMeter: meter)
-            } else if let floor = floor {
-                readings = MeterManager.shared.getReadings(forFloor: floor)
-            } else if let building = building {
-                readings = MeterManager.shared.getReadings(forBuilding: building)
-            } else {
-                readings = MeterManager.shared.allReadings
-            }
-        } else if previousReadingsSegmentedControl.selectedSegmentIndex == 1 {
+    // MARK: - Setup
+    private func setupUI() {
+        view.backgroundColor = .systemBackground
+        
+        view.addSubview(segmentedControl)
+        view.addSubview(dateTextField)
+        view.addSubview(buildingTextField)
+        view.addSubview(floorTextField)
+        view.addSubview(meterTextField)
+        view.addSubview(tableView)
+        
+        updateVisibleFilters()
+    }
+    
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            // Segmented Control
+            segmentedControl.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            segmentedControl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            segmentedControl.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            
+            // Date TextField
+            dateTextField.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: 16),
+            dateTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            dateTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            dateTextField.heightAnchor.constraint(equalToConstant: 44),
+            
+            // Building TextField
+            buildingTextField.topAnchor.constraint(equalTo: dateTextField.bottomAnchor, constant: 12),
+            buildingTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            buildingTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            buildingTextField.heightAnchor.constraint(equalToConstant: 44),
+            
+            // Floor TextField
+            floorTextField.topAnchor.constraint(equalTo: buildingTextField.bottomAnchor, constant: 12),
+            floorTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            floorTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            floorTextField.heightAnchor.constraint(equalToConstant: 44),
+            
+            // Meter TextField
+            meterTextField.topAnchor.constraint(equalTo: floorTextField.bottomAnchor, constant: 12),
+            meterTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            meterTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            meterTextField.heightAnchor.constraint(equalToConstant: 44),
+            
+            // Table View
+            tableView.topAnchor.constraint(equalTo: meterTextField.bottomAnchor, constant: 16),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+    }
+    
+    private func loadData() {
+        // Load all data for filtering
+        MeterManager.shared.loadAllReadings()
+        buildings = MeterManager.shared.buildings
+        dates = Array(MeterManager.shared.allReadingsDates.keys).sorted(by: >)
+        
+        print("Loaded \(self.buildings.count) buildings and \(self.dates.count) dates")
+    }
+    
+    private func updateVisibleFilters() {
+        let selectedIndex = segmentedControl.selectedSegmentIndex
+        
+        dateTextField.isHidden = selectedIndex != 0
+        buildingTextField.isHidden = selectedIndex != 1
+        floorTextField.isHidden = selectedIndex != 2
+        meterTextField.isHidden = selectedIndex != 3
+    }
+    
+    private func applyFilters() {
+        readings.removeAll()
+        
+        switch segmentedControl.selectedSegmentIndex {
+        case 0: // Date
             if let date = date {
                 readings = MeterManager.shared.getReadings(forDate: date)
             } else {
                 readings = MeterManager.shared.allReadings
             }
-        }
-        readingsTableView.reloadData()
-    }
-    @IBAction func previousMethodChanged(_ sender: Any) {
-        if previousReadingsSegmentedControl.selectedSegmentIndex == 0 {
-            UIView.animate(withDuration: Constants.UIValues.animationDuration) {
-                self.dateStackView.isHidden = true
-                self.buildingStackView.isHidden = false
-                self.floorStackView.isHidden = false
-                self.meterStackView.isHidden = false
-                self.view.setNeedsLayout()
+        case 1: // Building
+            if let building = building {
+                readings = MeterManager.shared.getReadings(forBuilding: building)
+            } else {
+                readings = MeterManager.shared.allReadings
             }
-        } else if previousReadingsSegmentedControl.selectedSegmentIndex == 1 {
-            UIView.animate(withDuration: Constants.UIValues.animationDuration) {
-                self.dateStackView.isHidden = false
-                self.buildingStackView.isHidden = true
-                self.floorStackView.isHidden = true
-                self.meterStackView.isHidden = true
-                self.view.setNeedsLayout()
+        case 2: // Floor
+            if let floor = floor {
+                readings = MeterManager.shared.getReadings(forFloor: floor)
+            } else {
+                readings = MeterManager.shared.allReadings
             }
+        case 3: // Meter
+            if let meter = meter {
+                readings = MeterManager.shared.getReadings(forMeter: meter)
+            } else {
+                readings = MeterManager.shared.allReadings
+            }
+        default:
+            break
         }
-    }
-}
-
-extension PreviousReadingsViewController: UITextFieldDelegate {
-    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        return false // don't want people with external keyboards typing in here
+        
+        tableView.reloadData()
+        print("Applied filters, showing \(self.readings.count) readings")
     }
     
-    func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
-        activeField = textField
-        return true
+    // MARK: - Actions
+    @objc private func segmentChanged() {
+        updateVisibleFilters()
+        applyFilters()
     }
 }
 
-
-extension PreviousReadingsViewController: UITableViewDataSource {
+// MARK: - UITableViewDataSource & Delegate
+extension PreviousReadingsViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return readings.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "PreviousReadingCell") as? PreviousReadingTableViewCell ?? PreviousReadingTableViewCell(style: .default, reuseIdentifier: "PreviousReadingCell")
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ReadingCell", for: indexPath)
         let reading = readings[indexPath.row]
-        cell.setup(withReading: reading)
+        
+        cell.textLabel?.text = "\(reading.meter.name): \(reading.formattedValue) on \(reading.formattedDate)"
+        
         return cell
     }
 }
 
-extension PreviousReadingsViewController : UIPickerViewDelegate {
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        
-        if pickerView == buildingPickerView {
-            if row == 0 {
-                building = nil
-            } else {
-                building = MeterManager.shared.buildings[row-1]
-            }
-        } else if pickerView == floorPickerView {
-            if row == 0 {
-                floor = nil
-            } else {
-                floor = floors[row-1]
-            }
-        } else if pickerView == meterPickerView {
-            if row == 0 {
-                meter = nil
-            } else {
-                meter = meters[row-1]
-            }
-        } else if pickerView == datePickerView {
-            if row == 0 {
-                date = nil
-            } else {
-                date = dates[row-1]
-            }
-        }
-    }
-}
-
-extension PreviousReadingsViewController : UIPickerViewDataSource {
+// MARK: - UIPickerViewDataSource & Delegate
+extension PreviousReadingsViewController: UIPickerViewDataSource, UIPickerViewDelegate {
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
     }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        if pickerView == buildingPickerView {
-            return MeterManager.shared.buildings.count + 1
+        if pickerView == datePickerView {
+            return dates.count + 1 // +1 for "All"
+        } else if pickerView == buildingPickerView {
+            return buildings.count + 1
         } else if pickerView == floorPickerView {
             return floors.count + 1
         } else if pickerView == meterPickerView {
             return meters.count + 1
-        } else if pickerView == datePickerView {
-            return dates.count + 1
         }
         return 0
     }
@@ -254,28 +268,42 @@ extension PreviousReadingsViewController : UIPickerViewDataSource {
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
         if row == 0 {
             return "All"
-        } else if pickerView == buildingPickerView {
-            let building = MeterManager.shared.buildings[row-1]
-            return building.name
-        } else if pickerView == floorPickerView {
-            return "\(row)"
-        } else if pickerView == meterPickerView {
-            let meter = meters[row-1]
-            return meter.name
-        } else if pickerView == datePickerView {
-            let date = dates[row-1]
+        }
+        
+        if pickerView == datePickerView {
             let formatter = DateFormatter()
             formatter.dateStyle = .short
-            formatter.timeStyle = .none
-            return formatter.string(from: date)
+            return formatter.string(from: dates[row - 1])
+        } else if pickerView == buildingPickerView {
+            return buildings[row - 1].name
+        } else if pickerView == floorPickerView {
+            return "Floor \(floors[row - 1].number)"
+        } else if pickerView == meterPickerView {
+            return meters[row - 1].name
         }
-        return ""
+        return nil
     }
-}
-
-extension PreviousReadingsViewController: KeyboardToolbarDelegate {
-    func doneButtonTapped() {
-        activeField?.resignFirstResponder()
-        updateReadings()
+    
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        if pickerView == datePickerView {
+            date = row == 0 ? nil : dates[row - 1]
+            dateTextField.text = row == 0 ? "All" : self.pickerView(pickerView, titleForRow: row, forComponent: component)
+        } else if pickerView == buildingPickerView {
+            building = row == 0 ? nil : buildings[row - 1]
+            buildingTextField.text = row == 0 ? "All" : building?.name
+            floors = building?.buildingFloors ?? []
+            floor = nil
+        } else if pickerView == floorPickerView {
+            floor = row == 0 ? nil : floors[row - 1]
+            floorTextField.text = row == 0 ? "All" : "Floor \(floor?.number ?? 0)"
+            meters = floor?.floorMeters ?? []
+            meter = nil
+        } else if pickerView == meterPickerView {
+            meter = row == 0 ? nil : meters[row - 1]
+            meterTextField.text = row == 0 ? "All" : meter?.name
+        }
+        
+        view.endEditing(true)
+        applyFilters()
     }
 }

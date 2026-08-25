@@ -3,98 +3,309 @@
 //  MeterReaderKeeper
 //
 //  Created by Christian Grise on 5/4/21.
+//  Refactored to programmatic UI on 8/25/26.
 //
 
 import UIKit
+import os.log
 
 class AddEditFloorViewController: UIViewController {
-
     
-    @IBOutlet weak var buildingTextField: UITextField! {
-        didSet {
-            buildingTextField.inputView = buildingPickerView
-        }
-    }
-    @IBOutlet weak var floorTextField: UITextField!
-    @IBOutlet weak var currentMapImageView: UIImageView!
-    @IBOutlet weak var addMapButton: UIButton!
-
-    var buildingPickerView = UIPickerView()
-    
-    var building: Building? {
-        didSet {
-            buildingTextField.text = building?.name
-        }
-    }
+    // MARK: - Properties
+    weak var coordinator: AppCoordinator?
+    var building: Building?
     var floor: Floor?
     
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditFloorVC")
+    
+    // MARK: - UI Components
+    private let scrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        return scrollView
+    }()
+    
+    private let contentView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private let buildingLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Building"
+        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var buildingTextField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "Select building"
+        textField.borderStyle = .roundedRect
+        textField.inputView = buildingPickerView
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        return textField
+    }()
+    
+    private let floorLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Floor Number"
+        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var floorTextField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "Enter floor number"
+        textField.borderStyle = .roundedRect
+        textField.keyboardType = .numberPad
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        return textField
+    }()
+    
+    private let mapLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Floor Map (Optional)"
+        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var currentMapImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
+        imageView.backgroundColor = .systemGray6
+        imageView.layer.cornerRadius = 8
+        imageView.clipsToBounds = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
+    private lazy var addMapButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Choose Map Image", for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        button.setImage(UIImage(systemName: "photo"), for: .normal)
+        button.addTarget(self, action: #selector(addMapTapped), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    private lazy var saveButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Save", for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
+        button.backgroundColor = .systemBlue
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 12
+        button.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    private lazy var buildingPickerView: UIPickerView = {
+        let picker = UIPickerView()
+        picker.dataSource = self
+        picker.delegate = self
+        return picker
+    }()
+    
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupUI()
+        setupConstraints()
+        setupKeyboardHandling()
+        populateData()
+    }
+    
+    // MARK: - Setup
+    private func setupUI() {
+        view.backgroundColor = .systemBackground
         
-        buildingPickerView.dataSource = self
-        buildingPickerView.delegate = self
+        view.addSubview(scrollView)
+        scrollView.addSubview(contentView)
         
+        contentView.addSubview(buildingLabel)
+        contentView.addSubview(buildingTextField)
+        contentView.addSubview(floorLabel)
+        contentView.addSubview(floorTextField)
+        contentView.addSubview(mapLabel)
+        contentView.addSubview(currentMapImageView)
+        contentView.addSubview(addMapButton)
+        contentView.addSubview(saveButton)
+    }
+    
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            // ScrollView
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            // Content View
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            
+            // Building Label
+            buildingLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+            buildingLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            buildingLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            // Building TextField
+            buildingTextField.topAnchor.constraint(equalTo: buildingLabel.bottomAnchor, constant: 8),
+            buildingTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            buildingTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            buildingTextField.heightAnchor.constraint(equalToConstant: 44),
+            
+            // Floor Label
+            floorLabel.topAnchor.constraint(equalTo: buildingTextField.bottomAnchor, constant: 24),
+            floorLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            floorLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            // Floor TextField
+            floorTextField.topAnchor.constraint(equalTo: floorLabel.bottomAnchor, constant: 8),
+            floorTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            floorTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            floorTextField.heightAnchor.constraint(equalToConstant: 44),
+            
+            // Map Label
+            mapLabel.topAnchor.constraint(equalTo: floorTextField.bottomAnchor, constant: 24),
+            mapLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            mapLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            // Map ImageView
+            currentMapImageView.topAnchor.constraint(equalTo: mapLabel.bottomAnchor, constant: 8),
+            currentMapImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            currentMapImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            currentMapImageView.heightAnchor.constraint(equalToConstant: 200),
+            
+            // Add Map Button
+            addMapButton.topAnchor.constraint(equalTo: currentMapImageView.bottomAnchor, constant: 12),
+            addMapButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            
+            // Save Button
+            saveButton.topAnchor.constraint(equalTo: addMapButton.bottomAnchor, constant: 32),
+            saveButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            saveButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            saveButton.heightAnchor.constraint(equalToConstant: 50),
+            saveButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
+        ])
+    }
+    
+    private func setupKeyboardHandling() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tapGesture)
+    }
+    
+    private func populateData() {
         if MeterManager.shared.buildings.count == 1 {
             building = MeterManager.shared.buildings[0]
+            buildingTextField.text = building?.name
         }
         
         if let floor = floor {
             building = floor.building
             buildingTextField.text = building?.name
             floorTextField.text = "\(floor.number)"
-            if floor.map != Data() {
-                currentMapImageView.image = UIImage(data: floor.map)
+            
+            if floor.map != Data(), let mapImage = UIImage(data: floor.map) {
+                currentMapImageView.image = mapImage
             } else {
-                currentMapImageView.isHidden = true
+                currentMapImageView.image = UIImage(systemName: "map")
+                currentMapImageView.tintColor = .systemGray3
             }
+            
+            title = "Edit Floor"
+        } else {
+            currentMapImageView.image = UIImage(systemName: "map")
+            currentMapImageView.tintColor = .systemGray3
+            title = "Add Floor"
         }
     }
     
-    @IBAction func addMapTapped(_ sender: Any) {
-        if UIImagePickerController.isSourceTypeAvailable(UIImagePickerController.SourceType.photoLibrary) {
-            let imagePicker = UIImagePickerController()
-            imagePicker.delegate = self
-            imagePicker.sourceType = UIImagePickerController.SourceType.photoLibrary
-            imagePicker.allowsEditing = true
-            self.present(imagePicker, animated: true, completion: nil)
-        }
-    }
-    
-    @IBAction func saveTapped(_ sender: Any) {
-        guard
-            let building = building,
-            let floorNumberText = floorTextField.text,
-            let floorNumber = Int16(floorNumberText)
-        else {
-            print("MISSING DATA")
+    // MARK: - Actions
+    @objc private func addMapTapped() {
+        guard UIImagePickerController.isSourceTypeAvailable(.photoLibrary) else {
+            showAlert(title: "Not Available", message: "Photo library is not available")
             return
         }
         
-        var mapData = Data()
-        if let image = currentMapImageView.image {
-            mapData = image.pngData() ?? Data()
-        }
-        guard let floor = floor else {
-            print("Floor is nil")
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        imagePicker.sourceType = .photoLibrary
+        imagePicker.allowsEditing = true
+        present(imagePicker, animated: true)
+    }
+    
+    @objc private func saveTapped() {
+        guard let validationResult = validateInput() else {
             return
         }
-        floor.building = building
+        
+        let (selectedBuilding, floorNumber) = validationResult
+        
+        var mapData = Data()
+        if let image = currentMapImageView.image, currentMapImageView.tintColor == nil {
+            mapData = image.jpegData(compressionQuality: 0.8) ?? Data()
+        }
+        
+        guard let floor = floor else {
+            showAlert(title: "Error", message: "Floor data is missing")
+            logger.error("Floor is nil when trying to save")
+            return
+        }
+        
+        floor.building = selectedBuilding
         floor.number = floorNumber
         floor.map = mapData
         
         MeterManager.shared.saveFloor(floor)
+        logger.info("Saved floor \(floorNumber) for building \(selectedBuilding.name)")
         
         navigationController?.popViewController(animated: true)
     }
-}
-
-extension AddEditFloorViewController : UIPickerViewDelegate {
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        building = MeterManager.shared.buildings[row]
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
+    // MARK: - Validation
+    private func validateInput() -> (building: Building, floorNumber: Int16)? {
+        guard let building = building else {
+            showAlert(title: "Missing Building", message: "Please select a building")
+            return nil
+        }
+        
+        guard let floorText = floorTextField.text,
+              let floorNumber = Int16(floorText) else {
+            showAlert(title: "Invalid Floor", message: "Please enter a valid floor number")
+            return nil
+        }
+        
+        guard floorNumber > 0 else {
+            showAlert(title: "Invalid Floor", message: "Floor number must be greater than 0")
+            return nil
+        }
+        
+        return (building, floorNumber)
+    }
+    
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
 
-extension AddEditFloorViewController : UIPickerViewDataSource {
+// MARK: - UIPickerViewDelegate & DataSource
+extension AddEditFloorViewController: UIPickerViewDelegate, UIPickerViewDataSource {
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
     }
@@ -104,23 +315,28 @@ extension AddEditFloorViewController : UIPickerViewDataSource {
     }
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        let building = MeterManager.shared.buildings[row]
-        return building.name
+        return MeterManager.shared.buildings[row].name
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        building = MeterManager.shared.buildings[row]
+        buildingTextField.text = building?.name
     }
 }
 
-extension AddEditFloorViewController: UIImagePickerControllerDelegate {
+// MARK: - UIImagePickerControllerDelegate
+extension AddEditFloorViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        if let pickedImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
-            currentMapImageView.contentMode = .scaleAspectFit
+        if let pickedImage = info[.editedImage] as? UIImage ?? info[.originalImage] as? UIImage {
             currentMapImageView.image = pickedImage
-            currentMapImageView.isHidden = false
+            currentMapImageView.tintColor = nil
+            logger.info("Floor map image selected")
         }
         
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true)
     }
-}
-
-extension AddEditFloorViewController: UINavigationControllerDelegate {
     
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        dismiss(animated: true)
+    }
 }
