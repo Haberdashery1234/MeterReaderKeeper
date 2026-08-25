@@ -12,22 +12,42 @@ import CoreData
 @objc(Floor)
 public class Floor: NSManagedObject {
 
+    /// Safely retrieves all meters for this floor
     var floorMeters: [Meter] {
-        get {
-            return meters.array as! [Meter]
+        guard let metersArray = meters.array as? [Meter] else {
+            print("⚠️ Warning: Failed to cast meters to [Meter] for floor: \(number)")
+            return []
         }
+        return metersArray
     }
     
-    func getExportDictionary() -> [String : Any] {
-        var exportDict = [String : Any]()
+    /// Retrieves meters sorted by name
+    var sortedMeters: [Meter] {
+        floorMeters.sorted { $0.name < $1.name }
+    }
+    
+    /// Display name for the floor
+    var displayName: String {
+        "Floor \(number)"
+    }
+    
+    /// Exports floor data to a dictionary for serialization
+    /// - Returns: Dictionary containing floor data including all meters
+    func getExportDictionary() -> [String: Any] {
+        var exportDict: [String: Any] = [:]
         exportDict["number"] = number
-        exportDict["map"] = UIService.shared.getExportSizeImageData(from: map, ofMaxSizeMB: 0.25)
         
-        var localMeters = [[String : Any]]()
-        for meter in floorMeters {
-            localMeters.append(meter.getExportDictionary())
+        // Compress map image for export
+        if let compressedMap = UIService.shared.getExportSizeImageData(from: map, ofMaxSizeMB: 0.25) {
+            exportDict["map"] = compressedMap
+        } else {
+            exportDict["map"] = Data()
         }
-        exportDict["meters"] = localMeters
+        
+        // Export all meters
+        let metersData = floorMeters.map { $0.getExportDictionary() }
+        exportDict["meters"] = metersData
+        
         return exportDict
     }
 }

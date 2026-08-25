@@ -62,7 +62,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSCameraUsageDescription</key>
-	<string>The camera is used for qr code scanning.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>MeterReaderKeeper needs camera access to scan QR codes on meters for quick reading entry.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>MeterReaderKeeper needs photo library access to attach meter images for identification.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>MeterReaderKeeper can save exported reports to your photo library.</string>
 </dict>
 </plist>

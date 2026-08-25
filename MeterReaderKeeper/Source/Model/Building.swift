@@ -12,24 +12,45 @@ import CoreData
 @objc(Building)
 public class Building: NSManagedObject {
     
+    /// Safely retrieves all floors for this building
     var buildingFloors: [Floor] {
-        get {
-            return floors.array as! [Floor]
+        guard let floorsArray = floors.array as? [Floor] else {
+            print("⚠️ Warning: Failed to cast floors to [Floor] for building: \(name)")
+            return []
         }
+        return floorsArray
     }
     
-    func getExportDictionary() -> [String : Any] {
-        var exportDict = [String : Any]()
+    /// Retrieves floors sorted by floor number
+    var sortedFloors: [Floor] {
+        buildingFloors.sorted { $0.number < $1.number }
+    }
+    
+    /// Total number of meters in this building
+    var totalMeterCount: Int {
+        buildingFloors.reduce(0) { $0 + $1.floorMeters.count }
+    }
+    
+    /// Exports building data to a dictionary for serialization
+    /// - Returns: Dictionary containing building data including all floors
+    func getExportDictionary() -> [String: Any] {
+        var exportDict: [String: Any] = [:]
         exportDict["name"] = name
         
-        var localFloors = [[String : Any]]()
-        for floor in buildingFloors {
-            localFloors.append(floor.getExportDictionary())
-        }
-        exportDict["floors"] = localFloors
+        // Export all floors
+        let floorsData = buildingFloors.map { $0.getExportDictionary() }
+        exportDict["floors"] = floorsData
+        
         return exportDict
     }
     
+    /// Validates building data
+    /// - Throws: MeterKeeperError.validationError if validation fails
+    func validate() throws {
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw MeterKeeperError.validationError(.missingRequiredField("Building name"))
+        }
+    }
 }
 
 extension Building {

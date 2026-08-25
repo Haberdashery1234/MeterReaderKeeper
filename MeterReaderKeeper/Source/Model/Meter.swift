@@ -12,27 +12,56 @@ import CoreData
 @objc(Meter)
 public class Meter: NSManagedObject {
 
+    /// Safely retrieves all readings for this meter
     var meterReadings: [Reading] {
-        get {
-            return readings.array as! [Reading]
+        guard let readingsArray = readings.array as? [Reading] else {
+            print("⚠️ Warning: Failed to cast readings to [Reading] for meter: \(name)")
+            return []
         }
+        return readingsArray
     }
     
-    func getExportDictionary() -> [String : Any] {
-        var exportDict = [String : Any]()
-        exportDict["image"] = UIService.shared.getExportSizeImageData(from: image, ofMaxSizeMB: 0.25)
-        exportDict["latestReading"] = latestReading
-        exportDict["meterDescription"] = meterDescription
-        exportDict["latestReading"] = latestReading
-        exportDict["name"] = name
-        exportDict["qrString"] = qrString
+    /// Retrieves readings sorted by date (most recent first)
+    var sortedReadings: [Reading] {
+        meterReadings.sorted { $0.date > $1.date }
+    }
+    
+    /// Gets the most recent reading, if available
+    var mostRecentReading: Reading? {
+        sortedReadings.first
+    }
+    
+    /// Exports meter data to a dictionary for serialization
+    /// - Returns: Dictionary containing all meter data including readings
+    func getExportDictionary() -> [String: Any] {
+        var exportDict: [String: Any] = [:]
         
-        var localReadings = [[String : Any]]()
-        for reading in meterReadings {
-            localReadings.append(reading.getExportDictionary())
+        // Basic properties
+        exportDict["name"] = name
+        exportDict["meterDescription"] = meterDescription
+        exportDict["qrString"] = qrString
+        exportDict["latestReading"] = latestReading
+        
+        // Compress image for export
+        if let compressedImage = UIService.shared.getExportSizeImageData(from: image, ofMaxSizeMB: 0.25) {
+            exportDict["image"] = compressedImage
+        } else {
+            exportDict["image"] = Data()
         }
-        exportDict["readings"] = localReadings
+        
+        // Export all readings
+        let readingsData = meterReadings.map { $0.getExportDictionary() }
+        exportDict["readings"] = readingsData
+        
         return exportDict
+    }
+    
+    /// Validates meter data
+    /// - Throws: MeterKeeperError.validationError if validation fails
+    func validate() throws {
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw MeterKeeperError.validationError(.missingRequiredField("Meter name"))
+        }
     }
 }
 
