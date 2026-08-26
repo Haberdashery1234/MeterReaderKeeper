@@ -4,6 +4,7 @@
 //
 //  Created by Christian Grise on 5/2/21.
 //  Updated to use MeterRepositoryProtocol on 8/26/26.
+//  Thinned to use PreviousReadingsViewModel on 8/26/26.
 //
 
 import UIKit
@@ -13,23 +14,11 @@ class PreviousReadingsViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var repository: MeterRepositoryProtocol!
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "PreviousReadingsVC")
+    var viewModel: PreviousReadingsViewModel!
     
-    private var buildings = [MRKBuilding]()
-    private var building: MRKBuilding?
-    private var floors = [MRKFloor]()
-    private var floor: MRKFloor?
-    private var meters = [MRKMeter]()
-    private var meter: MRKMeter?
-    private var dates = [Date]()
-    private var date: Date?
-    private var readings = [MRKReading]()
-    
-    /// meterID -> (display name, "Building - Floor N"), built once from `buildings`
-    /// so cells can show context without each `Reading` needing to carry its
-    /// own meter/floor/building references.
-    private var meterDisplayInfo: [UUID: (name: String, location: String)] = [:]
+    private var selectedSegment: PreviousReadingsViewModel.FilterSegment {
+        PreviousReadingsViewModel.FilterSegment(rawValue: segmentedControl.selectedSegmentIndex) ?? .date
+    }
     
     // MARK: - UI Components
     private lazy var segmentedControl: UISegmentedControl = {
@@ -121,8 +110,9 @@ class PreviousReadingsViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
-        loadData()
-        applyFilters()
+        viewModel.loadData()
+        viewModel.applyFilters(segment: selectedSegment)
+        tableView.reloadData()
     }
     
     // MARK: - Setup
@@ -178,37 +168,6 @@ class PreviousReadingsViewController: UIViewController {
         ])
     }
     
-    private func loadData() {
-        // Load all data for filtering
-        buildings = (try? repository.getBuildings()) ?? []
-        
-        var displayInfo: [UUID: (name: String, location: String)] = [:]
-        var allReadingDates = Set<Date>()
-        for building in buildings {
-            for floor in building.floors {
-                for meter in floor.meters {
-                    let location = "\(building.name) - Floor \(floor.number)"
-                    displayInfo[meter.id] = (name: meter.name, location: location)
-                    for reading in meter.readings {
-                        allReadingDates.insert(reading.date)
-                    }
-                }
-            }
-        }
-        meterDisplayInfo = displayInfo
-        dates = allReadingDates.sorted(by: >)
-        
-        logger.info("Loaded \(self.buildings.count) buildings and \(self.dates.count) dates")
-    }
-    
-    private func allReadings() -> [MRKReading] {
-        buildings.flatMap { building in
-            building.floors.flatMap { floor in
-                floor.meters.flatMap { $0.readings }
-            }
-        }
-    }
-    
     private func updateVisibleFilters() {
         let selectedIndex = segmentedControl.selectedSegmentIndex
         
@@ -219,41 +178,8 @@ class PreviousReadingsViewController: UIViewController {
     }
     
     private func applyFilters() {
-        let allReadings = self.allReadings()
-        
-        switch segmentedControl.selectedSegmentIndex {
-        case 0: // Date
-            if let date = date {
-                readings = allReadings.filter { $0.date == date }
-            } else {
-                readings = allReadings
-            }
-        case 1: // Building
-            if let building = building {
-                readings = building.floors.flatMap { $0.meters.flatMap { $0.readings } }
-            } else {
-                readings = allReadings
-            }
-        case 2: // Floor
-            if let floor = floor {
-                readings = floor.meters.flatMap { $0.readings }
-            } else {
-                readings = allReadings
-            }
-        case 3: // Meter
-            if let meter = meter {
-                readings = meter.readings
-            } else {
-                readings = allReadings
-            }
-        default:
-            break
-        }
-        
-        readings.sort { $0.date > $1.date }
-        
+        viewModel.applyFilters(segment: selectedSegment)
         tableView.reloadData()
-        logger.info("Applied filters, showing \(self.readings.count) readings")
     }
     
     // MARK: - Actions
@@ -266,13 +192,13 @@ class PreviousReadingsViewController: UIViewController {
 // MARK: - UITableViewDataSource & Delegate
 extension PreviousReadingsViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return readings.count
+        return viewModel.readings.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ReadingCell", for: indexPath) as! PreviousReadingTableViewCell
-        let reading = readings[indexPath.row]
-        let info = meterDisplayInfo[reading.meterID]
+        let reading = viewModel.readings[indexPath.row]
+        let info = viewModel.displayInfo(for: reading)
         cell.setup(reading: reading, meterName: info?.name ?? "Unknown Meter", locationString: info?.location ?? "")
         return cell
     }
@@ -286,13 +212,13 @@ extension PreviousReadingsViewController: UIPickerViewDataSource, UIPickerViewDe
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         if pickerView == datePickerView {
-            return dates.count + 1 // +1 for "All"
+            return viewModel.dates.count + 1 // +1 for "All"
         } else if pickerView == buildingPickerView {
-            return buildings.count + 1
+            return viewModel.buildings.count + 1
         } else if pickerView == floorPickerView {
-            return floors.count + 1
+            return viewModel.floors.count + 1
         } else if pickerView == meterPickerView {
-            return meters.count + 1
+            return viewModel.meters.count + 1
         }
         return 0
     }
@@ -305,38 +231,36 @@ extension PreviousReadingsViewController: UIPickerViewDataSource, UIPickerViewDe
         if pickerView == datePickerView {
             let formatter = DateFormatter()
             formatter.dateStyle = .short
-            return formatter.string(from: dates[row - 1])
+            return formatter.string(from: viewModel.dates[row - 1])
         } else if pickerView == buildingPickerView {
-            return buildings[row - 1].name
+            return viewModel.buildings[row - 1].name
         } else if pickerView == floorPickerView {
-            return "Floor \(floors[row - 1].number)"
+            return "Floor \(viewModel.floors[row - 1].number)"
         } else if pickerView == meterPickerView {
-            return meters[row - 1].name
+            return viewModel.meters[row - 1].name
         }
         return nil
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         if pickerView == datePickerView {
-            date = row == 0 ? nil : dates[row - 1]
+            viewModel.selectDate(at: row)
             dateTextField.text = row == 0 ? "All" : self.pickerView(pickerView, titleForRow: row, forComponent: component)
         } else if pickerView == buildingPickerView {
-            building = row == 0 ? nil : buildings[row - 1]
-            buildingTextField.text = row == 0 ? "All" : building?.name
-            floors = building?.sortedFloors ?? []
-            floor = nil
+            viewModel.selectBuilding(at: row)
+            buildingTextField.text = row == 0 ? "All" : viewModel.selectedBuilding?.name
             floorTextField.text = "All"
             floorPickerView.reloadAllComponents()
+            meterTextField.text = "All"
+            meterPickerView.reloadAllComponents()
         } else if pickerView == floorPickerView {
-            floor = row == 0 ? nil : floors[row - 1]
-            floorTextField.text = row == 0 ? "All" : "Floor \(floor?.number ?? 0)"
-            meters = floor?.sortedMeters ?? []
-            meter = nil
+            viewModel.selectFloor(at: row)
+            floorTextField.text = row == 0 ? "All" : "Floor \(viewModel.selectedFloor?.number ?? 0)"
             meterTextField.text = "All"
             meterPickerView.reloadAllComponents()
         } else if pickerView == meterPickerView {
-            meter = row == 0 ? nil : meters[row - 1]
-            meterTextField.text = row == 0 ? "All" : meter?.name
+            viewModel.selectMeter(at: row)
+            meterTextField.text = row == 0 ? "All" : viewModel.selectedMeter?.name
         }
         
         view.endEditing(true)

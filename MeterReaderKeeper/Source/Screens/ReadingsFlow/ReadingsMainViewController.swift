@@ -4,6 +4,7 @@
 //
 //  Created by Christian Grise on 5/4/21.
 //  Updated to use MeterRepositoryProtocol on 8/26/26.
+//  Thinned to use ReadingsMainViewModel on 8/26/26.
 //
 
 import UIKit
@@ -13,39 +14,8 @@ class ReadingsMainViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var repository: MeterRepositoryProtocol!
+    var viewModel: ReadingsMainViewModel!
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "ReadingsMainVC")
-    
-    var building: MRKBuilding? {
-        didSet {
-            guard let building = building else { return }
-            floors = building.sortedFloors
-            
-            // Collect all meters for QR scanning
-            allBuildingMeters = floors.flatMap { $0.sortedMeters }
-            
-            // Set initial floor
-            if let firstFloor = floors.first {
-                floor = firstFloor
-            }
-        }
-    }
-    
-    private var floors = [MRKFloor]()
-    private var floor: MRKFloor? {
-        didSet {
-            guard let floor = floor else { return }
-            floorTextField.text = "Floor \(floor.number)"
-            meters = floor.sortedMeters
-        }
-    }
-    
-    private var allBuildingMeters = [MRKMeter]()
-    private var meters = [MRKMeter]() {
-        didSet {
-            tableView.reloadData()
-        }
-    }
     
     // MARK: - UI Components
     private lazy var tableView: UITableView = {
@@ -127,14 +97,15 @@ class ReadingsMainViewController: UIViewController {
         setupUI()
         setupConstraints()
         setupNavigationBar()
-        loadData()
+        refreshFloorDisplay()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         // Refresh data (in case a reading/meter changed elsewhere)
-        refreshBuilding()
+        viewModel.refreshBuilding()
+        refreshFloorDisplay()
     }
     
     // MARK: - Setup
@@ -219,47 +190,19 @@ class ReadingsMainViewController: UIViewController {
         navigationItem.rightBarButtonItems = [sendButton, scanButton, mapButton]
     }
     
-    private func loadData() {
-        guard let building = building else {
-            logger.warning("No building set for ReadingsMainViewController")
-            return
-        }
-        
-        floors = building.sortedFloors
-        if let firstFloor = floors.first {
-            floor = firstFloor
-        }
-        
-        logger.info("Loaded \(self.floors.count) floors with \(self.meters.count) meters")
-    }
-    
-    /// Re-fetches the current building from the repository so readings taken
-    /// elsewhere (or on a previous visit to this screen) are reflected.
-    private func refreshBuilding() {
-        guard let currentBuilding = building,
-              let refreshedBuilding = (try? repository.getBuildings())?.first(where: { $0.id == currentBuilding.id }) else {
-            return
-        }
-        
-        let selectedFloorID = floor?.id
-        building = refreshedBuilding
-        floors = refreshedBuilding.sortedFloors
-        floor = floors.first(where: { $0.id == selectedFloorID }) ?? floors.first
+    private func refreshFloorDisplay() {
+        floorTextField.text = viewModel.floor.map { "Floor \($0.number)" }
+        tableView.reloadData()
     }
     
     // MARK: - Actions
     @objc private func sendButtonTapped() {
-        guard let building = building else {
-            logger.warning("Building is nil when trying to send CSV")
-            return
-        }
-        
         do {
-            let csvData = try repository.getCSVData(forBuilding: building.id)
+            let csvData = try viewModel.getCSVData()
             EmailService.shared.sendCSV(
                 from: self,
                 csvData: csvData,
-                buildingName: building.name
+                buildingName: viewModel.building.name
             ) { [weak self] result, error in
                 if result == .failed {
                     self?.logger.error("Email send failed: \(String(describing: error))")
@@ -282,7 +225,7 @@ class ReadingsMainViewController: UIViewController {
     }
     
     @objc private func mapButtonTapped() {
-        guard let floor = floor else { return }
+        guard let floor = viewModel.floor else { return }
         
         let floorMapData = floor.mapImageData
         
@@ -319,13 +262,13 @@ extension ReadingsMainViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return meters.count
+        return viewModel.meters.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ReadingMeterCell", for: indexPath) as! ReadingMeterTableViewCell
-        let meter = meters[indexPath.row]
-        cell.setup(meter: meter, floorNumber: floor?.number ?? 0)
+        let meter = viewModel.meters[indexPath.row]
+        cell.setup(meter: meter, floorNumber: viewModel.floor?.number ?? 0)
         return cell
     }
 }
@@ -335,18 +278,13 @@ extension ReadingsMainViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        guard let building = building, let floor = floor else { return }
+        guard let route = viewModel.readingRoute(forMeterAt: indexPath.row) else { return }
         
-        let meter = meters[indexPath.row]
-        
-        // Check if there's already a reading for today
-        let date = Calendar.current.startOfDay(for: Date())
-        let todaysReadings = meter.readings.filter { $0.date == date }
-        
-        if let existingReading = todaysReadings.first {
-            coordinator?.showEditReading(existingReading, for: meter, floor: floor, building: building)
-        } else {
+        switch route {
+        case .add(let meter, let floor, let building):
             coordinator?.showAddReading(for: meter, floor: floor, building: building)
+        case .edit(let reading, let meter, let floor, let building):
+            coordinator?.showEditReading(reading, for: meter, floor: floor, building: building)
         }
     }
 }
@@ -358,16 +296,16 @@ extension ReadingsMainViewController: UIPickerViewDelegate, UIPickerViewDataSour
     }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return floors.count
+        return viewModel.floors.count
     }
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return "Floor \(floors[row].number)"
+        return "Floor \(viewModel.floors[row].number)"
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        floor = floors[row]
+        viewModel.selectFloor(at: row)
+        refreshFloorDisplay()
         view.endEditing(true)
-        logger.info("Selected floor: \(self.floors[row].number)")
     }
 }

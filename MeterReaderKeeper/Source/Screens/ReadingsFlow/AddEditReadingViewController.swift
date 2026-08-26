@@ -5,6 +5,7 @@
 //  Created by Christian Grise on 5/5/21.
 //  Refactored to programmatic UI on 8/25/26.
 //  Updated to use MeterRepositoryProtocol on 8/26/26.
+//  Thinned to use AddEditReadingViewModel on 8/26/26.
 //
 
 import UIKit
@@ -14,13 +15,8 @@ class AddEditReadingViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var repository: MeterRepositoryProtocol!
+    var viewModel: AddEditReadingViewModel!
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditReadingVC")
-    
-    var meter: MRKMeter?
-    var floor: MRKFloor?
-    var building: MRKBuilding?
-    var reading: MRKReading?
     
     // MARK: - UI Components
     private lazy var scrollView: UIScrollView = {
@@ -112,7 +108,7 @@ class AddEditReadingViewController: UIViewController {
         setupUI()
         setupConstraints()
         setupKeyboardDismissal()
-        loadData()
+        populateData()
     }
     
     // MARK: - Setup
@@ -181,25 +177,15 @@ class AddEditReadingViewController: UIViewController {
         view.addGestureRecognizer(tapGesture)
     }
     
-    private func loadData() {
-        guard let meter = meter, let floor = floor, let building = building else {
-            logger.error("Missing meter/floor/building context in AddEditReadingViewController")
-            return
-        }
+    private func populateData() {
+        buildingNameLabel.text = viewModel.building.name
+        floorLabel.text = "Floor \(viewModel.floor.number)"
+        descriptionLabel.text = viewModel.meter.meterDescription
+        meterImageView.image = UIImage(data: viewModel.meter.imageData)
+        readingTextField.text = viewModel.initialReadingText
+        title = viewModel.screenTitle
         
-        buildingNameLabel.text = building.name
-        floorLabel.text = "Floor \(floor.number)"
-        descriptionLabel.text = meter.meterDescription
-        meterImageView.image = UIImage(data: meter.imageData)
-        
-        if let reading = reading {
-            readingTextField.text = String(format: "%.2f", reading.kWh)
-            title = "Edit Reading"
-        } else {
-            title = "Add Reading"
-        }
-        
-        logger.info("Loaded meter: \(meter.name)")
+        logger.info("Loaded meter: \(self.viewModel.meter.name)")
     }
     
     // MARK: - Actions
@@ -208,38 +194,11 @@ class AddEditReadingViewController: UIViewController {
     }
     
     @objc private func saveTapped() {
-        guard let meterReadingString = readingTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !meterReadingString.isEmpty else {
-            showAlert(title: "Missing Reading", message: "Please enter a reading value.")
-            return
-        }
-        
-        guard let meterReading = Double(meterReadingString) else {
-            showAlert(title: "Invalid Reading", message: "Please enter a valid numeric value.")
-            return
-        }
-        
-        guard meterReading >= 0 else {
-            showAlert(title: "Invalid Reading", message: "Reading value must be positive.")
-            return
-        }
-        
-        guard let meter = meter else {
-            logger.error("Meter is nil when trying to save reading")
-            return
-        }
-        
         do {
-            if let reading = reading {
-                _ = try repository.updateReading(id: reading.id, kWh: meterReading)
-                logger.info("Updated reading: \(meterReading) kWh")
-            } else {
-                let date = Calendar.current.startOfDay(for: Date())
-                let input = MRKReadingInput(kWh: meterReading, date: date, meterID: meter.id)
-                _ = try repository.addReading(input)
-                logger.info("Added new reading: \(meterReading) kWh for meter: \(meter.name)")
-            }
+            _ = try viewModel.save(readingText: readingTextField.text)
             navigationController?.popViewController(animated: true)
+        } catch let error as FormValidationError {
+            showAlert(title: error.title, message: error.message)
         } catch {
             logger.error("Failed to save reading: \(error.localizedDescription)")
             showAlert(title: "Save Failed", message: error.localizedDescription)

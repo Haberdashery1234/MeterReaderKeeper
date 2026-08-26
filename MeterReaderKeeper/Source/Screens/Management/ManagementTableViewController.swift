@@ -5,6 +5,7 @@
 //  Created by Christian Grise on 4/30/21.
 //  Refactored to programmatic UI on 8/25/26.
 //  Updated to use MeterRepositoryProtocol on 8/26/26.
+//  Thinned to use ManagementViewModel on 8/26/26.
 //
 
 import UIKit
@@ -14,12 +15,12 @@ class ManagementTableViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var repository: MeterRepositoryProtocol!
+    var viewModel: ManagementViewModel!
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "ManagementVC")
     
-    private var buildings: [MRKBuilding] = []
-    private var floorItems: [(floor: MRKFloor, building: MRKBuilding)] = []
-    private var meterItems: [(meter: MRKMeter, floor: MRKFloor, building: MRKBuilding)] = []
+    private var selectedSegment: ManagementViewModel.Segment {
+        ManagementViewModel.Segment(rawValue: segmentedControl.selectedSegmentIndex) ?? .buildings
+    }
     
     // MARK: - UI Components
     private lazy var tableView: UITableView = {
@@ -54,7 +55,7 @@ class ManagementTableViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        loadData()
+        viewModel.loadData()
         tableView.reloadData()
     }
     
@@ -90,22 +91,9 @@ class ManagementTableViewController: UIViewController {
         navigationItem.rightBarButtonItem = addButton
     }
     
-    // MARK: - Data
-    private func loadData() {
-        buildings = (try? repository.getBuildings()) ?? []
-        floorItems = buildings.flatMap { building in
-            building.sortedFloors.map { (floor: $0, building: building) }
-        }
-        meterItems = buildings.flatMap { building in
-            building.sortedFloors.flatMap { floor in
-                floor.sortedMeters.map { (meter: $0, floor: floor, building: building) }
-            }
-        }
-    }
-    
     // MARK: - Actions
     @objc private func addTapped() {
-        if buildings.isEmpty {
+        if viewModel.buildings.isEmpty {
             // No buildings exist, must create one first
             coordinator?.showBuildingDetails()
             return
@@ -123,7 +111,7 @@ class ManagementTableViewController: UIViewController {
         })
         
         // Only allow adding meters if floors exist
-        if !floorItems.isEmpty {
+        if viewModel.hasFloors {
             alert.addAction(UIAlertAction(title: "Meter", style: .default) { [weak self] _ in
                 self?.coordinator?.showMeterDetails()
             })
@@ -149,30 +137,26 @@ extension ManagementTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        switch segmentedControl.selectedSegmentIndex {
-        case 0: // Buildings
-            let building = buildings[indexPath.row]
+        switch selectedSegment {
+        case .buildings:
+            let building = viewModel.buildings[indexPath.row]
             coordinator?.showBuildingDetails(building: building)
             
-        case 1: // Floors
-            let item = floorItems[indexPath.row]
+        case .floors:
+            let item = viewModel.floorItems[indexPath.row]
             coordinator?.showFloorDetails(floor: item.floor, building: item.building)
             
-        case 2: // Meters
-            let item = meterItems[indexPath.row]
+        case .meters:
+            let item = viewModel.meterItems[indexPath.row]
             coordinator?.showMeterDetails(meter: item.meter, floor: item.floor, building: item.building)
-            
-        default:
-            break
         }
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        switch segmentedControl.selectedSegmentIndex {
-        case 0: return 65  // Buildings
-        case 1: return 50  // Floors
-        case 2: return 40  // Meters
-        default: return 40
+        switch selectedSegment {
+        case .buildings: return 65
+        case .floors: return 50
+        case .meters: return 40
         }
     }
 }
@@ -184,35 +168,31 @@ extension ManagementTableViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch segmentedControl.selectedSegmentIndex {
-        case 0: return buildings.count
-        case 1: return floorItems.count
-        case 2: return meterItems.count
-        default: return 0
+        switch selectedSegment {
+        case .buildings: return viewModel.buildings.count
+        case .floors: return viewModel.floorItems.count
+        case .meters: return viewModel.meterItems.count
         }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        switch segmentedControl.selectedSegmentIndex {
-        case 0: // Buildings
+        switch selectedSegment {
+        case .buildings:
             let cell = tableView.dequeueReusableCell(withIdentifier: "BuildingCell", for: indexPath) as! BuildingTableViewCell
-            cell.setup(withBuilding: buildings[indexPath.row])
+            cell.setup(withBuilding: viewModel.buildings[indexPath.row])
             return cell
             
-        case 1: // Floors
+        case .floors:
             let cell = tableView.dequeueReusableCell(withIdentifier: "FloorCell", for: indexPath) as! FloorTableViewCell
-            let item = floorItems[indexPath.row]
+            let item = viewModel.floorItems[indexPath.row]
             cell.setup(floor: item.floor, buildingName: item.building.name)
             return cell
             
-        case 2: // Meters
+        case .meters:
             let cell = tableView.dequeueReusableCell(withIdentifier: "MeterCell", for: indexPath) as! MeterTableViewCell
-            let item = meterItems[indexPath.row]
+            let item = viewModel.meterItems[indexPath.row]
             cell.setup(meter: item.meter, locationString: "\(item.building.name) - Floor \(item.floor.number)")
             return cell
-            
-        default:
-            return UITableViewCell()
         }
     }
 }

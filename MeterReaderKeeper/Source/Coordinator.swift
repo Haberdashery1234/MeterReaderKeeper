@@ -4,6 +4,7 @@
 //
 //  Created by Code Modernization on 8/25/26.
 //  Updated by Repository Refactor on 8/26/26.
+//  Updated to construct and inject ViewModels on 8/26/26.
 //
 
 import UIKit
@@ -28,7 +29,13 @@ extension Coordinator {
     }
 }
 
-/// Main app coordinator
+/// Main app coordinator.
+///
+/// Views no longer hold the repository directly (see the `MeterRepositoryProtocol`
+/// docs) — each `showXxx` method here constructs the screen's ViewModel,
+/// handing it the repository and whatever navigation context (a building,
+/// floor, meter, or reading) the coordinator already has, and injects it
+/// into the view controller.
 class AppCoordinator: Coordinator {
     var navigationController: UINavigationController
     var childCoordinators: [Coordinator] = []
@@ -48,7 +55,7 @@ class AppCoordinator: Coordinator {
     func showHome() {
         let homeVC = HomeViewController()
         homeVC.coordinator = self
-        homeVC.repository = repository
+        homeVC.viewModel = HomeViewModel(repository: repository)
         homeVC.title = "Meter Reader"
         navigationController.setViewControllers([homeVC], animated: false)
     }
@@ -56,7 +63,7 @@ class AppCoordinator: Coordinator {
     func showPreviousReadings() {
         let previousReadingsVC = PreviousReadingsViewController()
         previousReadingsVC.coordinator = self
-        previousReadingsVC.repository = repository
+        previousReadingsVC.viewModel = PreviousReadingsViewModel(repository: repository)
         previousReadingsVC.title = "Previous Readings"
         navigationController.pushViewController(previousReadingsVC, animated: true)
     }
@@ -64,7 +71,7 @@ class AppCoordinator: Coordinator {
     func showManagement() {
         let managementVC = ManagementTableViewController()
         managementVC.coordinator = self
-        managementVC.repository = repository
+        managementVC.viewModel = ManagementViewModel(repository: repository)
         managementVC.title = "Manage Buildings"
         navigationController.pushViewController(managementVC, animated: true)
     }
@@ -72,8 +79,7 @@ class AppCoordinator: Coordinator {
     func showReadings(for building: MRKBuilding) {
         let readingsVC = ReadingsMainViewController()
         readingsVC.coordinator = self
-        readingsVC.repository = repository
-        readingsVC.building = building
+        readingsVC.viewModel = ReadingsMainViewModel(repository: repository, building: building)
         readingsVC.title = building.name
         navigationController.pushViewController(readingsVC, animated: true)
     }
@@ -81,8 +87,7 @@ class AppCoordinator: Coordinator {
     func showBuildingDetails(building: MRKBuilding? = nil) {
         let buildingVC = AddEditBuildingViewController()
         buildingVC.coordinator = self
-        buildingVC.repository = repository
-        buildingVC.building = building
+        buildingVC.viewModel = AddEditBuildingViewModel(repository: repository, building: building)
         buildingVC.title = building == nil ? "Add Building" : "Edit Building"
         navigationController.pushViewController(buildingVC, animated: true)
     }
@@ -90,9 +95,7 @@ class AppCoordinator: Coordinator {
     func showFloorDetails(floor: MRKFloor? = nil, building: MRKBuilding? = nil) {
         let floorVC = AddEditFloorViewController()
         floorVC.coordinator = self
-        floorVC.repository = repository
-        floorVC.floor = floor
-        floorVC.building = building
+        floorVC.viewModel = AddEditFloorViewModel(repository: repository, building: building, floor: floor)
         floorVC.title = floor == nil ? "Add Floor" : "Edit Floor"
         navigationController.pushViewController(floorVC, animated: true)
     }
@@ -100,10 +103,7 @@ class AppCoordinator: Coordinator {
     func showMeterDetails(meter: MRKMeter? = nil, floor: MRKFloor? = nil, building: MRKBuilding? = nil) {
         let meterVC = AddEditMeterViewController()
         meterVC.coordinator = self
-        meterVC.repository = repository
-        meterVC.meter = meter
-        meterVC.floor = floor
-        meterVC.building = building
+        meterVC.viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: floor, meter: meter)
         meterVC.title = meter == nil ? "Add Meter" : "Edit Meter"
         navigationController.pushViewController(meterVC, animated: true)
     }
@@ -111,10 +111,7 @@ class AppCoordinator: Coordinator {
     func showAddReading(for meter: MRKMeter, floor: MRKFloor, building: MRKBuilding) {
         let readingVC = AddEditReadingViewController()
         readingVC.coordinator = self
-        readingVC.repository = repository
-        readingVC.meter = meter
-        readingVC.floor = floor
-        readingVC.building = building
+        readingVC.viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: nil)
         readingVC.title = "Add Reading"
         navigationController.pushViewController(readingVC, animated: true)
     }
@@ -122,11 +119,7 @@ class AppCoordinator: Coordinator {
     func showEditReading(_ reading: MRKReading, for meter: MRKMeter, floor: MRKFloor, building: MRKBuilding) {
         let readingVC = AddEditReadingViewController()
         readingVC.coordinator = self
-        readingVC.repository = repository
-        readingVC.meter = meter
-        readingVC.floor = floor
-        readingVC.building = building
-        readingVC.reading = reading
+        readingVC.viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: reading)
         readingVC.title = "Edit Reading"
         navigationController.pushViewController(readingVC, animated: true)
     }

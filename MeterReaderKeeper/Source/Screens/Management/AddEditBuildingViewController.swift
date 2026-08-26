@@ -5,26 +5,16 @@
 //  Created by Christian Grise on 5/3/21.
 //  Refactored to programmatic UI on 8/25/26.
 //  Updated to use MeterRepositoryProtocol on 8/26/26.
+//  Thinned to use AddEditBuildingViewModel on 8/26/26.
 //
 
 import UIKit
-import os.log
 
 class AddEditBuildingViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var repository: MeterRepositoryProtocol!
-    var building: MRKBuilding?
-    
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditBuildingVC")
-    
-    // MARK: - Constants
-    private enum Validation {
-        static let maxBuildingNameLength = 100
-        static let minFloorCount: Int16 = 1
-        static let maxFloorCount: Int16 = 200
-    }
+    var viewModel: AddEditBuildingViewModel!
     
     // MARK: - UI Components
     private let scrollView: UIScrollView = {
@@ -120,7 +110,7 @@ class AddEditBuildingViewController: UIViewController {
         contentView.addSubview(floorsTextField)
         contentView.addSubview(saveButton)
         
-        if building != nil {
+        if viewModel.isEditing {
             contentView.addSubview(deleteButton)
         }
     }
@@ -128,7 +118,7 @@ class AddEditBuildingViewController: UIViewController {
     private func setupConstraints() {
         let deleteButtonConstraints: [NSLayoutConstraint]
         
-        if building != nil {
+        if viewModel.isEditing {
             deleteButtonConstraints = [
                 deleteButton.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: 20),
                 deleteButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
@@ -190,64 +180,26 @@ class AddEditBuildingViewController: UIViewController {
     }
     
     private func populateData() {
-        if let building = building {
-            nameTextField.text = building.name
-            floorsTextField.text = "\(building.floors.count)"
-            floorsTextField.isEnabled = false // Can't change floor count on existing building
-            title = "Edit Building"
-        } else {
-            title = "Add Building"
-        }
+        nameTextField.text = viewModel.initialNameText
+        floorsTextField.text = viewModel.initialFloorsText
+        floorsTextField.isEnabled = viewModel.isFloorsFieldEnabled
+        title = viewModel.screenTitle
     }
     
     // MARK: - Actions
     @objc private func saveTapped() {
-        // Validate input
-        guard let validationResult = validateInput() else {
-            return // Error alert already shown
-        }
-        
-        let (buildingName, floorCount) = validationResult
-        
-        // Check for duplicate name (only when creating new or changing name)
-        if building == nil || building?.name != buildingName {
-            if isDuplicateName(buildingName) {
-                showAlert(
-                    title: "Duplicate Name",
-                    message: "A building with the name '\(buildingName)' already exists. Please choose a different name."
-                )
-                return
-            }
-        }
-        
-        // Save building
-        if building != nil {
-            // Update existing building
-            logger.warning("Editing buildings not yet implemented - creating new building instead")
-            showAlert(
-                title: "Not Implemented",
-                message: "Editing existing buildings is not yet supported. Please delete and recreate the building."
-            )
-        } else {
-            // Create new building
-            let input = MRKBuildingInput(name: buildingName, numberOfFloors: floorCount, autoCreateFloors: true)
-            do {
-                let newBuilding = try repository.addBuilding(input)
-                logger.info("Successfully created building: \(newBuilding.name)")
-                navigationController?.popViewController(animated: true)
-            } catch {
-                logger.error("Failed to create building: \(buildingName) - \(error.localizedDescription)")
-                showAlert(
-                    title: "Save Failed",
-                    message: error.localizedDescription
-                )
-            }
+        do {
+            _ = try viewModel.save(nameText: nameTextField.text, floorsText: floorsTextField.text)
+            navigationController?.popViewController(animated: true)
+        } catch let error as FormValidationError {
+            showAlert(title: error.title, message: error.message)
+        } catch {
+            showAlert(title: "Save Failed", message: error.localizedDescription)
         }
     }
     
     @objc private func deleteTapped() {
-        guard let building = building else {
-            logger.warning("Delete tapped but no building to delete")
+        guard let building = viewModel.building else {
             return
         }
         
@@ -262,8 +214,7 @@ class AddEditBuildingViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
             guard let self = self else { return }
             do {
-                try self.repository.deleteBuilding(id: building.id)
-                self.logger.info("Deleted building: \(building.name)")
+                try self.viewModel.delete()
                 self.navigationController?.popViewController(animated: true)
             } catch {
                 self.showAlert(title: "Delete Failed", message: error.localizedDescription)
@@ -275,57 +226,6 @@ class AddEditBuildingViewController: UIViewController {
     
     @objc private func dismissKeyboard() {
         view.endEditing(true)
-    }
-    
-    // MARK: - Validation
-    
-    private func validateInput() -> (name: String, floors: Int16)? {
-        // Validate name
-        guard let nameText = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !nameText.isEmpty else {
-            showAlert(title: "Invalid Name", message: "Please enter a building name.")
-            return nil
-        }
-        
-        guard nameText.count <= Validation.maxBuildingNameLength else {
-            showAlert(
-                title: "Name Too Long",
-                message: "Building name must be \(Validation.maxBuildingNameLength) characters or less."
-            )
-            return nil
-        }
-        
-        // Validate floor count
-        guard let floorsText = floorsTextField.text,
-              let floorsInt = Int16(floorsText) else {
-            showAlert(title: "Invalid Floor Count", message: "Please enter a valid number of floors.")
-            return nil
-        }
-        
-        guard floorsInt >= Validation.minFloorCount else {
-            showAlert(
-                title: "Invalid Floor Count",
-                message: "Building must have at least \(Validation.minFloorCount) floor."
-            )
-            return nil
-        }
-        
-        guard floorsInt <= Validation.maxFloorCount else {
-            showAlert(
-                title: "Too Many Floors",
-                message: "Building cannot have more than \(Validation.maxFloorCount) floors."
-            )
-            return nil
-        }
-        
-        return (nameText, floorsInt)
-    }
-    
-    private func isDuplicateName(_ name: String) -> Bool {
-        let buildings = (try? repository.getBuildings()) ?? []
-        return buildings.contains { building in
-            building.name.lowercased() == name.lowercased()
-        }
     }
     
     private func showAlert(title: String, message: String) {

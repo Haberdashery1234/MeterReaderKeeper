@@ -5,6 +5,7 @@
 //  Created by Christian Grise on 5/2/21.
 //  Refactored to programmatic UI on 8/25/26.
 //  Updated to use MeterRepositoryProtocol on 8/26/26.
+//  Thinned to use HomeViewModel on 8/26/26.
 //
 
 import UIKit
@@ -13,9 +14,7 @@ class HomeViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var repository: MeterRepositoryProtocol!
-    
-    private lazy var dataSeeder = DataSeeder(repository: repository)
+    var viewModel: HomeViewModel!
     
     // MARK: - UI Components
     private let scrollView: UIScrollView = {
@@ -205,20 +204,16 @@ class HomeViewController: UIViewController {
     
     // MARK: - Actions
     @objc private func takeReadingsTapped() {
-        let buildings = (try? repository.getBuildings()) ?? []
-        
-        if buildings.isEmpty {
+        switch viewModel.takeReadingsOutcome() {
+        case .noBuildings:
             showAlert(
                 title: "No Buildings",
                 message: "Please add buildings and meters before taking readings."
             )
-            return
-        }
-        
-        if buildings.count == 1 {
-            coordinator?.showReadings(for: buildings[0])
-        } else {
-            showBuildingPicker(for: .takeReadings, buildings: buildings)
+        case .singleBuilding(let building):
+            coordinator?.showReadings(for: building)
+        case .chooseBuilding(let buildings):
+            showBuildingPicker(buildings: buildings)
         }
     }
     
@@ -242,35 +237,25 @@ class HomeViewController: UIViewController {
         ])
         present(loadingAlert, animated: true)
         
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        viewModel.exportData { [weak self] result in
             guard let self = self else { return }
-            
-            do {
-                let plistData = try self.repository.exportAllDataToPlist()
-                DispatchQueue.main.async {
-                    loadingAlert.dismiss(animated: true) {
-                        self.sendPlist(plistData)
-                    }
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    loadingAlert.dismiss(animated: true) {
-                        self.showAlert(title: "Export Failed", message: error.localizedDescription)
-                    }
+            loadingAlert.dismiss(animated: true) {
+                switch result {
+                case .success(let plistData):
+                    self.sendPlist(plistData)
+                case .failure(let error):
+                    self.showAlert(title: "Export Failed", message: error.localizedDescription)
                 }
             }
         }
     }
     
     @objc private func seedDataTapped() {
-        let buildingCount = (try? repository.getBuildings())?.count ?? 0
-        
         do {
-            if buildingCount == 0 {
-                try dataSeeder.seedData()
+            switch try viewModel.seedData() {
+            case .seededInitialData:
                 showAlert(title: "Success", message: "Test data has been seeded successfully.")
-            } else {
-                try dataSeeder.seedMoreReadings()
+            case .addedMoreReadings:
                 showAlert(title: "Success", message: "Additional readings have been added successfully.")
             }
         } catch {
@@ -287,15 +272,12 @@ class HomeViewController: UIViewController {
         }
     }
     
-    private func showBuildingPicker(for action: BuildingAction, buildings: [MRKBuilding]) {
+    private func showBuildingPicker(buildings: [MRKBuilding]) {
         let alert = UIAlertController(title: "Select Building", message: nil, preferredStyle: .actionSheet)
         
         for building in buildings {
             alert.addAction(UIAlertAction(title: building.name, style: .default) { [weak self] _ in
-                switch action {
-                case .takeReadings:
-                    self?.coordinator?.showReadings(for: building)
-                }
+                self?.coordinator?.showReadings(for: building)
             })
         }
         
@@ -313,10 +295,5 @@ class HomeViewController: UIViewController {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
-    }
-    
-    // MARK: - Helper Types
-    private enum BuildingAction {
-        case takeReadings
     }
 }

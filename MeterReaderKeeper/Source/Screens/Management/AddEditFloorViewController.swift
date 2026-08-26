@@ -5,6 +5,7 @@
 //  Created by Christian Grise on 5/4/21.
 //  Refactored to programmatic UI on 8/25/26.
 //  Updated to use MeterRepositoryProtocol on 8/26/26.
+//  Thinned to use AddEditFloorViewModel on 8/26/26.
 //
 
 import UIKit
@@ -14,11 +15,8 @@ class AddEditFloorViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var repository: MeterRepositoryProtocol!
-    var building: MRKBuilding?
-    var floor: MRKFloor?
+    var viewModel: AddEditFloorViewModel!
     
-    private var buildings = [MRKBuilding]()
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditFloorVC")
     
     // MARK: - UI Components
@@ -208,30 +206,21 @@ class AddEditFloorViewController: UIViewController {
     }
     
     private func populateData() {
-        buildings = (try? repository.getBuildings()) ?? []
+        viewModel.loadBuildings()
+        buildingTextField.text = viewModel.selectedBuilding?.name
         
-        if building == nil, buildings.count == 1 {
-            building = buildings[0]
+        if viewModel.isEditing {
+            floorTextField.text = viewModel.initialFloorNumberText
         }
-        buildingTextField.text = building?.name
         
-        if let floor = floor {
-            // building was supplied by the coordinator for the edit flow.
-            floorTextField.text = "\(floor.number)"
-            
-            if floor.mapImageData != Data(), let mapImage = UIImage(data: floor.mapImageData) {
-                currentMapImageView.image = mapImage
-            } else {
-                currentMapImageView.image = UIImage(systemName: "map")
-                currentMapImageView.tintColor = .systemGray3
-            }
-            
-            title = "Edit Floor"
+        if let mapData = viewModel.initialMapImageData, let mapImage = UIImage(data: mapData) {
+            currentMapImageView.image = mapImage
         } else {
             currentMapImageView.image = UIImage(systemName: "map")
             currentMapImageView.tintColor = .systemGray3
-            title = "Add Floor"
         }
+        
+        title = viewModel.screenTitle
     }
     
     // MARK: - Actions
@@ -249,27 +238,16 @@ class AddEditFloorViewController: UIViewController {
     }
     
     @objc private func saveTapped() {
-        guard let validationResult = validateInput() else {
-            return
-        }
-        
-        let (selectedBuilding, floorNumber) = validationResult
-        
         var mapData = Data()
         if let image = currentMapImageView.image, currentMapImageView.tintColor == nil {
             mapData = image.jpegData(compressionQuality: 0.8) ?? Data()
         }
         
-        let input = MRKFloorInput(number: floorNumber, mapImageData: mapData, buildingID: selectedBuilding.id)
-        
         do {
-            if let existingFloor = floor {
-                _ = try repository.updateFloor(id: existingFloor.id, input: input)
-            } else {
-                _ = try repository.addFloor(input)
-            }
-            logger.info("Saved floor \(floorNumber) for building \(selectedBuilding.name)")
+            _ = try viewModel.save(floorNumberText: floorTextField.text, mapImageData: mapData)
             navigationController?.popViewController(animated: true)
+        } catch let error as FormValidationError {
+            showAlert(title: error.title, message: error.message)
         } catch {
             logger.error("Failed to save floor: \(error.localizedDescription)")
             showAlert(title: "Save Failed", message: error.localizedDescription)
@@ -278,27 +256,6 @@ class AddEditFloorViewController: UIViewController {
     
     @objc private func dismissKeyboard() {
         view.endEditing(true)
-    }
-    
-    // MARK: - Validation
-    private func validateInput() -> (building: MRKBuilding, floorNumber: Int16)? {
-        guard let building = building else {
-            showAlert(title: "Missing Building", message: "Please select a building")
-            return nil
-        }
-        
-        guard let floorText = floorTextField.text,
-              let floorNumber = Int16(floorText) else {
-            showAlert(title: "Invalid Floor", message: "Please enter a valid floor number")
-            return nil
-        }
-        
-        guard floorNumber > 0 else {
-            showAlert(title: "Invalid Floor", message: "Floor number must be greater than 0")
-            return nil
-        }
-        
-        return (building, floorNumber)
     }
     
     private func showAlert(title: String, message: String) {
@@ -315,15 +272,15 @@ extension AddEditFloorViewController: UIPickerViewDelegate, UIPickerViewDataSour
     }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return buildings.count
+        return viewModel.buildings.count
     }
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return buildings[row].name
+        return viewModel.buildings[row].name
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        building = buildings[row]
+        let building = viewModel.selectBuilding(at: row)
         buildingTextField.text = building?.name
     }
 }

@@ -5,6 +5,7 @@
 //  Created by Christian Grise on 5/2/21.
 //  Refactored to programmatic UI on 8/25/26.
 //  Updated to use MeterRepositoryProtocol on 8/26/26.
+//  Thinned to use AddEditMeterViewModel on 8/26/26.
 //
 
 import UIKit
@@ -14,13 +15,8 @@ class AddEditMeterViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var repository: MeterRepositoryProtocol!
-    var meter: MRKMeter?
-    var building: MRKBuilding?
-    var floor: MRKFloor?
+    var viewModel: AddEditMeterViewModel!
     
-    private var buildings = [MRKBuilding]()
-    private var floors = [MRKFloor]()
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditMeterVC")
     
     // MARK: - UI Components
@@ -200,7 +196,7 @@ class AddEditMeterViewController: UIViewController {
         contentView.addSubview(addImageButton)
         contentView.addSubview(saveButton)
         
-        if meter != nil {
+        if viewModel.isEditing {
             contentView.addSubview(deleteButton)
         }
     }
@@ -208,7 +204,7 @@ class AddEditMeterViewController: UIViewController {
     private func setupConstraints() {
         let deleteButtonConstraints: [NSLayoutConstraint]
         
-        if meter != nil {
+        if viewModel.isEditing {
             deleteButtonConstraints = [
                 deleteButton.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: 20),
                 deleteButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
@@ -307,63 +303,37 @@ class AddEditMeterViewController: UIViewController {
     }
     
     private func populateData() {
-        buildings = (try? repository.getBuildings()) ?? []
+        viewModel.loadBuildingsAndFloors()
+        buildingTextField.text = viewModel.selectedBuilding?.name
+        floorTextField.text = viewModel.initialFloorText
         
-        // Auto-select if only one building
-        if building == nil, buildings.count == 1 {
-            building = buildings[0]
-        }
-        buildingTextField.text = building?.name
-        floors = building?.sortedFloors ?? []
-        
-        if let floor = floor {
-            floorTextField.text = "Floor \(floor.number)"
+        if viewModel.isEditing {
+            nameTextField.text = viewModel.initialNameText
+            descriptionTextField.text = viewModel.initialDescriptionText
         }
         
-        // If editing existing meter
-        if let meter = meter {
-            nameTextField.text = meter.name
-            descriptionTextField.text = meter.meterDescription
-            
-            if meter.imageData != Data(), let image = UIImage(data: meter.imageData) {
-                meterImageImageView.image = image
-            } else {
-                meterImageImageView.image = UIImage(systemName: "gauge")
-                meterImageImageView.tintColor = .systemGray3
-            }
-            
-            title = "Edit Meter"
+        if let imageData = viewModel.initialImageData, let image = UIImage(data: imageData) {
+            meterImageImageView.image = image
         } else {
             meterImageImageView.image = UIImage(systemName: "gauge")
             meterImageImageView.tintColor = .systemGray3
-            title = "Add Meter"
         }
+        
+        title = viewModel.screenTitle
     }
     
     // MARK: - Actions
     @objc private func saveTapped() {
-        guard let validationResult = validateInput() else {
-            return
-        }
-        
-        let (selectedFloor, meterName, meterDescription) = validationResult
-        
         var imageData = Data()
         if let image = meterImageImageView.image, meterImageImageView.tintColor == nil {
             imageData = image.jpegData(compressionQuality: 0.8) ?? Data()
         }
         
-        let input = MRKMeterInput(name: meterName, description: meterDescription, imageData: imageData, floorID: selectedFloor.id)
-        
         do {
-            if let existingMeter = meter {
-                _ = try repository.updateMeter(id: existingMeter.id, input: input)
-                logger.info("Updated meter: \(meterName)")
-            } else {
-                _ = try repository.addMeter(input)
-                logger.info("Created meter: \(meterName)")
-            }
+            _ = try viewModel.save(nameText: nameTextField.text, descriptionText: descriptionTextField.text, imageData: imageData)
             navigationController?.popViewController(animated: true)
+        } catch let error as FormValidationError {
+            showAlert(title: error.title, message: error.message)
         } catch {
             logger.error("Failed to save meter: \(error.localizedDescription)")
             showAlert(title: "Save Failed", message: error.localizedDescription)
@@ -371,8 +341,7 @@ class AddEditMeterViewController: UIViewController {
     }
     
     @objc private func deleteTapped() {
-        guard let meter = meter else {
-            logger.warning("Delete tapped but no meter to delete")
+        guard let meter = viewModel.meter else {
             return
         }
         
@@ -386,8 +355,7 @@ class AddEditMeterViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
             guard let self = self else { return }
             do {
-                try self.repository.deleteMeter(id: meter.id)
-                self.logger.info("Deleted meter: \(meter.name)")
+                try self.viewModel.delete()
                 self.navigationController?.popViewController(animated: true)
             } catch {
                 self.showAlert(title: "Delete Failed", message: error.localizedDescription)
@@ -414,29 +382,6 @@ class AddEditMeterViewController: UIViewController {
         view.endEditing(true)
     }
     
-    // MARK: - Validation
-    private func validateInput() -> (floor: MRKFloor, name: String, description: String)? {
-        guard building != nil else {
-            showAlert(title: "Missing Building", message: "Please select a building")
-            return nil
-        }
-        
-        guard let floor = floor else {
-            showAlert(title: "Missing Floor", message: "Please select a floor")
-            return nil
-        }
-        
-        guard let name = nameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !name.isEmpty else {
-            showAlert(title: "Missing Name", message: "Please enter a meter name")
-            return nil
-        }
-        
-        let description = descriptionTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        
-        return (floor, name, description)
-    }
-    
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
@@ -452,38 +397,31 @@ extension AddEditMeterViewController: UIPickerViewDelegate, UIPickerViewDataSour
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         if pickerView == buildingPickerView {
-            return buildings.count
+            return viewModel.buildings.count
         } else if pickerView == floorPickerView {
-            return floors.count
+            return viewModel.floors.count
         }
         return 0
     }
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
         if pickerView == buildingPickerView {
-            return buildings[row].name
+            return viewModel.buildings[row].name
         } else if pickerView == floorPickerView {
-            return "Floor \(floors[row].number)"
+            return "Floor \(viewModel.floors[row].number)"
         }
         return ""
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         if pickerView == buildingPickerView {
-            building = buildings[row]
+            let building = viewModel.selectBuilding(at: row)
             buildingTextField.text = building?.name
-            
-            // Update floors for selected building
-            floors = building?.sortedFloors ?? []
-            floor = nil
             floorTextField.text = ""
             floorPickerView.reloadAllComponents()
-            
-            logger.info("Building selected: \(self.building?.name ?? "nil")")
         } else if pickerView == floorPickerView {
-            floor = floors[row]
-            floorTextField.text = "Floor \(floor?.number ?? 0)"
-            logger.info("Floor selected: \(self.floor?.number ?? 0)")
+            let floor = viewModel.selectFloor(at: row)
+            floorTextField.text = floor.map { "Floor \($0.number)" } ?? ""
         }
     }
 }
