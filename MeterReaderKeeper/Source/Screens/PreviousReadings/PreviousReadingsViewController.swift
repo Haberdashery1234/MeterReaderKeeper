@@ -12,15 +12,15 @@ class PreviousReadingsViewController: UIViewController {
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
     
-    private var buildings = [Building]()
-    private var building: Building?
-    private var floors = [Floor]()
-    private var floor: Floor?
-    private var meters = [Meter]()
-    private var meter: Meter?
+    private var buildings = [CoreDataBuilding]()
+    private var building: CoreDataBuilding?
+    private var floors = [CoreDataFloor]()
+    private var floor: CoreDataFloor?
+    private var meters = [CoreDataMeter]()
+    private var meter: CoreDataMeter?
     private var dates = [Date]()
     private var date: Date?
-    private var readings = [Reading]()
+    private var readings = [CoreDataReading]()
     
     // MARK: - UI Components
     private lazy var segmentedControl: UISegmentedControl = {

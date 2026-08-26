@@ -10,11 +10,11 @@ import Foundation
 import CoreData
 
 @objc(Meter)
-public class Meter: NSManagedObject {
+public class CoreDataMeter: NSManagedObject {
 
     /// Safely retrieves all readings for this meter
-    var meterReadings: [Reading] {
-        guard let readingsArray = readings.array as? [Reading] else {
+    var meterReadings: [CoreDataReading] {
+        guard let readingsArray = readings.array as? [CoreDataReading] else {
             print("⚠️ Warning: Failed to cast readings to [Reading] for meter: \(name)")
             return []
         }
@@ -22,12 +22,12 @@ public class Meter: NSManagedObject {
     }
     
     /// Retrieves readings sorted by date (most recent first)
-    var sortedReadings: [Reading] {
+    var sortedReadings: [CoreDataReading] {
         meterReadings.sorted { $0.date > $1.date }
     }
     
     /// Gets the most recent reading, if available
-    var mostRecentReading: Reading? {
+    var mostRecentReading: CoreDataReading? {
         sortedReadings.first
     }
     
@@ -65,10 +65,10 @@ public class Meter: NSManagedObject {
     }
 }
 
-extension Meter {
+extension CoreDataMeter {
 
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<Meter> {
-        return NSFetchRequest<Meter>(entityName: "Meter")
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<CoreDataMeter> {
+        return NSFetchRequest<CoreDataMeter>(entityName: "Meter")
     }
 
     @NSManaged public var image: Data
@@ -76,37 +76,37 @@ extension Meter {
     @NSManaged public var meterDescription: String
     @NSManaged public var name: String
     @NSManaged public var qrString: String
-    @NSManaged public var floor: Floor
+    @NSManaged public var floor: CoreDataFloor
     @NSManaged public var readings: NSOrderedSet
 
 }
 
 // MARK: Generated accessors for readings
-extension Meter {
+extension CoreDataMeter {
 
     @objc(insertObject:inReadingsAtIndex:)
-    @NSManaged public func insertIntoReadings(_ value: Reading, at idx: Int)
+    @NSManaged public func insertIntoReadings(_ value: CoreDataReading, at idx: Int)
 
     @objc(removeObjectFromReadingsAtIndex:)
     @NSManaged public func removeFromReadings(at idx: Int)
 
     @objc(insertReadings:atIndexes:)
-    @NSManaged public func insertIntoReadings(_ values: [Reading], at indexes: NSIndexSet)
+    @NSManaged public func insertIntoReadings(_ values: [CoreDataReading], at indexes: NSIndexSet)
 
     @objc(removeReadingsAtIndexes:)
     @NSManaged public func removeFromReadings(at indexes: NSIndexSet)
 
     @objc(replaceObjectInReadingsAtIndex:withObject:)
-    @NSManaged public func replaceReadings(at idx: Int, with value: Reading)
+    @NSManaged public func replaceReadings(at idx: Int, with value: CoreDataReading)
 
     @objc(replaceReadingsAtIndexes:withReadings:)
-    @NSManaged public func replaceReadings(at indexes: NSIndexSet, with values: [Reading])
+    @NSManaged public func replaceReadings(at indexes: NSIndexSet, with values: [CoreDataReading])
 
     @objc(addReadingsObject:)
-    @NSManaged public func addToReadings(_ value: Reading)
+    @NSManaged public func addToReadings(_ value: CoreDataReading)
 
     @objc(removeReadingsObject:)
-    @NSManaged public func removeFromReadings(_ value: Reading)
+    @NSManaged public func removeFromReadings(_ value: CoreDataReading)
 
     @objc(addReadings:)
     @NSManaged public func addToReadings(_ values: NSOrderedSet)
@@ -116,6 +116,6 @@ extension Meter {
 
 }
 
-extension Meter : Identifiable {
+extension CoreDataMeter : Identifiable {
 
 }

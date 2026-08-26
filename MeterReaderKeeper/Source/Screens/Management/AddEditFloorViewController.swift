@@ -13,8 +13,8 @@ class AddEditFloorViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var building: Building?
-    var floor: Floor?
+    var building: CoreDataBuilding?
+    var floor: CoreDataFloor?
     
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditFloorVC")
     
@@ -277,7 +277,7 @@ class AddEditFloorViewController: UIViewController {
     }
     
     // MARK: - Validation
-    private func validateInput() -> (building: Building, floorNumber: Int16)? {
+    private func validateInput() -> (building: CoreDataBuilding, floorNumber: Int16)? {
         guard let building = building else {
             showAlert(title: "Missing Building", message: "Please select a building")
             return nil

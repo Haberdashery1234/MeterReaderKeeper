@@ -63,7 +63,7 @@ class AppCoordinator: Coordinator {
         navigationController.pushViewController(managementVC, animated: true)
     }
     
-    func showReadings(for building: Building) {
+    func showReadings(for building: CoreDataBuilding) {
         let readingsVC = ReadingsMainViewController()
         readingsVC.coordinator = self
         readingsVC.building = building
@@ -71,7 +71,7 @@ class AppCoordinator: Coordinator {
         navigationController.pushViewController(readingsVC, animated: true)
     }
     
-    func showBuildingDetails(building: Building? = nil) {
+    func showBuildingDetails(building: CoreDataBuilding? = nil) {
         let buildingVC = AddEditBuildingViewController()
         buildingVC.coordinator = self
         buildingVC.building = building
@@ -79,7 +79,7 @@ class AppCoordinator: Coordinator {
         navigationController.pushViewController(buildingVC, animated: true)
     }
     
-    func showFloorDetails(floor: Floor? = nil) {
+    func showFloorDetails(floor: CoreDataFloor? = nil) {
         let floorVC = AddEditFloorViewController()
         floorVC.coordinator = self
         floorVC.floor = floor
@@ -87,7 +87,7 @@ class AppCoordinator: Coordinator {
         navigationController.pushViewController(floorVC, animated: true)
     }
     
-    func showMeterDetails(meter: Meter? = nil) {
+    func showMeterDetails(meter: CoreDataMeter? = nil) {
         let meterVC = AddEditMeterViewController()
         meterVC.coordinator = self
         meterVC.meter = meter
@@ -95,7 +95,7 @@ class AppCoordinator: Coordinator {
         navigationController.pushViewController(meterVC, animated: true)
     }
     
-    func showAddReading(for meter: Meter) {
+    func showAddReading(for meter: CoreDataMeter) {
         let readingVC = AddEditReadingViewController()
         readingVC.coordinator = self
         readingVC.meter = meter
@@ -103,7 +103,7 @@ class AppCoordinator: Coordinator {
         navigationController.pushViewController(readingVC, animated: true)
     }
     
-    func showEditReading(_ reading: Reading, for meter: Meter) {
+    func showEditReading(_ reading: CoreDataReading, for meter: CoreDataMeter) {
         let readingVC = AddEditReadingViewController()
         readingVC.coordinator = self
         readingVC.meter = meter

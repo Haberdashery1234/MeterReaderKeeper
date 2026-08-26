@@ -14,11 +14,11 @@ class AddEditMeterViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var meter: Meter?
-    var building: Building?
-    var floor: Floor?
+    var meter: CoreDataMeter?
+    var building: CoreDataBuilding?
+    var floor: CoreDataFloor?
     
-    private var floors = [Floor]()
+    private var floors = [CoreDataFloor]()
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditMeterVC")
     
     // MARK: - UI Components
@@ -415,7 +415,7 @@ class AddEditMeterViewController: UIViewController {
     }
     
     // MARK: - Validation
-    private func validateInput() -> (building: Building, floor: Floor, name: String, description: String)? {
+    private func validateInput() -> (building: CoreDataBuilding, floor: CoreDataFloor, name: String, description: String)? {
         guard let building = building else {
             showAlert(title: "Missing Building", message: "Please select a building")
             return nil

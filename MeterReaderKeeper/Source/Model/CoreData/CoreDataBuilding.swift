@@ -10,11 +10,11 @@ import Foundation
 import CoreData
 
 @objc(Building)
-public class Building: NSManagedObject {
+public class CoreDataBuilding: NSManagedObject {
     
     /// Safely retrieves all floors for this building
-    var buildingFloors: [Floor] {
-        guard let floorsArray = floors.array as? [Floor] else {
+    var buildingFloors: [CoreDataFloor] {
+        guard let floorsArray = floors.array as? [CoreDataFloor] else {
             print("⚠️ Warning: Failed to cast floors to [Floor] for building: \(name)")
             return []
         }
@@ -22,7 +22,7 @@ public class Building: NSManagedObject {
     }
     
     /// Retrieves floors sorted by floor number
-    var sortedFloors: [Floor] {
+    var sortedFloors: [CoreDataFloor] {
         buildingFloors.sorted { $0.number < $1.number }
     }
     
@@ -53,10 +53,10 @@ public class Building: NSManagedObject {
     }
 }
 
-extension Building {
+extension CoreDataBuilding {
 
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<Building> {
-        return NSFetchRequest<Building>(entityName: "Building")
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<CoreDataBuilding> {
+        return NSFetchRequest<CoreDataBuilding>(entityName: "Building")
     }
 
     @NSManaged public var name: String
@@ -65,31 +65,31 @@ extension Building {
 }
 
 // MARK: Generated accessors for floors
-extension Building {
+extension CoreDataBuilding {
 
     @objc(insertObject:inFloorsAtIndex:)
-    @NSManaged public func insertIntoFloors(_ value: Floor, at idx: Int)
+    @NSManaged public func insertIntoFloors(_ value: CoreDataFloor, at idx: Int)
 
     @objc(removeObjectFromFloorsAtIndex:)
     @NSManaged public func removeFromFloors(at idx: Int)
 
     @objc(insertFloors:atIndexes:)
-    @NSManaged public func insertIntoFloors(_ values: [Floor], at indexes: NSIndexSet)
+    @NSManaged public func insertIntoFloors(_ values: [CoreDataFloor], at indexes: NSIndexSet)
 
     @objc(removeFloorsAtIndexes:)
     @NSManaged public func removeFromFloors(at indexes: NSIndexSet)
 
     @objc(replaceObjectInFloorsAtIndex:withObject:)
-    @NSManaged public func replaceFloors(at idx: Int, with value: Floor)
+    @NSManaged public func replaceFloors(at idx: Int, with value: CoreDataFloor)
 
     @objc(replaceFloorsAtIndexes:withFloors:)
-    @NSManaged public func replaceFloors(at indexes: NSIndexSet, with values: [Floor])
+    @NSManaged public func replaceFloors(at indexes: NSIndexSet, with values: [CoreDataFloor])
 
     @objc(addFloorsObject:)
-    @NSManaged public func addToFloors(_ value: Floor)
+    @NSManaged public func addToFloors(_ value: CoreDataFloor)
 
     @objc(removeFloorsObject:)
-    @NSManaged public func removeFromFloors(_ value: Floor)
+    @NSManaged public func removeFromFloors(_ value: CoreDataFloor)
 
     @objc(addFloors:)
     @NSManaged public func addToFloors(_ values: NSOrderedSet)
@@ -99,6 +99,6 @@ extension Building {
 
 }
 
-extension Building : Identifiable {
+extension CoreDataBuilding : Identifiable {
 
 }

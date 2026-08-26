@@ -59,7 +59,7 @@ class PreviousReadingTableViewCell: UITableViewCell {
         return stack
     }()
 
-    var reading = Reading()
+    var reading = CoreDataReading()
     
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -91,7 +91,7 @@ class PreviousReadingTableViewCell: UITableViewCell {
         rightStackView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
     }
     
-    func setup(withReading reading: Reading) {
+    func setup(withReading reading: CoreDataReading) {
         self.reading = reading
         readingValueLabel.text = String(format: "%.2f kWh", reading.kWh)
         

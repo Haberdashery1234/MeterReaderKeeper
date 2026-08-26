@@ -43,8 +43,8 @@ class ReadingMeterTableViewCell: UITableViewCell {
         return stack
     }()
 
-    var meter = Meter()
-    var reading: Reading?
+    var meter = CoreDataMeter()
+    var reading: CoreDataReading?
     
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -75,7 +75,7 @@ class ReadingMeterTableViewCell: UITableViewCell {
         ])
     }
     
-    func setup(withMeter meter: Meter) {
+    func setup(withMeter meter: CoreDataMeter) {
         readingDoneCheckImageView.isHidden = true
         self.meter = meter
         nameLabel.text = meter.name

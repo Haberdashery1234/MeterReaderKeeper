@@ -21,12 +21,12 @@ class MeterManager {
     }
     
     var persistentContainer: NSPersistentContainer
-    var buildings: [Building] = []
-    var floors: [Floor] = []
-    var meters: [Meter] = []
-    var allReadings: [Reading] = []
-    var allReadingsStructured: [Building : [Floor : [Meter : [Reading]]]] = [:]
-    var allReadingsDates: [Date : [Reading]] = [:]
+    var buildings: [CoreDataBuilding] = []
+    var floors: [CoreDataFloor] = []
+    var meters: [CoreDataMeter] = []
+    var allReadings: [CoreDataReading] = []
+    var allReadingsStructured: [CoreDataBuilding : [CoreDataFloor : [CoreDataMeter : [CoreDataReading]]]] = [:]
+    var allReadingsDates: [Date : [CoreDataReading]] = [:]
     
     init() {
         persistentContainer = NSPersistentContainer(name: "MeterReader")
@@ -52,15 +52,15 @@ class MeterManager {
     }
     
     // MARK: - Buildings
-    func addBuilding(withName name: String, floors: Int16, autoCreateFloors: Bool? = true) -> Building? {
+    func addBuilding(withName name: String, floors: Int16, autoCreateFloors: Bool? = true) -> CoreDataBuilding? {
         let managedContext = persistentContainer.viewContext
         
-        let building = Building(context: managedContext)
+        let building = CoreDataBuilding(context: managedContext)
         building.name = name
         
         if autoCreateFloors == true {
             for i in 1...floors {
-                let floor = Floor(context: managedContext)
+                let floor = CoreDataFloor(context: managedContext)
                 floor.building = building
                 floor.number = i
                 floor.map = Data()
@@ -82,7 +82,7 @@ class MeterManager {
     func loadBuildings() {
         let managedContext = persistentContainer.viewContext
         
-        let fetchRequest: NSFetchRequest<Building> = Building.fetchRequest()
+        let fetchRequest: NSFetchRequest<CoreDataBuilding> = CoreDataBuilding.fetchRequest()
         
         do {
             buildings = try managedContext.fetch(fetchRequest)
@@ -95,7 +95,7 @@ class MeterManager {
         }
     }
     
-    func deleteBuilding(_ building: Building) {
+    func deleteBuilding(_ building: CoreDataBuilding) {
         let managedContext = persistentContainer.viewContext
         
         let buildFloors = floors.filter { (flr) -> Bool in
@@ -116,10 +116,10 @@ class MeterManager {
     }
     
     // MARK: - Floors
-    func addFloor(toBuilding building: Building, number: Int16, mapData: Data) -> Floor? {
+    func addFloor(toBuilding building: CoreDataBuilding, number: Int16, mapData: Data) -> CoreDataFloor? {
         let managedContext = persistentContainer.viewContext
         
-        let floor = Floor(context: managedContext)
+        let floor = CoreDataFloor(context: managedContext)
         floor.building = building
         floor.number = number
         floor.map = mapData
@@ -135,7 +135,7 @@ class MeterManager {
         }
     }
     
-    func saveFloor(_ floor: Floor) {
+    func saveFloor(_ floor: CoreDataFloor) {
         let managedContext = persistentContainer.viewContext
         
         do {
@@ -150,7 +150,7 @@ class MeterManager {
     func loadFloors() {
         let managedContext = persistentContainer.viewContext
         
-        let fetchRequest: NSFetchRequest<Floor> = Floor.fetchRequest()
+        let fetchRequest: NSFetchRequest<CoreDataFloor> = CoreDataFloor.fetchRequest()
         
         do {
             floors = try managedContext.fetch(fetchRequest)
@@ -170,10 +170,10 @@ class MeterManager {
     }
     
     // MARK: - Meters
-    func addMeter(withName name: String, description: String, floor: Floor, image: Data, buildingName: String) -> Meter? {
+    func addMeter(withName name: String, description: String, floor: CoreDataFloor, image: Data, buildingName: String) -> CoreDataMeter? {
         let managedContext = persistentContainer.viewContext
         
-        let meter = Meter(context: managedContext)
+        let meter = CoreDataMeter(context: managedContext)
         meter.name = name
         meter.meterDescription = description
         meter.image = image
@@ -192,7 +192,7 @@ class MeterManager {
         return nil
     }
     
-    func updateMeter(_ meter: Meter, withName name: String, description: String, floor: Floor, image: Data, buildingName: String) -> Meter? {
+    func updateMeter(_ meter: CoreDataMeter, withName name: String, description: String, floor: CoreDataFloor, image: Data, buildingName: String) -> CoreDataMeter? {
         let managedContext = persistentContainer.viewContext
         
         meter.name = name
@@ -213,7 +213,7 @@ class MeterManager {
         return nil
     }
     
-    func deleteMeter(_ meter: Meter) {
+    func deleteMeter(_ meter: CoreDataMeter) {
         let managedContext = persistentContainer.viewContext
         
         managedContext.delete(meter)
@@ -230,7 +230,7 @@ class MeterManager {
     func loadMeters() {
         let managedContext = persistentContainer.viewContext
         
-        let fetchRequest: NSFetchRequest<Meter> = Meter.fetchRequest()
+        let fetchRequest: NSFetchRequest<CoreDataMeter> = CoreDataMeter.fetchRequest()
         
         do {
             meters = try managedContext.fetch(fetchRequest)
@@ -240,26 +240,26 @@ class MeterManager {
         }
     }
     
-    func getMeters(forBuilding building: Building) -> [Meter] {
-        var meters = [Meter]()
+    func getMeters(forBuilding building: CoreDataBuilding) -> [CoreDataMeter] {
+        var meters = [CoreDataMeter]()
         for floor in building.buildingFloors {
             meters.append(contentsOf: floor.floorMeters)
         }
         return meters
     }
     
-    func getMeters(forFloor floor: Floor) -> [Meter] {
+    func getMeters(forFloor floor: CoreDataFloor) -> [CoreDataMeter] {
         return floor.floorMeters
     }
     
     // MARK: - Readings
-    func addReading(toMeter meter: Meter, withKWH kWh: Double, date: Date) {
+    func addReading(toMeter meter: CoreDataMeter, withKWH kWh: Double, date: Date) {
         let managedContext = persistentContainer.viewContext
         
         if date > meter.latestReading {
             meter.latestReading = date
         }
-        let reading = Reading(context: managedContext)
+        let reading = CoreDataReading(context: managedContext)
         reading.kWh = kWh
         reading.meter = meter
         reading.date = date
@@ -273,7 +273,7 @@ class MeterManager {
         }
     }
     
-    func updateReading(_ reading: Reading, with kWh: Double) {
+    func updateReading(_ reading: CoreDataReading, with kWh: Double) {
         let managedContext = persistentContainer.viewContext
         
         let date = Calendar.current.startOfDay(for: Date())
@@ -295,7 +295,7 @@ class MeterManager {
     func loadAllReadings() {
         let managedContext = persistentContainer.viewContext
         
-        let fetchRequest: NSFetchRequest<Reading> = Reading.fetchRequest()
+        let fetchRequest: NSFetchRequest<CoreDataReading> = CoreDataReading.fetchRequest()
         
         do {
             allReadings = try managedContext.fetch(fetchRequest)
@@ -308,10 +308,10 @@ class MeterManager {
     }
     
     private func groupReadingsByDate() {
-        var localReadingsByDate: [Date : [Reading]] = [:]
+        var localReadingsByDate: [Date : [CoreDataReading]] = [:]
         for reading in allReadings {
             if localReadingsByDate[reading.date] == nil {
-                localReadingsByDate[reading.date] = [Reading]()
+                localReadingsByDate[reading.date] = [CoreDataReading]()
             }
             localReadingsByDate[reading.date]?.append(reading)
         }
@@ -319,32 +319,32 @@ class MeterManager {
     }
     
     private func structureReadings() {
-        var localMeters = [Meter : [Reading]]()
+        var localMeters = [CoreDataMeter : [CoreDataReading]]()
         for reading in allReadings {
             if localMeters[reading.meter] == nil {
-                localMeters[reading.meter] = [Reading]()
+                localMeters[reading.meter] = [CoreDataReading]()
             }
             localMeters[reading.meter]?.append(reading)
         }
         
-        var localFloors = [Floor : [Meter : [Reading]]]()
+        var localFloors = [CoreDataFloor : [CoreDataMeter : [CoreDataReading]]]()
         for (meter, readings) in localMeters {
             if localFloors[meter.floor] == nil {
-                localFloors[meter.floor] = [Meter : [Reading]]()
+                localFloors[meter.floor] = [CoreDataMeter : [CoreDataReading]]()
             }
-            var thisMeter = [Meter : [Reading]]()
+            var thisMeter = [CoreDataMeter : [CoreDataReading]]()
             thisMeter[meter] = readings
-            localFloors[meter.floor]?.merge(thisMeter, uniquingKeysWith: { (r1, _) -> [Reading] in r1 })
+            localFloors[meter.floor]?.merge(thisMeter, uniquingKeysWith: { (r1, _) -> [CoreDataReading] in r1 })
         }
         
-        var localBuildings = [Building : [Floor : [Meter : [Reading]]]]()
+        var localBuildings = [CoreDataBuilding : [CoreDataFloor : [CoreDataMeter : [CoreDataReading]]]]()
         for (floor, meters) in localFloors {
             if localBuildings[floor.building] == nil {
-                localBuildings[floor.building] = [Floor : [Meter : [Reading]]]()
+                localBuildings[floor.building] = [CoreDataFloor : [CoreDataMeter : [CoreDataReading]]]()
             }
-            var thisFloor = [Floor : [Meter : [Reading]]]()
+            var thisFloor = [CoreDataFloor : [CoreDataMeter : [CoreDataReading]]]()
             thisFloor[floor] = meters
-            localBuildings[floor.building]?.merge(thisFloor, uniquingKeysWith: { (r1, _) -> [Meter : [Reading]] in r1 })
+            localBuildings[floor.building]?.merge(thisFloor, uniquingKeysWith: { (r1, _) -> [CoreDataMeter : [CoreDataReading]] in r1 })
         }
         
         allReadingsStructured = localBuildings
@@ -413,16 +413,16 @@ class MeterManager {
         
     }
     
-    func getReadings(forDate date: Date) -> [Reading] {
+    func getReadings(forDate date: Date) -> [CoreDataReading] {
         return allReadingsDates[date] ?? []
     }
     
-    func getReadings(forBuilding building: Building) -> [Reading] {
+    func getReadings(forBuilding building: CoreDataBuilding) -> [CoreDataReading] {
         guard let floorsDict = allReadingsStructured[building] else {
             print("No floors in building")
             return []
         }
-        var readings = [Reading]()
+        var readings = [CoreDataReading]()
         for (_, floorMeters) in floorsDict {
             for (_, meterReadings) in floorMeters {
                 readings.append(contentsOf: meterReadings)
@@ -431,7 +431,7 @@ class MeterManager {
         return readings
     }
     
-    func getReadings(forFloor floor: Floor) -> [Reading] {
+    func getReadings(forFloor floor: CoreDataFloor) -> [CoreDataReading] {
         guard
             let floorsDict = allReadingsStructured[floor.building],
             let meterDict = floorsDict[floor]
@@ -439,14 +439,14 @@ class MeterManager {
             print("No meters in floor")
             return []
         }
-        var readings = [Reading]()
+        var readings = [CoreDataReading]()
         for (_, meterReadings) in meterDict {
             readings.append(contentsOf: meterReadings)
         }
         return readings
     }
     
-    func getReadings(forMeter meter: Meter) -> [Reading] {
+    func getReadings(forMeter meter: CoreDataMeter) -> [CoreDataReading] {
         guard
             let floorsDict = allReadingsStructured[meter.floor.building],
             let meterDict = floorsDict[meter.floor],
@@ -459,7 +459,7 @@ class MeterManager {
     }
     
     // MARK: - CSV Data
-    func getCSVData(forBuilding building: Building) -> Data? {
+    func getCSVData(forBuilding building: CoreDataBuilding) -> Data? {
         var csvString = "\(building.name)"
         let buildFloors = building.buildingFloors
         for floor in buildFloors {

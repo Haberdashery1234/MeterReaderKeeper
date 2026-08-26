@@ -11,7 +11,7 @@ class ReadingsMainViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var building: Building? {
+    var building: CoreDataBuilding? {
         didSet {
             guard let building = building else { return }
             floors = building.buildingFloors
@@ -29,8 +29,8 @@ class ReadingsMainViewController: UIViewController {
         }
     }
     
-    private var floors = [Floor]()
-    private var floor: Floor? {
+    private var floors = [CoreDataFloor]()
+    private var floor: CoreDataFloor? {
         didSet {
             guard let floor = floor else { return }
             floorTextField.text = "Floor \(floor.number)"
@@ -38,8 +38,8 @@ class ReadingsMainViewController: UIViewController {
         }
     }
     
-    private var allBuildingMeters = [Meter]()
-    private var meters = [Meter]() {
+    private var allBuildingMeters = [CoreDataMeter]()
+    private var meters = [CoreDataMeter]() {
         didSet {
             tableView.reloadData()
         }

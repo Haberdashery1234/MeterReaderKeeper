@@ -14,7 +14,7 @@ class AddEditBuildingViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var building: Building?
+    var building: CoreDataBuilding?
     
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditBuildingVC")
     

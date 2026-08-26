@@ -42,7 +42,7 @@ class MeterTableViewCell: UITableViewCell {
         return stack
     }()
 
-    var meter = Meter()
+    var meter = CoreDataMeter()
     
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -71,7 +71,7 @@ class MeterTableViewCell: UITableViewCell {
         ])
     }
     
-    func setup(withMeter meter: Meter) {
+    func setup(withMeter meter: CoreDataMeter) {
         self.meter = meter
         nameLabel.text = meter.name
         let floor = meter.floor

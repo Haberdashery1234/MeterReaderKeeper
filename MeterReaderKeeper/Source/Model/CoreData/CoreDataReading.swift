@@ -10,7 +10,7 @@ import Foundation
 import CoreData
 
 @objc(Reading)
-public class Reading: NSManagedObject {
+public class CoreDataReading: NSManagedObject {
 
     /// Exports reading data to a dictionary for serialization
     /// - Returns: Dictionary containing date and kWh values
@@ -47,18 +47,18 @@ public class Reading: NSManagedObject {
     }
 }
 
-extension Reading {
+extension CoreDataReading {
 
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<Reading> {
-        return NSFetchRequest<Reading>(entityName: "Reading")
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<CoreDataReading> {
+        return NSFetchRequest<CoreDataReading>(entityName: "Reading")
     }
 
     @NSManaged public var date: Date
     @NSManaged public var kWh: Double
-    @NSManaged public var meter: Meter
+    @NSManaged public var meter: CoreDataMeter
 
 }
 
-extension Reading : Identifiable {
+extension CoreDataReading : Identifiable {
 
 }

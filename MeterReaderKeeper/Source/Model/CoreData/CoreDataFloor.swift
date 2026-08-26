@@ -10,11 +10,11 @@ import Foundation
 import CoreData
 
 @objc(Floor)
-public class Floor: NSManagedObject {
+public class CoreDataFloor: NSManagedObject {
 
     /// Safely retrieves all meters for this floor
-    var floorMeters: [Meter] {
-        guard let metersArray = meters.array as? [Meter] else {
+    var floorMeters: [CoreDataMeter] {
+        guard let metersArray = meters.array as? [CoreDataMeter] else {
             print("⚠️ Warning: Failed to cast meters to [Meter] for floor: \(number)")
             return []
         }
@@ -22,7 +22,7 @@ public class Floor: NSManagedObject {
     }
     
     /// Retrieves meters sorted by name
-    var sortedMeters: [Meter] {
+    var sortedMeters: [CoreDataMeter] {
         floorMeters.sorted { $0.name < $1.name }
     }
     
@@ -52,45 +52,45 @@ public class Floor: NSManagedObject {
     }
 }
 
-extension Floor {
+extension CoreDataFloor {
 
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<Floor> {
-        return NSFetchRequest<Floor>(entityName: "Floor")
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<CoreDataFloor> {
+        return NSFetchRequest<CoreDataFloor>(entityName: "Floor")
     }
 
     @NSManaged public var map: Data
     @NSManaged public var number: Int16
-    @NSManaged public var building: Building
+    @NSManaged public var building: CoreDataBuilding
     @NSManaged public var meters: NSOrderedSet
 
 }
 
 // MARK: Generated accessors for meters
-extension Floor {
+extension CoreDataFloor {
 
     @objc(insertObject:inMetersAtIndex:)
-    @NSManaged public func insertIntoMeters(_ value: Meter, at idx: Int)
+    @NSManaged public func insertIntoMeters(_ value: CoreDataMeter, at idx: Int)
 
     @objc(removeObjectFromMetersAtIndex:)
     @NSManaged public func removeFromMeters(at idx: Int)
 
     @objc(insertMeters:atIndexes:)
-    @NSManaged public func insertIntoMeters(_ values: [Meter], at indexes: NSIndexSet)
+    @NSManaged public func insertIntoMeters(_ values: [CoreDataMeter], at indexes: NSIndexSet)
 
     @objc(removeMetersAtIndexes:)
     @NSManaged public func removeFromMeters(at indexes: NSIndexSet)
 
     @objc(replaceObjectInMetersAtIndex:withObject:)
-    @NSManaged public func replaceMeters(at idx: Int, with value: Meter)
+    @NSManaged public func replaceMeters(at idx: Int, with value: CoreDataMeter)
 
     @objc(replaceMetersAtIndexes:withMeters:)
-    @NSManaged public func replaceMeters(at indexes: NSIndexSet, with values: [Meter])
+    @NSManaged public func replaceMeters(at indexes: NSIndexSet, with values: [CoreDataMeter])
 
     @objc(addMetersObject:)
-    @NSManaged public func addToMeters(_ value: Meter)
+    @NSManaged public func addToMeters(_ value: CoreDataMeter)
 
     @objc(removeMetersObject:)
-    @NSManaged public func removeFromMeters(_ value: Meter)
+    @NSManaged public func removeFromMeters(_ value: CoreDataMeter)
 
     @objc(addMeters:)
     @NSManaged public func addToMeters(_ values: NSOrderedSet)
@@ -100,6 +100,6 @@ extension Floor {
 
 }
 
-extension Floor : Identifiable {
+extension CoreDataFloor : Identifiable {
 
 }

@@ -41,7 +41,7 @@ class BuildingTableViewCell: UITableViewCell {
         return stack
     }()
     
-    var building = Building()
+    var building = CoreDataBuilding()
     
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -65,7 +65,7 @@ class BuildingTableViewCell: UITableViewCell {
         ])
     }
     
-    func setup(withBuilding building: Building) {
+    func setup(withBuilding building: CoreDataBuilding) {
         self.building = building
         nameLabel.text = building.name
         floorsLabel.text = "\(building.floors.count) Floors"

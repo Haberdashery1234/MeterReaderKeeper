@@ -42,7 +42,7 @@ class FloorTableViewCell: UITableViewCell {
         return stack
     }()
 
-    var floor = Floor()
+    var floor = CoreDataFloor()
     
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -71,7 +71,7 @@ class FloorTableViewCell: UITableViewCell {
         ])
     }
     
-    func setup(withFloor floor: Floor) {
+    func setup(withFloor floor: CoreDataFloor) {
         self.floor = floor
         let nameString = "\(floor.building.name) - Floor \(floor.number)"
         nameLabel.text = nameString

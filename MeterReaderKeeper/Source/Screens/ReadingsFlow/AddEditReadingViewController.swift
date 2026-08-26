@@ -15,8 +15,8 @@ class AddEditReadingViewController: UIViewController {
     weak var coordinator: AppCoordinator?
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditReadingVC")
     
-    var meter: Meter?
-    var reading: Reading?
+    var meter: CoreDataMeter?
+    var reading: CoreDataReading?
     
     // MARK: - UI Components
     private lazy var scrollView: UIScrollView = {
