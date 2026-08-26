@@ -9,7 +9,7 @@
 import Foundation
 import CoreData
 
-@objc(Meter)
+@objc(CoreDataMeter)
 public class CoreDataMeter: NSManagedObject {
 
     /// Safely retrieves all readings for this meter
@@ -68,7 +68,7 @@ public class CoreDataMeter: NSManagedObject {
 extension CoreDataMeter {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<CoreDataMeter> {
-        return NSFetchRequest<CoreDataMeter>(entityName: "Meter")
+        return NSFetchRequest<CoreDataMeter>(entityName: "CoreDataMeter")
     }
 
     @NSManaged public var image: Data

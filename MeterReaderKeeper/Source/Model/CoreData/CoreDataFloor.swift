@@ -9,7 +9,7 @@
 import Foundation
 import CoreData
 
-@objc(Floor)
+@objc(CoreDataFloor)
 public class CoreDataFloor: NSManagedObject {
 
     /// Safely retrieves all meters for this floor
@@ -55,7 +55,7 @@ public class CoreDataFloor: NSManagedObject {
 extension CoreDataFloor {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<CoreDataFloor> {
-        return NSFetchRequest<CoreDataFloor>(entityName: "Floor")
+        return NSFetchRequest<CoreDataFloor>(entityName: "CoreDataFloor")
     }
 
     @NSManaged public var map: Data

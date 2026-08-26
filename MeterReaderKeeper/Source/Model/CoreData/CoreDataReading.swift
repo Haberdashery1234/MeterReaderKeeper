@@ -9,7 +9,7 @@
 import Foundation
 import CoreData
 
-@objc(Reading)
+@objc(CoreDataReading)
 public class CoreDataReading: NSManagedObject {
 
     /// Exports reading data to a dictionary for serialization
@@ -50,7 +50,7 @@ public class CoreDataReading: NSManagedObject {
 extension CoreDataReading {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<CoreDataReading> {
-        return NSFetchRequest<CoreDataReading>(entityName: "Reading")
+        return NSFetchRequest<CoreDataReading>(entityName: "CoreDataReading")
     }
 
     @NSManaged public var date: Date

@@ -53,7 +53,7 @@ final class CoreDataMeterRepository: MeterRepositoryProtocol {
     func getBuildings() throws -> [MRKBuilding] {
         let context = persistentContainer.viewContext
         return try context.performAndWaitThrowing {
-            let request: NSFetchRequest<CoreDataBuilding> = CoreDataBuilding.fetchRequest()
+            let request = NSFetchRequest<CoreDataBuilding>(entityName: "CoreDataBuilding")
             request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
             let managedBuildings = try context.fetch(request)
             return managedBuildings.map(Self.mapBuilding)
@@ -212,7 +212,7 @@ final class CoreDataMeterRepository: MeterRepositoryProtocol {
     func exportAllDataToPlist() throws -> Data {
         let context = persistentContainer.viewContext
         return try context.performAndWaitThrowing {
-            let request: NSFetchRequest<CoreDataBuilding> = CoreDataBuilding.fetchRequest()
+            let request = NSFetchRequest<CoreDataBuilding>(entityName: "CoreDataBuilding")
             request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
             let buildings = try context.fetch(request)
 
@@ -318,7 +318,7 @@ final class CoreDataMeterRepository: MeterRepositoryProtocol {
     // the data set ever grows large enough for it to matter.
 
     private static func findBuilding(id: UUID, in context: NSManagedObjectContext) throws -> CoreDataBuilding {
-        let request: NSFetchRequest<CoreDataBuilding> = CoreDataBuilding.fetchRequest()
+        let request = NSFetchRequest<CoreDataBuilding>(entityName: "CoreDataBuilding")
         let all = try context.fetch(request)
         guard let match = all.first(where: { $0.objectID.stableUUID == id }) else {
             throw MeterKeeperError.notFound("Building")
@@ -327,7 +327,7 @@ final class CoreDataMeterRepository: MeterRepositoryProtocol {
     }
 
     private static func findFloor(id: UUID, in context: NSManagedObjectContext) throws -> CoreDataFloor {
-        let request: NSFetchRequest<CoreDataFloor> = CoreDataFloor.fetchRequest()
+        let request = NSFetchRequest<CoreDataFloor>(entityName: "CoreDataFloor")
         let all = try context.fetch(request)
         guard let match = all.first(where: { $0.objectID.stableUUID == id }) else {
             throw MeterKeeperError.notFound("Floor")
@@ -336,7 +336,7 @@ final class CoreDataMeterRepository: MeterRepositoryProtocol {
     }
 
     private static func findMeter(id: UUID, in context: NSManagedObjectContext) throws -> CoreDataMeter {
-        let request: NSFetchRequest<CoreDataMeter> = CoreDataMeter.fetchRequest()
+        let request = NSFetchRequest<CoreDataMeter>(entityName: "CoreDataMeter")
         let all = try context.fetch(request)
         guard let match = all.first(where: { $0.objectID.stableUUID == id }) else {
             throw MeterKeeperError.notFound("Meter")
@@ -345,7 +345,7 @@ final class CoreDataMeterRepository: MeterRepositoryProtocol {
     }
 
     private static func findReading(id: UUID, in context: NSManagedObjectContext) throws -> CoreDataReading {
-        let request: NSFetchRequest<CoreDataReading> = CoreDataReading.fetchRequest()
+        let request = NSFetchRequest<CoreDataReading>(entityName: "CoreDataReading")
         let all = try context.fetch(request)
         guard let match = all.first(where: { $0.objectID.stableUUID == id }) else {
             throw MeterKeeperError.notFound("Reading")

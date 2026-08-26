@@ -9,7 +9,7 @@
 import Foundation
 import CoreData
 
-@objc(Building)
+@objc(CoreDataBuilding)
 public class CoreDataBuilding: NSManagedObject {
     
     /// Safely retrieves all floors for this building
@@ -56,7 +56,7 @@ public class CoreDataBuilding: NSManagedObject {
 extension CoreDataBuilding {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<CoreDataBuilding> {
-        return NSFetchRequest<CoreDataBuilding>(entityName: "Building")
+        return NSFetchRequest<CoreDataBuilding>(entityName: "CoreDataBuilding")
     }
 
     @NSManaged public var name: String
