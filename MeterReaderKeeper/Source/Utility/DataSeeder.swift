@@ -3,6 +3,7 @@
 //  MeterReaderKeeper
 //
 //  Created by Christian Grise on 5/5/21.
+//  Updated to use MeterRepositoryProtocol on 8/26/26.
 //
 
 import Foundation
@@ -10,9 +11,12 @@ import os.log
 
 class DataSeeder {
     
-    static let shared = DataSeeder()
-    
+    private let repository: MeterRepositoryProtocol
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "DataSeeder")
+    
+    init(repository: MeterRepositoryProtocol) {
+        self.repository = repository
+    }
     
     /// Generates a random alphanumeric string
     /// - Parameter length: Desired string length
@@ -23,9 +27,8 @@ class DataSeeder {
     }
     
     /// Seeds initial building, floor, meter, and reading data
-    func seedData() {
+    func seedData() throws {
         logger.info("Starting data seeding...")
-        let manager = MeterManager.shared
         
         let buildingNames = [
             "121 Seaport",
@@ -37,40 +40,30 @@ class DataSeeder {
         for buildingName in buildingNames {
             let floorCount = Int16(Int.random(in: 5...35))
             
-            guard let newBuilding = manager.addBuilding(withName: buildingName, floors: floorCount) else {
-                logger.error("Failed to create building: \(buildingName)")
-                continue
-            }
+            let newBuilding = try repository.addBuilding(
+                MRKBuildingInput(name: buildingName, numberOfFloors: floorCount, autoCreateFloors: true)
+            )
             
             logger.info("Created building '\(buildingName)' with \(floorCount) floors")
             
-            // Process ONLY the newly created building, not all buildings
-            let floors = newBuilding.buildingFloors
-            for floor in floors {
+            for floor in newBuilding.floors {
                 let numberOfMeters = Int.random(in: 3...8)
                 
                 for meterIndex in 1...numberOfMeters {
                     let meterName = "\(randomString(length: 5))-\(meterIndex)"
                     let meterDescription = "This is a short description for \(meterName)"
                     
-                    guard let meter = manager.addMeter(
-                        withName: meterName,
-                        description: meterDescription,
-                        floor: floor,
-                        image: Data(),
-                        buildingName: newBuilding.name
-                    ) else {
-                        logger.error("Failed to create meter: \(meterName)")
-                        continue
-                    }
+                    let meter = try repository.addMeter(
+                        MRKMeterInput(name: meterName, description: meterDescription, imageData: Data(), floorID: floor.id)
+                    )
                     
-                    // Add 5 historical readings (monthly intervals)
+                    // Add 5 historical readings (monthly intervals, going backwards from today)
                     for readingIndex in 0...4 {
                         var date = Calendar.current.startOfDay(for: Date())
-                        date = Calendar.current.date(byAdding: .day, value: readingIndex * 30, to: date) ?? Date()
+                        date = Calendar.current.date(byAdding: .day, value: -(readingIndex * 30), to: date) ?? Date()
                         let kWh = Double.random(in: 10_000...30_000)
                         
-                        manager.addReading(toMeter: meter, withKWH: kWh, date: date)
+                        _ = try repository.addReading(MRKReadingInput(kWh: kWh, date: date, meterID: meter.id))
                     }
                 }
                 
@@ -78,24 +71,21 @@ class DataSeeder {
             }
         }
         
-        logger.info("Data seeding complete. Total buildings: \(manager.buildings.count)")
+        logger.info("Data seeding complete.")
     }
     
     /// Adds additional readings to all existing meters for today's date
-    func seedMoreReadings() {
+    func seedMoreReadings() throws {
         logger.info("Seeding additional readings...")
-        let manager = MeterManager.shared
         let date = Calendar.current.startOfDay(for: Date())
         
         var readingCount = 0
         
-        for building in manager.buildings {
-            let floors = building.buildingFloors
-            for floor in floors {
-                let meters = floor.floorMeters
-                for meter in meters {
+        for building in try repository.getBuildings() {
+            for floor in building.floors {
+                for meter in floor.meters {
                     let kWh = Double.random(in: 10_000...50_000)
-                    manager.addReading(toMeter: meter, withKWH: kWh, date: date)
+                    _ = try repository.addReading(MRKReadingInput(kWh: kWh, date: date, meterID: meter.id))
                     readingCount += 1
                 }
             }

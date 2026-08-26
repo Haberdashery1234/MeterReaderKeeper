@@ -4,6 +4,7 @@
 //
 //  Created by Christian Grise on 5/4/21.
 //  Refactored to programmatic UI on 8/25/26.
+//  Updated to use MeterRepositoryProtocol on 8/26/26.
 //
 
 import UIKit
@@ -13,9 +14,11 @@ class AddEditFloorViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var building: CoreDataBuilding?
-    var floor: CoreDataFloor?
+    var repository: MeterRepositoryProtocol!
+    var building: MRKBuilding?
+    var floor: MRKFloor?
     
+    private var buildings = [MRKBuilding]()
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditFloorVC")
     
     // MARK: - UI Components
@@ -205,17 +208,18 @@ class AddEditFloorViewController: UIViewController {
     }
     
     private func populateData() {
-        if MeterManager.shared.buildings.count == 1 {
-            building = MeterManager.shared.buildings[0]
-            buildingTextField.text = building?.name
+        buildings = (try? repository.getBuildings()) ?? []
+        
+        if building == nil, buildings.count == 1 {
+            building = buildings[0]
         }
+        buildingTextField.text = building?.name
         
         if let floor = floor {
-            building = floor.building
-            buildingTextField.text = building?.name
+            // building was supplied by the coordinator for the edit flow.
             floorTextField.text = "\(floor.number)"
             
-            if floor.map != Data(), let mapImage = UIImage(data: floor.map) {
+            if floor.mapImageData != Data(), let mapImage = UIImage(data: floor.mapImageData) {
                 currentMapImageView.image = mapImage
             } else {
                 currentMapImageView.image = UIImage(systemName: "map")
@@ -256,20 +260,20 @@ class AddEditFloorViewController: UIViewController {
             mapData = image.jpegData(compressionQuality: 0.8) ?? Data()
         }
         
-        guard let floor = floor else {
-            showAlert(title: "Error", message: "Floor data is missing")
-            logger.error("Floor is nil when trying to save")
-            return
+        let input = MRKFloorInput(number: floorNumber, mapImageData: mapData, buildingID: selectedBuilding.id)
+        
+        do {
+            if let existingFloor = floor {
+                _ = try repository.updateFloor(id: existingFloor.id, input: input)
+            } else {
+                _ = try repository.addFloor(input)
+            }
+            logger.info("Saved floor \(floorNumber) for building \(selectedBuilding.name)")
+            navigationController?.popViewController(animated: true)
+        } catch {
+            logger.error("Failed to save floor: \(error.localizedDescription)")
+            showAlert(title: "Save Failed", message: error.localizedDescription)
         }
-        
-        floor.building = selectedBuilding
-        floor.number = floorNumber
-        floor.map = mapData
-        
-        MeterManager.shared.saveFloor(floor)
-        logger.info("Saved floor \(floorNumber) for building \(selectedBuilding.name)")
-        
-        navigationController?.popViewController(animated: true)
     }
     
     @objc private func dismissKeyboard() {
@@ -277,7 +281,7 @@ class AddEditFloorViewController: UIViewController {
     }
     
     // MARK: - Validation
-    private func validateInput() -> (building: CoreDataBuilding, floorNumber: Int16)? {
+    private func validateInput() -> (building: MRKBuilding, floorNumber: Int16)? {
         guard let building = building else {
             showAlert(title: "Missing Building", message: "Please select a building")
             return nil
@@ -311,15 +315,15 @@ extension AddEditFloorViewController: UIPickerViewDelegate, UIPickerViewDataSour
     }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return MeterManager.shared.buildings.count
+        return buildings.count
     }
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return MeterManager.shared.buildings[row].name
+        return buildings[row].name
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        building = MeterManager.shared.buildings[row]
+        building = buildings[row]
         buildingTextField.text = building?.name
     }
 }

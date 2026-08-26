@@ -3,6 +3,7 @@
 //  MeterReaderKeeper
 //
 //  Created by Christian Grise on 5/4/21.
+//  Updated to use domain models on 8/26/26.
 //
 
 import UIKit
@@ -42,7 +43,7 @@ class FloorTableViewCell: UITableViewCell {
         return stack
     }()
 
-    var floor = CoreDataFloor()
+    var floor = MRKFloor(id: UUID(), number: 1, mapImageData: Data(), buildingID: UUID(), meters: [])
     
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -71,11 +72,10 @@ class FloorTableViewCell: UITableViewCell {
         ])
     }
     
-    func setup(withFloor floor: CoreDataFloor) {
+    func setup(floor: MRKFloor, buildingName: String) {
         self.floor = floor
-        let nameString = "\(floor.building.name) - Floor \(floor.number)"
-        nameLabel.text = nameString
-        metersLabel.text = "\(floor.floorMeters.count) Meters"
-        floorMapImageView.image = UIImage(data: floor.map)
+        nameLabel.text = "\(buildingName) - Floor \(floor.number)"
+        metersLabel.text = "\(floor.meters.count) Meters"
+        floorMapImageView.image = UIImage(data: floor.mapImageData)
     }
 }

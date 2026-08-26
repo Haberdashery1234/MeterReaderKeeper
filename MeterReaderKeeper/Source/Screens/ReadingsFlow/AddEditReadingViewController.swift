@@ -4,6 +4,7 @@
 //
 //  Created by Christian Grise on 5/5/21.
 //  Refactored to programmatic UI on 8/25/26.
+//  Updated to use MeterRepositoryProtocol on 8/26/26.
 //
 
 import UIKit
@@ -13,10 +14,13 @@ class AddEditReadingViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
+    var repository: MeterRepositoryProtocol!
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditReadingVC")
     
-    var meter: CoreDataMeter?
-    var reading: CoreDataReading?
+    var meter: MRKMeter?
+    var floor: MRKFloor?
+    var building: MRKBuilding?
+    var reading: MRKReading?
     
     // MARK: - UI Components
     private lazy var scrollView: UIScrollView = {
@@ -178,18 +182,15 @@ class AddEditReadingViewController: UIViewController {
     }
     
     private func loadData() {
-        guard let meter = meter else {
-            logger.error("No meter provided to AddEditReadingViewController")
+        guard let meter = meter, let floor = floor, let building = building else {
+            logger.error("Missing meter/floor/building context in AddEditReadingViewController")
             return
         }
-        
-        let floor = meter.floor
-        let building = floor.building
         
         buildingNameLabel.text = building.name
         floorLabel.text = "Floor \(floor.number)"
         descriptionLabel.text = meter.meterDescription
-        meterImageView.image = UIImage(data: meter.image)
+        meterImageView.image = UIImage(data: meter.imageData)
         
         if let reading = reading {
             readingTextField.text = String(format: "%.2f", reading.kWh)
@@ -228,16 +229,21 @@ class AddEditReadingViewController: UIViewController {
             return
         }
         
-        if let reading = reading {
-            MeterManager.shared.updateReading(reading, with: meterReading)
-            logger.info("Updated reading: \(meterReading) kWh")
-        } else {
-            let date = Calendar.current.startOfDay(for: Date())
-            MeterManager.shared.addReading(toMeter: meter, withKWH: meterReading, date: date)
-            logger.info("Added new reading: \(meterReading) kWh for meter: \(meter.name)")
+        do {
+            if let reading = reading {
+                _ = try repository.updateReading(id: reading.id, kWh: meterReading)
+                logger.info("Updated reading: \(meterReading) kWh")
+            } else {
+                let date = Calendar.current.startOfDay(for: Date())
+                let input = MRKReadingInput(kWh: meterReading, date: date, meterID: meter.id)
+                _ = try repository.addReading(input)
+                logger.info("Added new reading: \(meterReading) kWh for meter: \(meter.name)")
+            }
+            navigationController?.popViewController(animated: true)
+        } catch {
+            logger.error("Failed to save reading: \(error.localizedDescription)")
+            showAlert(title: "Save Failed", message: error.localizedDescription)
         }
-        
-        navigationController?.popViewController(animated: true)
     }
     
     private func showAlert(title: String, message: String) {
@@ -246,4 +252,3 @@ class AddEditReadingViewController: UIViewController {
         present(alert, animated: true)
     }
 }
-

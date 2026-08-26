@@ -3,6 +3,7 @@
 //  MeterReaderKeeper
 //
 //  Created by Christian Grise on 5/4/21.
+//  Updated to use domain models on 8/26/26.
 //
 
 import UIKit
@@ -43,8 +44,8 @@ class ReadingMeterTableViewCell: UITableViewCell {
         return stack
     }()
 
-    var meter = CoreDataMeter()
-    var reading: CoreDataReading?
+    var meter = MRKMeter(id: UUID(), name: "", meterDescription: "", qrString: "", imageData: Data(), latestReadingDate: Date(), floorID: UUID(), readings: [])
+    var reading: MRKReading?
     
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -75,23 +76,20 @@ class ReadingMeterTableViewCell: UITableViewCell {
         ])
     }
     
-    func setup(withMeter meter: CoreDataMeter) {
+    func setup(meter: MRKMeter, floorNumber: Int16) {
         readingDoneCheckImageView.isHidden = true
         self.meter = meter
         nameLabel.text = meter.name
-        
-        let floorNumber = meter.floor.number
         locationLabel.text = "Floor \(floorNumber)"
         
-        let meterReadings = meter.meterReadings
         let date = Calendar.current.startOfDay(for: Date())
-        let todaysReadings = meterReadings.filter { (reading) -> Bool in
-            return reading.date == date
-        }
+        let todaysReadings = meter.readings.filter { $0.date == date }
         
-        if todaysReadings.count > 0 {
-            reading = todaysReadings[0]
+        if let todaysReading = todaysReadings.first {
+            reading = todaysReading
             readingMade()
+        } else {
+            reading = nil
         }
     }
     

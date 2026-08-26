@@ -4,17 +4,18 @@
 //
 //  Created by Christian Grise on 5/3/21.
 //  Refactored to programmatic UI on 8/25/26.
+//  Updated to use MeterRepositoryProtocol on 8/26/26.
 //
 
 import UIKit
-import CoreData
 import os.log
 
 class AddEditBuildingViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var building: CoreDataBuilding?
+    var repository: MeterRepositoryProtocol!
+    var building: MRKBuilding?
     
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditBuildingVC")
     
@@ -220,7 +221,7 @@ class AddEditBuildingViewController: UIViewController {
         }
         
         // Save building
-        if let existingBuilding = building {
+        if building != nil {
             // Update existing building
             logger.warning("Editing buildings not yet implemented - creating new building instead")
             showAlert(
@@ -229,17 +230,18 @@ class AddEditBuildingViewController: UIViewController {
             )
         } else {
             // Create new building
-            guard let newBuilding = MeterManager.shared.addBuilding(withName: buildingName, floors: floorCount) else {
-                logger.error("Failed to create building: \(buildingName)")
+            let input = MRKBuildingInput(name: buildingName, numberOfFloors: floorCount, autoCreateFloors: true)
+            do {
+                let newBuilding = try repository.addBuilding(input)
+                logger.info("Successfully created building: \(newBuilding.name)")
+                navigationController?.popViewController(animated: true)
+            } catch {
+                logger.error("Failed to create building: \(buildingName) - \(error.localizedDescription)")
                 showAlert(
                     title: "Save Failed",
-                    message: "Failed to create building. Please try again."
+                    message: error.localizedDescription
                 )
-                return
             }
-            
-            logger.info("Successfully created building: \(newBuilding.name)")
-            navigationController?.popViewController(animated: true)
         }
     }
     
@@ -258,9 +260,14 @@ class AddEditBuildingViewController: UIViewController {
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
-            MeterManager.shared.deleteBuilding(building)
-            self?.logger.info("Deleted building: \(building.name)")
-            self?.navigationController?.popViewController(animated: true)
+            guard let self = self else { return }
+            do {
+                try self.repository.deleteBuilding(id: building.id)
+                self.logger.info("Deleted building: \(building.name)")
+                self.navigationController?.popViewController(animated: true)
+            } catch {
+                self.showAlert(title: "Delete Failed", message: error.localizedDescription)
+            }
         })
         
         present(alert, animated: true)
@@ -315,7 +322,8 @@ class AddEditBuildingViewController: UIViewController {
     }
     
     private func isDuplicateName(_ name: String) -> Bool {
-        return MeterManager.shared.buildings.contains { building in
+        let buildings = (try? repository.getBuildings()) ?? []
+        return buildings.contains { building in
             building.name.lowercased() == name.lowercased()
         }
     }

@@ -1,5 +1,5 @@
 //
-//  Building.swift
+//  MRKBuilding.swift
 //  MeterReaderKeeper
 //
 //  Created by Repository Refactor on 8/26/26.
@@ -10,10 +10,10 @@ import Foundation
 // MARK: - Domain Models (No Core Data Dependencies)
 
 /// Represents a building with multiple floors
-struct Building: Identifiable, Hashable {
+struct MRKBuilding: Identifiable, Hashable {
     let id: UUID
     let name: String
-    let floors: [Floor]
+    let floors: [MRKFloor]
     
     /// Total number of meters in this building
     var totalMeterCount: Int {
@@ -21,7 +21,7 @@ struct Building: Identifiable, Hashable {
     }
     
     /// Retrieves floors sorted by floor number
-    var sortedFloors: [Floor] {
+    var sortedFloors: [MRKFloor] {
         floors.sorted { $0.number < $1.number }
     }
     
@@ -34,7 +34,7 @@ struct Building: Identifiable, Hashable {
 }
 
 /// Data required to create or update a building
-struct BuildingInput {
+struct MRKBuildingInput {
     let name: String
     let numberOfFloors: Int16
     let autoCreateFloors: Bool

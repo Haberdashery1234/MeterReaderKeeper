@@ -3,24 +3,33 @@
 //  MeterReaderKeeper
 //
 //  Created by Christian Grise on 5/2/21.
+//  Updated to use MeterRepositoryProtocol on 8/26/26.
 //
 
 import UIKit
+import os.log
 
 class PreviousReadingsViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
+    var repository: MeterRepositoryProtocol!
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "PreviousReadingsVC")
     
-    private var buildings = [CoreDataBuilding]()
-    private var building: CoreDataBuilding?
-    private var floors = [CoreDataFloor]()
-    private var floor: CoreDataFloor?
-    private var meters = [CoreDataMeter]()
-    private var meter: CoreDataMeter?
+    private var buildings = [MRKBuilding]()
+    private var building: MRKBuilding?
+    private var floors = [MRKFloor]()
+    private var floor: MRKFloor?
+    private var meters = [MRKMeter]()
+    private var meter: MRKMeter?
     private var dates = [Date]()
     private var date: Date?
-    private var readings = [CoreDataReading]()
+    private var readings = [MRKReading]()
+    
+    /// meterID -> (display name, "Building - Floor N"), built once from `buildings`
+    /// so cells can show context without each `Reading` needing to carry its
+    /// own meter/floor/building references.
+    private var meterDisplayInfo: [UUID: (name: String, location: String)] = [:]
     
     // MARK: - UI Components
     private lazy var segmentedControl: UISegmentedControl = {
@@ -73,7 +82,7 @@ class PreviousReadingsViewController: UIViewController {
         let tableView = UITableView(frame: .zero, style: .plain)
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "ReadingCell")
+        tableView.register(PreviousReadingTableViewCell.self, forCellReuseIdentifier: "ReadingCell")
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
@@ -171,11 +180,33 @@ class PreviousReadingsViewController: UIViewController {
     
     private func loadData() {
         // Load all data for filtering
-        MeterManager.shared.loadAllReadings()
-        buildings = MeterManager.shared.buildings
-        dates = Array(MeterManager.shared.allReadingsDates.keys).sorted(by: >)
+        buildings = (try? repository.getBuildings()) ?? []
         
-        print("Loaded \(self.buildings.count) buildings and \(self.dates.count) dates")
+        var displayInfo: [UUID: (name: String, location: String)] = [:]
+        var allReadingDates = Set<Date>()
+        for building in buildings {
+            for floor in building.floors {
+                for meter in floor.meters {
+                    let location = "\(building.name) - Floor \(floor.number)"
+                    displayInfo[meter.id] = (name: meter.name, location: location)
+                    for reading in meter.readings {
+                        allReadingDates.insert(reading.date)
+                    }
+                }
+            }
+        }
+        meterDisplayInfo = displayInfo
+        dates = allReadingDates.sorted(by: >)
+        
+        logger.info("Loaded \(self.buildings.count) buildings and \(self.dates.count) dates")
+    }
+    
+    private func allReadings() -> [MRKReading] {
+        buildings.flatMap { building in
+            building.floors.flatMap { floor in
+                floor.meters.flatMap { $0.readings }
+            }
+        }
     }
     
     private func updateVisibleFilters() {
@@ -188,39 +219,41 @@ class PreviousReadingsViewController: UIViewController {
     }
     
     private func applyFilters() {
-        readings.removeAll()
+        let allReadings = self.allReadings()
         
         switch segmentedControl.selectedSegmentIndex {
         case 0: // Date
             if let date = date {
-                readings = MeterManager.shared.getReadings(forDate: date)
+                readings = allReadings.filter { $0.date == date }
             } else {
-                readings = MeterManager.shared.allReadings
+                readings = allReadings
             }
         case 1: // Building
             if let building = building {
-                readings = MeterManager.shared.getReadings(forBuilding: building)
+                readings = building.floors.flatMap { $0.meters.flatMap { $0.readings } }
             } else {
-                readings = MeterManager.shared.allReadings
+                readings = allReadings
             }
         case 2: // Floor
             if let floor = floor {
-                readings = MeterManager.shared.getReadings(forFloor: floor)
+                readings = floor.meters.flatMap { $0.readings }
             } else {
-                readings = MeterManager.shared.allReadings
+                readings = allReadings
             }
         case 3: // Meter
             if let meter = meter {
-                readings = MeterManager.shared.getReadings(forMeter: meter)
+                readings = meter.readings
             } else {
-                readings = MeterManager.shared.allReadings
+                readings = allReadings
             }
         default:
             break
         }
         
+        readings.sort { $0.date > $1.date }
+        
         tableView.reloadData()
-        print("Applied filters, showing \(self.readings.count) readings")
+        logger.info("Applied filters, showing \(self.readings.count) readings")
     }
     
     // MARK: - Actions
@@ -237,11 +270,10 @@ extension PreviousReadingsViewController: UITableViewDataSource, UITableViewDele
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ReadingCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ReadingCell", for: indexPath) as! PreviousReadingTableViewCell
         let reading = readings[indexPath.row]
-        
-        cell.textLabel?.text = "\(reading.meter.name): \(reading.formattedValue) on \(reading.formattedDate)"
-        
+        let info = meterDisplayInfo[reading.meterID]
+        cell.setup(reading: reading, meterName: info?.name ?? "Unknown Meter", locationString: info?.location ?? "")
         return cell
     }
 }
@@ -291,13 +323,17 @@ extension PreviousReadingsViewController: UIPickerViewDataSource, UIPickerViewDe
         } else if pickerView == buildingPickerView {
             building = row == 0 ? nil : buildings[row - 1]
             buildingTextField.text = row == 0 ? "All" : building?.name
-            floors = building?.buildingFloors ?? []
+            floors = building?.sortedFloors ?? []
             floor = nil
+            floorTextField.text = "All"
+            floorPickerView.reloadAllComponents()
         } else if pickerView == floorPickerView {
             floor = row == 0 ? nil : floors[row - 1]
             floorTextField.text = row == 0 ? "All" : "Floor \(floor?.number ?? 0)"
-            meters = floor?.floorMeters ?? []
+            meters = floor?.sortedMeters ?? []
             meter = nil
+            meterTextField.text = "All"
+            meterPickerView.reloadAllComponents()
         } else if pickerView == meterPickerView {
             meter = row == 0 ? nil : meters[row - 1]
             meterTextField.text = row == 0 ? "All" : meter?.name

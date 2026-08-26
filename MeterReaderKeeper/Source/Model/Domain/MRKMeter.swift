@@ -1,5 +1,5 @@
 //
-//  Meter.swift
+//  MRKMeter.swift
 //  MeterReaderKeeper
 //
 //  Created by Repository Refactor on 8/26/26.
@@ -8,7 +8,7 @@
 import Foundation
 
 /// Represents a meter on a floor
-struct Meter: Identifiable, Hashable {
+struct MRKMeter: Identifiable, Hashable {
     let id: UUID
     let name: String
     let meterDescription: String
@@ -16,15 +16,15 @@ struct Meter: Identifiable, Hashable {
     let imageData: Data
     let latestReadingDate: Date
     let floorID: UUID
-    let readings: [Reading]
+    let readings: [MRKReading]
     
     /// Gets the most recent reading, if available
-    var mostRecentReading: Reading? {
+    var mostRecentReading: MRKReading? {
         sortedReadings.first
     }
     
     /// Retrieves readings sorted by date (most recent first)
-    var sortedReadings: [Reading] {
+    var sortedReadings: [MRKReading] {
         readings.sorted { $0.date > $1.date }
     }
     
@@ -37,7 +37,7 @@ struct Meter: Identifiable, Hashable {
 }
 
 /// Data required to create or update a meter
-struct MeterInput {
+struct MRKMeterInput {
     let name: String
     let description: String
     let imageData: Data

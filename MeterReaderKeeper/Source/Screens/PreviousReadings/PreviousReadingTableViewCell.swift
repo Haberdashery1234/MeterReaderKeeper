@@ -3,6 +3,7 @@
 //  MeterReaderKeeper
 //
 //  Created by Christian Grise on 5/5/21.
+//  Updated to use domain models on 8/26/26.
 //
 
 import UIKit
@@ -59,7 +60,7 @@ class PreviousReadingTableViewCell: UITableViewCell {
         return stack
     }()
 
-    var reading = CoreDataReading()
+    var reading = MRKReading(id: UUID(), date: Date(), kWh: 0, meterID: UUID())
     
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -91,20 +92,11 @@ class PreviousReadingTableViewCell: UITableViewCell {
         rightStackView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
     }
     
-    func setup(withReading reading: CoreDataReading) {
+    func setup(reading: MRKReading, meterName: String, locationString: String) {
         self.reading = reading
-        readingValueLabel.text = String(format: "%.2f kWh", reading.kWh)
-        
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        formatter.timeStyle = .none
-        readingDateLabel.text = formatter.string(from: reading.date)
-        
-        let meter = reading.meter
-        readingMeterLabel.text = meter.name
-        let floor = meter.floor
-        let building = floor.building
-        let locationString = "\(building.name) - Floor \(floor.number)"
+        readingValueLabel.text = reading.formattedValue
+        readingDateLabel.text = reading.formattedDate
+        readingMeterLabel.text = meterName
         readingLocationLabel.text = locationString
     }
 }

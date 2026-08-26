@@ -4,6 +4,7 @@
 //
 //  Created by Christian Grise on 4/30/21.
 //  Refactored to programmatic UI on 8/25/26.
+//  Updated to use MeterRepositoryProtocol on 8/26/26.
 //
 
 import UIKit
@@ -13,7 +14,12 @@ class ManagementTableViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
+    var repository: MeterRepositoryProtocol!
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "ManagementVC")
+    
+    private var buildings: [MRKBuilding] = []
+    private var floorItems: [(floor: MRKFloor, building: MRKBuilding)] = []
+    private var meterItems: [(meter: MRKMeter, floor: MRKFloor, building: MRKBuilding)] = []
     
     // MARK: - UI Components
     private lazy var tableView: UITableView = {
@@ -48,6 +54,7 @@ class ManagementTableViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        loadData()
         tableView.reloadData()
     }
     
@@ -83,10 +90,21 @@ class ManagementTableViewController: UIViewController {
         navigationItem.rightBarButtonItem = addButton
     }
     
+    // MARK: - Data
+    private func loadData() {
+        buildings = (try? repository.getBuildings()) ?? []
+        floorItems = buildings.flatMap { building in
+            building.sortedFloors.map { (floor: $0, building: building) }
+        }
+        meterItems = buildings.flatMap { building in
+            building.sortedFloors.flatMap { floor in
+                floor.sortedMeters.map { (meter: $0, floor: floor, building: building) }
+            }
+        }
+    }
+    
     // MARK: - Actions
     @objc private func addTapped() {
-        let buildings = MeterManager.shared.buildings
-        
         if buildings.isEmpty {
             // No buildings exist, must create one first
             coordinator?.showBuildingDetails()
@@ -105,7 +123,7 @@ class ManagementTableViewController: UIViewController {
         })
         
         // Only allow adding meters if floors exist
-        if MeterManager.shared.floors.count > 0 {
+        if !floorItems.isEmpty {
             alert.addAction(UIAlertAction(title: "Meter", style: .default) { [weak self] _ in
                 self?.coordinator?.showMeterDetails()
             })
@@ -133,16 +151,16 @@ extension ManagementTableViewController: UITableViewDelegate {
         
         switch segmentedControl.selectedSegmentIndex {
         case 0: // Buildings
-            let building = MeterManager.shared.buildings[indexPath.row]
+            let building = buildings[indexPath.row]
             coordinator?.showBuildingDetails(building: building)
             
         case 1: // Floors
-            let floor = MeterManager.shared.floors[indexPath.row]
-            coordinator?.showFloorDetails(floor: floor)
+            let item = floorItems[indexPath.row]
+            coordinator?.showFloorDetails(floor: item.floor, building: item.building)
             
         case 2: // Meters
-            let meter = MeterManager.shared.meters[indexPath.row]
-            coordinator?.showMeterDetails(meter: meter)
+            let item = meterItems[indexPath.row]
+            coordinator?.showMeterDetails(meter: item.meter, floor: item.floor, building: item.building)
             
         default:
             break
@@ -167,9 +185,9 @@ extension ManagementTableViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch segmentedControl.selectedSegmentIndex {
-        case 0: return MeterManager.shared.buildings.count
-        case 1: return MeterManager.shared.floors.count
-        case 2: return MeterManager.shared.meters.count
+        case 0: return buildings.count
+        case 1: return floorItems.count
+        case 2: return meterItems.count
         default: return 0
         }
     }
@@ -178,20 +196,19 @@ extension ManagementTableViewController: UITableViewDataSource {
         switch segmentedControl.selectedSegmentIndex {
         case 0: // Buildings
             let cell = tableView.dequeueReusableCell(withIdentifier: "BuildingCell", for: indexPath) as! BuildingTableViewCell
-            let building = MeterManager.shared.buildings[indexPath.row]
-            cell.setup(withBuilding: building)
+            cell.setup(withBuilding: buildings[indexPath.row])
             return cell
             
         case 1: // Floors
             let cell = tableView.dequeueReusableCell(withIdentifier: "FloorCell", for: indexPath) as! FloorTableViewCell
-            let floor = MeterManager.shared.floors[indexPath.row]
-            cell.setup(withFloor: floor)
+            let item = floorItems[indexPath.row]
+            cell.setup(floor: item.floor, buildingName: item.building.name)
             return cell
             
         case 2: // Meters
             let cell = tableView.dequeueReusableCell(withIdentifier: "MeterCell", for: indexPath) as! MeterTableViewCell
-            let meter = MeterManager.shared.meters[indexPath.row]
-            cell.setup(withMeter: meter)
+            let item = meterItems[indexPath.row]
+            cell.setup(meter: item.meter, locationString: "\(item.building.name) - Floor \(item.floor.number)")
             return cell
             
         default:

@@ -3,6 +3,7 @@
 //  MeterReaderKeeper
 //
 //  Created by Christian Grise on 5/4/21.
+//  Updated to use domain models on 8/26/26.
 //
 
 import UIKit
@@ -41,7 +42,7 @@ class BuildingTableViewCell: UITableViewCell {
         return stack
     }()
     
-    var building = CoreDataBuilding()
+    var building = MRKBuilding(id: UUID(), name: "", floors: [])
     
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -65,12 +66,10 @@ class BuildingTableViewCell: UITableViewCell {
         ])
     }
     
-    func setup(withBuilding building: CoreDataBuilding) {
+    func setup(withBuilding building: MRKBuilding) {
         self.building = building
         nameLabel.text = building.name
         floorsLabel.text = "\(building.floors.count) Floors"
-        
-        // TODO: - Implement meter count by building
-        metersLabel.text = "XX Meters"
+        metersLabel.text = "\(building.totalMeterCount) Meters"
     }
 }

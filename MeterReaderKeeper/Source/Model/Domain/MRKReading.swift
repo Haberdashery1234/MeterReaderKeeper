@@ -1,5 +1,5 @@
 //
-//  Reading.swift
+//  MRKReading.swift
 //  MeterReaderKeeper
 //
 //  Created by Repository Refactor on 8/26/26.
@@ -8,7 +8,7 @@
 import Foundation
 
 /// Represents a meter reading
-struct Reading: Identifiable, Hashable {
+struct MRKReading: Identifiable, Hashable {
     let id: UUID
     let date: Date
     let kWh: Double
@@ -40,7 +40,7 @@ struct Reading: Identifiable, Hashable {
 }
 
 /// Data required to create a reading
-struct ReadingInput {
+struct MRKReadingInput {
     let kWh: Double
     let date: Date
     let meterID: UUID

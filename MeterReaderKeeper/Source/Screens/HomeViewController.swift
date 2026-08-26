@@ -4,6 +4,7 @@
 //
 //  Created by Christian Grise on 5/2/21.
 //  Refactored to programmatic UI on 8/25/26.
+//  Updated to use MeterRepositoryProtocol on 8/26/26.
 //
 
 import UIKit
@@ -12,6 +13,9 @@ class HomeViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
+    var repository: MeterRepositoryProtocol!
+    
+    private lazy var dataSeeder = DataSeeder(repository: repository)
     
     // MARK: - UI Components
     private let scrollView: UIScrollView = {
@@ -201,7 +205,7 @@ class HomeViewController: UIViewController {
     
     // MARK: - Actions
     @objc private func takeReadingsTapped() {
-        let buildings = MeterManager.shared.buildings
+        let buildings = (try? repository.getBuildings()) ?? []
         
         if buildings.isEmpty {
             showAlert(
@@ -214,7 +218,7 @@ class HomeViewController: UIViewController {
         if buildings.count == 1 {
             coordinator?.showReadings(for: buildings[0])
         } else {
-            showBuildingPicker(for: .takeReadings)
+            showBuildingPicker(for: .takeReadings, buildings: buildings)
         }
     }
     
@@ -239,50 +243,54 @@ class HomeViewController: UIViewController {
         present(loadingAlert, animated: true)
         
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            MeterManager.shared.saveDataToPlist()
+            guard let self = self else { return }
             
-            DispatchQueue.main.async {
-                loadingAlert.dismiss(animated: true) {
-                    self?.sendPlist()
+            do {
+                let plistData = try self.repository.exportAllDataToPlist()
+                DispatchQueue.main.async {
+                    loadingAlert.dismiss(animated: true) {
+                        self.sendPlist(plistData)
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    loadingAlert.dismiss(animated: true) {
+                        self.showAlert(title: "Export Failed", message: error.localizedDescription)
+                    }
                 }
             }
         }
     }
     
     @objc private func seedDataTapped() {
-        let buildingCount = MeterManager.shared.buildings.count
+        let buildingCount = (try? repository.getBuildings())?.count ?? 0
         
-        if buildingCount == 0 {
-            DataSeeder.shared.seedData()
-            showAlert(title: "Success", message: "Test data has been seeded successfully.")
-        } else {
-            DataSeeder.shared.seedMoreReadings()
-            showAlert(title: "Success", message: "Additional readings have been added successfully.")
+        do {
+            if buildingCount == 0 {
+                try dataSeeder.seedData()
+                showAlert(title: "Success", message: "Test data has been seeded successfully.")
+            } else {
+                try dataSeeder.seedMoreReadings()
+                showAlert(title: "Success", message: "Additional readings have been added successfully.")
+            }
+        } catch {
+            showAlert(title: "Seed Failed", message: error.localizedDescription)
         }
     }
     
     // MARK: - Private Methods
-    private func sendPlist() {
-        let exportURL = MeterManager.shared.exportURL
-        
-        do {
-            let plistData = try Data(contentsOf: exportURL)
-            
-            EmailService.shared.sendExport(from: self, plistData: plistData) { [weak self] result, error in
-                if result == .failed {
-                    self?.showAlert(title: "Send Failed", message: "Failed to send email. Please try again.")
-                }
+    private func sendPlist(_ plistData: Data) {
+        EmailService.shared.sendExport(from: self, plistData: plistData) { [weak self] result, error in
+            if result == .failed {
+                self?.showAlert(title: "Send Failed", message: "Failed to send email. Please try again.")
             }
-            
-        } catch {
-            showAlert(title: "Export Failed", message: "Failed to export data. Please try again.")
         }
     }
     
-    private func showBuildingPicker(for action: BuildingAction) {
+    private func showBuildingPicker(for action: BuildingAction, buildings: [MRKBuilding]) {
         let alert = UIAlertController(title: "Select Building", message: nil, preferredStyle: .actionSheet)
         
-        for building in MeterManager.shared.buildings {
+        for building in buildings {
             alert.addAction(UIAlertAction(title: building.name, style: .default) { [weak self] _ in
                 switch action {
                 case .takeReadings:

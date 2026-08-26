@@ -1,24 +1,26 @@
 //
-//  AddMeterViewController.swift
+//  AddEditMeterViewController.swift
 //  MeterReaderKeeper
 //
 //  Created by Christian Grise on 5/2/21.
 //  Refactored to programmatic UI on 8/25/26.
+//  Updated to use MeterRepositoryProtocol on 8/26/26.
 //
 
 import UIKit
-import CoreData
 import os.log
 
 class AddEditMeterViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
-    var meter: CoreDataMeter?
-    var building: CoreDataBuilding?
-    var floor: CoreDataFloor?
+    var repository: MeterRepositoryProtocol!
+    var meter: MRKMeter?
+    var building: MRKBuilding?
+    var floor: MRKFloor?
     
-    private var floors = [CoreDataFloor]()
+    private var buildings = [MRKBuilding]()
+    private var floors = [MRKFloor]()
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditMeterVC")
     
     // MARK: - UI Components
@@ -305,31 +307,31 @@ class AddEditMeterViewController: UIViewController {
     }
     
     private func populateData() {
+        buildings = (try? repository.getBuildings()) ?? []
+        
         // Auto-select if only one building
-        if MeterManager.shared.buildings.count == 1 {
-            building = MeterManager.shared.buildings[0]
-            buildingTextField.text = building?.name
-            floors = building?.buildingFloors ?? []
+        if building == nil, buildings.count == 1 {
+            building = buildings[0]
+        }
+        buildingTextField.text = building?.name
+        floors = building?.sortedFloors ?? []
+        
+        if let floor = floor {
+            floorTextField.text = "Floor \(floor.number)"
         }
         
         // If editing existing meter
         if let meter = meter {
-            floor = meter.floor
-            building = floor?.building
-            
-            buildingTextField.text = building?.name
-            floorTextField.text = floor.map { "Floor \($0.number)" }
             nameTextField.text = meter.name
             descriptionTextField.text = meter.meterDescription
             
-            if meter.image != Data(), let image = UIImage(data: meter.image) {
+            if meter.imageData != Data(), let image = UIImage(data: meter.imageData) {
                 meterImageImageView.image = image
             } else {
                 meterImageImageView.image = UIImage(systemName: "gauge")
                 meterImageImageView.tintColor = .systemGray3
             }
             
-            floors = building?.buildingFloors ?? []
             title = "Edit Meter"
         } else {
             meterImageImageView.image = UIImage(systemName: "gauge")
@@ -344,35 +346,28 @@ class AddEditMeterViewController: UIViewController {
             return
         }
         
-        let (selectedBuilding, selectedFloor, meterName, meterDescription) = validationResult
+        let (selectedFloor, meterName, meterDescription) = validationResult
         
         var imageData = Data()
         if let image = meterImageImageView.image, meterImageImageView.tintColor == nil {
             imageData = image.jpegData(compressionQuality: 0.8) ?? Data()
         }
         
-        if let existingMeter = meter {
-            _ = MeterManager.shared.updateMeter(
-                existingMeter,
-                withName: meterName,
-                description: meterDescription,
-                floor: selectedFloor,
-                image: imageData,
-                buildingName: selectedBuilding.name
-            )
-            logger.info("Updated meter: \(meterName)")
-        } else {
-            _ = MeterManager.shared.addMeter(
-                withName: meterName,
-                description: meterDescription,
-                floor: selectedFloor,
-                image: imageData,
-                buildingName: selectedBuilding.name
-            )
-            logger.info("Created meter: \(meterName)")
-        }
+        let input = MRKMeterInput(name: meterName, description: meterDescription, imageData: imageData, floorID: selectedFloor.id)
         
-        navigationController?.popViewController(animated: true)
+        do {
+            if let existingMeter = meter {
+                _ = try repository.updateMeter(id: existingMeter.id, input: input)
+                logger.info("Updated meter: \(meterName)")
+            } else {
+                _ = try repository.addMeter(input)
+                logger.info("Created meter: \(meterName)")
+            }
+            navigationController?.popViewController(animated: true)
+        } catch {
+            logger.error("Failed to save meter: \(error.localizedDescription)")
+            showAlert(title: "Save Failed", message: error.localizedDescription)
+        }
     }
     
     @objc private func deleteTapped() {
@@ -389,9 +384,14 @@ class AddEditMeterViewController: UIViewController {
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
-            MeterManager.shared.deleteMeter(meter)
-            self?.logger.info("Deleted meter: \(meter.name)")
-            self?.navigationController?.popViewController(animated: true)
+            guard let self = self else { return }
+            do {
+                try self.repository.deleteMeter(id: meter.id)
+                self.logger.info("Deleted meter: \(meter.name)")
+                self.navigationController?.popViewController(animated: true)
+            } catch {
+                self.showAlert(title: "Delete Failed", message: error.localizedDescription)
+            }
         })
         
         present(alert, animated: true)
@@ -415,8 +415,8 @@ class AddEditMeterViewController: UIViewController {
     }
     
     // MARK: - Validation
-    private func validateInput() -> (building: CoreDataBuilding, floor: CoreDataFloor, name: String, description: String)? {
-        guard let building = building else {
+    private func validateInput() -> (floor: MRKFloor, name: String, description: String)? {
+        guard building != nil else {
             showAlert(title: "Missing Building", message: "Please select a building")
             return nil
         }
@@ -434,7 +434,7 @@ class AddEditMeterViewController: UIViewController {
         
         let description = descriptionTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         
-        return (building, floor, name, description)
+        return (floor, name, description)
     }
     
     private func showAlert(title: String, message: String) {
@@ -452,7 +452,7 @@ extension AddEditMeterViewController: UIPickerViewDelegate, UIPickerViewDataSour
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         if pickerView == buildingPickerView {
-            return MeterManager.shared.buildings.count
+            return buildings.count
         } else if pickerView == floorPickerView {
             return floors.count
         }
@@ -461,7 +461,7 @@ extension AddEditMeterViewController: UIPickerViewDelegate, UIPickerViewDataSour
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
         if pickerView == buildingPickerView {
-            return MeterManager.shared.buildings[row].name
+            return buildings[row].name
         } else if pickerView == floorPickerView {
             return "Floor \(floors[row].number)"
         }
@@ -470,11 +470,11 @@ extension AddEditMeterViewController: UIPickerViewDelegate, UIPickerViewDataSour
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         if pickerView == buildingPickerView {
-            building = MeterManager.shared.buildings[row]
+            building = buildings[row]
             buildingTextField.text = building?.name
             
             // Update floors for selected building
-            floors = building?.buildingFloors ?? []
+            floors = building?.sortedFloors ?? []
             floor = nil
             floorTextField.text = ""
             floorPickerView.reloadAllComponents()
