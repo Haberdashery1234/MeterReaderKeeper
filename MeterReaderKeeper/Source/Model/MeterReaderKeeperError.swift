@@ -10,7 +10,7 @@ import Foundation
 /// Custom errors for the MeterReaderKeeper app
 enum MeterKeeperError: LocalizedError {
     case validationError(ValidationError)
-    case coreDataError(Error)
+    case persistenceError(Error)
     case fileSystemError(Error)
     case notFound(String)
     case unknown(Error)
@@ -38,7 +38,7 @@ enum MeterKeeperError: LocalizedError {
             case .duplicateName(let name):
                 return "An item with the name '\(name)' already exists"
             }
-        case .coreDataError(let error):
+        case .persistenceError(let error):
             return "Database error: \(error.localizedDescription)"
         case .fileSystemError(let error):
             return "File system error: \(error.localizedDescription)"

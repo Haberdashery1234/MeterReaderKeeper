@@ -4,6 +4,7 @@
 //
 //  Created by Christian Grise on 4/30/21.
 //  Updated to wire up MeterRepositoryProtocol on 8/26/26.
+//  Switched from Core Data to SwiftData on 8/26/26.
 //
 
 import UIKit
@@ -13,8 +14,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     var appCoordinator: AppCoordinator?
     
-    /// The app's single repository instance, owning the Core Data stack.
-    private let repository: MeterRepositoryProtocol = CoreDataMeterRepository()
+    /// The app's single repository instance, owning the SwiftData stack.
+    private let repository: MeterRepositoryProtocol = SwiftDataMeterRepository()
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }

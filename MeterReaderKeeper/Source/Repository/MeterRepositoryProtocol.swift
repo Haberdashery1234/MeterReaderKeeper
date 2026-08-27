@@ -9,18 +9,20 @@ import Foundation
 
 /// Abstraction over the app's persistence layer.
 ///
-/// Views (and, in a later pass, view models) talk to this protocol only —
-/// never to Core Data directly — so the persistence technology can change
-/// without touching the presentation layer, and so a fake/in-memory
-/// implementation can stand in for tests.
+/// View models talk to this protocol only — never to the underlying
+/// persistence framework directly — so the persistence technology can
+/// change without touching the ViewModel/View layers, and so a fake/in-memory
+/// implementation can stand in for tests. This paid off directly: the app
+/// originally shipped on Core Data and was later switched to SwiftData
+/// (see `SwiftDataMeterRepository`) without any changes above this protocol.
 ///
-/// Every method is synchronous but internally hops onto Core Data's own
-/// confinement queue (see `CoreDataMeterRepository`), so it's safe to call
-/// from any thread. That matches how this app's UIKit call sites already
-/// work today (a button tap runs the operation and updates UI immediately);
-/// a background-queue call site (see `HomeViewController.exportDataTapped`)
-/// still works correctly, it just blocks that background thread rather than
-/// the main thread.
+/// Every method is synchronous but internally confines its work to the
+/// implementation's own dedicated queue, so it's safe to call from any
+/// thread. That matches how this app's UIKit call sites already work today
+/// (a button tap runs the operation and updates UI immediately); a
+/// background-queue call site (see `HomeViewModel.exportData`) still works
+/// correctly, it just blocks that background thread rather than the main
+/// thread.
 protocol MeterRepositoryProtocol: AnyObject {
 
     // MARK: - Buildings
