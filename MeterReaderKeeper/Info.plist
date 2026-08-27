@@ -20,6 +20,12 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>MeterReaderKeeper needs camera access to scan QR codes on meters for quick reading entry.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>MeterReaderKeeper can save exported reports to your photo library.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>MeterReaderKeeper needs photo library access to attach meter images for identification.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -58,11 +64,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSCameraUsageDescription</key>
-	<string>MeterReaderKeeper needs camera access to scan QR codes on meters for quick reading entry.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>MeterReaderKeeper needs photo library access to attach meter images for identification.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>MeterReaderKeeper can save exported reports to your photo library.</string>
 </dict>
 </plist>

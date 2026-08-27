@@ -80,6 +80,13 @@ final class SwiftDataMeterRepository: MeterRepositoryProtocol {
         }
     }
 
+    func getBuilding(id: UUID) throws -> MRKBuilding {
+        try performAndWaitThrowing {
+            let building = try Self.findBuilding(id: id, in: context)
+            return Self.mapBuilding(building)
+        }
+    }
+
     func addBuilding(_ input: MRKBuildingInput) throws -> MRKBuilding {
         try input.validate()
         return try performAndWaitThrowing {

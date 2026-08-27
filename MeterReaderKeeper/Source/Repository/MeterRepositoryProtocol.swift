@@ -31,6 +31,10 @@ protocol MeterRepositoryProtocol: AnyObject {
     /// populated (nested), sorted by name.
     func getBuildings() throws -> [MRKBuilding]
 
+    /// Fetches a single building by ID, with its floors, meters, and readings
+    /// fully populated (nested).
+    func getBuilding(id: UUID) throws -> MRKBuilding
+
     /// Creates a new building, optionally auto-creating its floors.
     func addBuilding(_ input: MRKBuildingInput) throws -> MRKBuilding
 

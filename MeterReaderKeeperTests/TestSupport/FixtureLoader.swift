@@ -6,6 +6,7 @@
 //
 
 import Foundation
+@testable import MeterReaderKeeper
 
 /// Loads `SeedFixture.json` directly off disk, relative to this source
 /// file's own location on disk, instead of through a bundle-resource
@@ -30,9 +31,10 @@ enum FixtureLoader {
     }
 
     static func loadSeedFixtureData() throws -> Data {
-        // This file lives at "<repo root>/MeterReaderKeeperTests/FixtureLoader.swift".
+        // This file lives at "<repo root>/MeterReaderKeeperTests/TestSupport/FixtureLoader.swift".
         let thisFile = URL(fileURLWithPath: #filePath)
         let repoRoot = thisFile
+            .deletingLastPathComponent() // .../MeterReaderKeeperTests/TestSupport
             .deletingLastPathComponent() // .../MeterReaderKeeperTests
             .deletingLastPathComponent() // .../<repo root>
         let fixtureURL = repoRoot.appendingPathComponent("MeterReaderKeeper/Source/Resources/SeedFixture.json")

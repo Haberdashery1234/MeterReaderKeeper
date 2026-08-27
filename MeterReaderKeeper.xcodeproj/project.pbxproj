@@ -407,7 +407,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.brazis-grise.MeterReaderKeeper";
+				PRODUCT_BUNDLE_IDENTIFIER = com.Haberdashery1234.MeterReaderKeeper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -427,7 +427,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.brazis-grise.MeterReaderKeeper";
+				PRODUCT_BUNDLE_IDENTIFIER = com.Haberdashery1234.MeterReaderKeeper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -447,7 +447,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.brazisgrise.Meter-Reader-KeeperTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Haberdashery1234.Meter-Reader-KeeperTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = TESTING;
 				SWIFT_VERSION = 5.0;
@@ -469,7 +469,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.brazisgrise.Meter-Reader-KeeperTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Haberdashery1234.Meter-Reader-KeeperTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -489,7 +489,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.brazisgrise.Meter-Reader-KeeperUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Haberdashery1234.Meter-Reader-KeeperUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -509,7 +509,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.brazisgrise.Meter-Reader-KeeperUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.Haberdashery1234.Meter-Reader-KeeperUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

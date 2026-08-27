@@ -18,7 +18,8 @@ final class SwiftDataMeterRepositoryTests: SeededRepositoryTestCase {
 
     func testGetBuildingsSortsByName() {
         let names = seededBuildings.map { $0.name }
-        XCTAssertEqual(names, names.sorted())
+        let naturallySorted = names.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+        XCTAssertEqual(names, naturallySorted)
     }
 
     func testDeleteBuildingRemovesItAndCascadesToItsMeters() throws {
@@ -111,5 +112,16 @@ final class SwiftDataMeterRepositoryTests: SeededRepositoryTestCase {
         XCTAssertThrowsError(try repository.deleteBuilding(id: UUID()))
         XCTAssertThrowsError(try repository.deleteMeter(id: UUID()))
         XCTAssertThrowsError(try repository.updateReading(id: UUID(), kWh: 1))
+    }
+
+    /// Unlike every other test here, this one deliberately ignores the
+    /// inherited, pre-seeded `repository` and builds its own fresh
+    /// instance — merged in from the old `Meter_Reader_KeeperTests.swift`
+    /// boilerplate-turned-smoke-test, which tested exactly this and had no
+    /// home of its own once the "one file per tested class" convention was
+    /// adopted.
+    func testFreshInMemoryRepositoryStartsEmpty() throws {
+        let freshRepository = SwiftDataMeterRepository(inMemory: true)
+        XCTAssertEqual(try freshRepository.getBuildings().count, 0)
     }
 }
