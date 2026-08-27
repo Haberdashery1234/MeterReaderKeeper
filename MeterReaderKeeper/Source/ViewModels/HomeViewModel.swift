@@ -32,11 +32,12 @@ final class HomeViewModel {
     }
 
     private let repository: MeterRepositoryProtocol
-    private lazy var dataSeeder = DataSeeder(repository: repository)
+    private let dataSeeder: DataSeeder
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "HomeViewModel")
 
     init(repository: MeterRepositoryProtocol) {
         self.repository = repository
+        self.dataSeeder = DataSeeder(repository: repository)
     }
 
     func takeReadingsOutcome() -> TakeReadingsOutcome {
@@ -67,19 +68,27 @@ final class HomeViewModel {
     }
 
     /// Seeds initial data if there are no buildings yet, otherwise adds
-    /// more readings to what already exists.
-    @discardableResult
-    func seedData() throws -> SeedOutcome {
-        let buildingCount = (try? repository.getBuildings())?.count ?? 0
+    /// more readings to what already exists. Runs on a background queue and
+    /// calls back on the main queue — matching `exportData(completion:)` —
+    /// since seeding can mean thousands of individual repository calls,
+    /// which would otherwise block the UI for a noticeable stretch of time.
+    func seedData(completion: @escaping (Result<SeedOutcome, Error>) -> Void) {
+        DispatchQueue.global(qos: .userInitiated).async { [repository, dataSeeder, logger] in
+            do {
+                let buildingCount = (try? repository.getBuildings())?.count ?? 0
 
-        if buildingCount == 0 {
-            try dataSeeder.seedData()
-            logger.info("Seeded initial test data")
-            return .seededInitialData
-        } else {
-            try dataSeeder.seedMoreReadings()
-            logger.info("Seeded additional readings")
-            return .addedMoreReadings
+                if buildingCount == 0 {
+                    try dataSeeder.seedData()
+                    logger.info("Seeded initial test data")
+                    DispatchQueue.main.async { completion(.success(.seededInitialData)) }
+                } else {
+                    try dataSeeder.seedMoreReadings()
+                    logger.info("Seeded additional readings")
+                    DispatchQueue.main.async { completion(.success(.addedMoreReadings)) }
+                }
+            } catch {
+                DispatchQueue.main.async { completion(.failure(error)) }
+            }
         }
     }
 }

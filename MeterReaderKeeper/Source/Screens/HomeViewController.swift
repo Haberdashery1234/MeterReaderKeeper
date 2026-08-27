@@ -251,15 +251,35 @@ class HomeViewController: UIViewController {
     }
     
     @objc private func seedDataTapped() {
-        do {
-            switch try viewModel.seedData() {
-            case .seededInitialData:
-                showAlert(title: "Success", message: "Test data has been seeded successfully.")
-            case .addedMoreReadings:
-                showAlert(title: "Success", message: "Additional readings have been added successfully.")
+        seedDataButton.isEnabled = false
+
+        let loadingAlert = UIAlertController(title: nil, message: "Seeding data...", preferredStyle: .alert)
+        let spinner = UIActivityIndicatorView(style: .medium)
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        spinner.startAnimating()
+        loadingAlert.view.addSubview(spinner)
+        NSLayoutConstraint.activate([
+            spinner.centerXAnchor.constraint(equalTo: loadingAlert.view.centerXAnchor),
+            spinner.bottomAnchor.constraint(equalTo: loadingAlert.view.bottomAnchor, constant: -20)
+        ])
+        present(loadingAlert, animated: true)
+
+        viewModel.seedData { [weak self] result in
+            guard let self = self else { return }
+            self.seedDataButton.isEnabled = true
+            loadingAlert.dismiss(animated: true) {
+                switch result {
+                case .success(let outcome):
+                    switch outcome {
+                    case .seededInitialData:
+                        self.showAlert(title: "Success", message: "Test data has been seeded successfully.")
+                    case .addedMoreReadings:
+                        self.showAlert(title: "Success", message: "Additional readings have been added successfully.")
+                    }
+                case .failure(let error):
+                    self.showAlert(title: "Seed Failed", message: error.localizedDescription)
+                }
             }
-        } catch {
-            showAlert(title: "Seed Failed", message: error.localizedDescription)
         }
     }
     

@@ -4,93 +4,118 @@
 //
 //  Created by Christian Grise on 5/5/21.
 //  Updated to use MeterRepositoryProtocol on 8/26/26.
+//  Streamlined + shared constants extracted for unit testing on 8/27/26.
+//  Randomness made injectable for deterministic unit testing on 8/27/26.
+//  seedData() switched to a bundled JSON fixture (SeedFixture.json), shared
+//  verbatim with the unit test target, on 8/27/26.
 //
 
 import Foundation
 import os.log
 
 class DataSeeder {
-    
+
+    /// kWh range for `seedMoreReadings()`'s additional readings. `seedData()`
+    /// no longer draws from a range — its data comes from `SeedFixture.json`
+    /// instead (see below) — but `seedMoreReadings()` is a "top up whatever
+    /// already exists" operation with nothing sensible to source from a
+    /// fixture, so it still generates a value each time it's called.
+    static let additionalReadingKWhRange: ClosedRange<Double> = 10_000...50_000
+
     private let repository: MeterRepositoryProtocol
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "DataSeeder")
-    
-    init(repository: MeterRepositoryProtocol) {
+
+    /// Every "random" value `seedMoreReadings()` produces is drawn through
+    /// this generator, never through the bare `Double.random` static
+    /// directly. That's what makes the output controllable: the app passes
+    /// nothing (defaulting to `SystemRandomNumberGenerator`, so production
+    /// behavior is unchanged), while tests can pass a seeded, deterministic
+    /// generator — see `SeededGenerator` in the test target.
+    private var rng: RandomNumberGenerator
+
+    init(repository: MeterRepositoryProtocol, rng: RandomNumberGenerator = SystemRandomNumberGenerator()) {
         self.repository = repository
+        self.rng = rng
     }
-    
-    /// Generates a random alphanumeric string
-    /// - Parameter length: Desired string length
-    /// - Returns: Random string of specified length
-    private func randomString(length: Int) -> String {
-        let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        return String((0..<length).map{ _ in letters.randomElement()! })
-    }
-    
-    /// Seeds initial building, floor, meter, and reading data
+
+    /// Seeds building, floor, meter, and reading data from the bundled
+    /// `SeedFixture.json` — a large, fixed dataset (buildings/floors/
+    /// meters/readings) checked into the repo and shared verbatim with the
+    /// unit test target, so both this button and the tests work from
+    /// exactly the same known values.
+    ///
+    /// This makes one repository call per building/floor/meter/reading —
+    /// several thousand calls for the full fixture — so callers should run
+    /// it off the main thread (see `HomeViewModel.seedData(completion:)`,
+    /// which backgrounds it the same way `exportData(completion:)` already
+    /// backgrounds export).
     func seedData() throws {
         logger.info("Starting data seeding...")
-        
-        let buildingNames = [
-            "121 Seaport",
-            "25 State",
-            "141 Franklin",
-            "16 Pinkham"
-        ]
-        
-        for buildingName in buildingNames {
-            let floorCount = Int16(Int.random(in: 5...35))
-            
+
+        let fixture = try Self.loadFixture()
+        let today = Calendar.current.startOfDay(for: Date())
+
+        for building in fixture.buildings {
             let newBuilding = try repository.addBuilding(
-                MRKBuildingInput(name: buildingName, numberOfFloors: floorCount, autoCreateFloors: true)
+                MRKBuildingInput(name: building.name, numberOfFloors: Int16(building.floors.count), autoCreateFloors: false)
             )
-            
-            logger.info("Created building '\(buildingName)' with \(floorCount) floors")
-            
-            for floor in newBuilding.floors {
-                let numberOfMeters = Int.random(in: 3...8)
-                
-                for meterIndex in 1...numberOfMeters {
-                    let meterName = "\(randomString(length: 5))-\(meterIndex)"
-                    let meterDescription = "This is a short description for \(meterName)"
-                    
+
+            logger.info("Created building '\(building.name)' with \(building.floors.count) floors")
+
+            for floorFixture in building.floors {
+                let floor = try repository.addFloor(
+                    MRKFloorInput(number: floorFixture.number, mapImageData: Data(), buildingID: newBuilding.id)
+                )
+
+                for meterFixture in floorFixture.meters {
                     let meter = try repository.addMeter(
-                        MRKMeterInput(name: meterName, description: meterDescription, imageData: Data(), floorID: floor.id)
+                        MRKMeterInput(name: meterFixture.name, description: meterFixture.description, imageData: Data(), floorID: floor.id)
                     )
-                    
-                    // Add 5 historical readings (monthly intervals, going backwards from today)
-                    for readingIndex in 0...4 {
-                        var date = Calendar.current.startOfDay(for: Date())
-                        date = Calendar.current.date(byAdding: .day, value: -(readingIndex * 30), to: date) ?? Date()
-                        let kWh = Double.random(in: 10_000...30_000)
-                        
-                        _ = try repository.addReading(MRKReadingInput(kWh: kWh, date: date, meterID: meter.id))
+
+                    for readingFixture in meterFixture.readings {
+                        let date = Calendar.current.date(byAdding: .day, value: -readingFixture.daysAgo, to: today) ?? today
+                        _ = try repository.addReading(MRKReadingInput(kWh: readingFixture.kWh, date: date, meterID: meter.id))
                     }
                 }
-                
-                logger.debug("Added \(numberOfMeters) meters to floor \(floor.number)")
+
+                logger.debug("Added \(floorFixture.meters.count) meters to floor \(floorFixture.number)")
             }
         }
-        
+
         logger.info("Data seeding complete.")
     }
-    
-    /// Adds additional readings to all existing meters for today's date
+
+    /// Adds one additional reading, dated today, to every existing meter.
     func seedMoreReadings() throws {
         logger.info("Seeding additional readings...")
         let date = Calendar.current.startOfDay(for: Date())
-        
+
         var readingCount = 0
-        
+
         for building in try repository.getBuildings() {
             for floor in building.floors {
                 for meter in floor.meters {
-                    let kWh = Double.random(in: 10_000...50_000)
+                    let kWh = Double.random(in: Self.additionalReadingKWhRange, using: &rng)
                     _ = try repository.addReading(MRKReadingInput(kWh: kWh, date: date, meterID: meter.id))
                     readingCount += 1
                 }
             }
         }
-        
+
         logger.info("Added \(readingCount) new readings")
+    }
+
+    /// Locates and decodes `SeedFixture.json` from this class's own bundle.
+    /// `Bundle(for:)` rather than `Bundle.main` on purpose — this always
+    /// resolves to the bundle `DataSeeder` itself was compiled into,
+    /// regardless of how it's called.
+    private static func loadFixture() throws -> SeedFixture {
+        guard let url = Bundle(for: DataSeeder.self).url(forResource: "SeedFixture", withExtension: "json") else {
+            throw MeterKeeperError.fileSystemError(
+                NSError(domain: "MeterReaderKeeper", code: -1, userInfo: [NSLocalizedDescriptionKey: "SeedFixture.json not found in bundle"])
+            )
+        }
+        let data = try Data(contentsOf: url)
+        return try SeedFixture.decode(from: data)
     }
 }
