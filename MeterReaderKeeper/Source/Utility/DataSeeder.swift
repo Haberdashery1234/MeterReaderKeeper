@@ -13,7 +13,6 @@
 #if DEBUG || TESTING
 
 import Foundation
-import os.log
 
 class DataSeeder {
 
@@ -25,7 +24,6 @@ class DataSeeder {
     static let additionalReadingKWhRange: ClosedRange<Double> = 10_000...50_000
 
     private let repository: MeterRepositoryProtocol
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "DataSeeder")
 
     /// Every "random" value `seedMoreReadings()` produces is drawn through
     /// this generator, never through the bare `Double.random` static
@@ -52,7 +50,7 @@ class DataSeeder {
     /// which backgrounds it the same way `exportData(completion:)` already
     /// backgrounds export).
     func seedData() throws {
-        logger.info("Starting data seeding...")
+        print("Starting data seeding...")
 
         let fixture = try Self.loadFixture()
         let today = Calendar.current.startOfDay(for: Date())
@@ -61,8 +59,6 @@ class DataSeeder {
             let newBuilding = try repository.addBuilding(
                 MRKBuildingInput(name: building.name, numberOfFloors: Int16(building.floors.count), autoCreateFloors: false)
             )
-
-            logger.info("Created building '\(building.name)' with \(building.floors.count) floors")
 
             for floorFixture in building.floors {
                 let floor = try repository.addFloor(
@@ -79,17 +75,14 @@ class DataSeeder {
                         _ = try repository.addReading(MRKReadingInput(kWh: readingFixture.kWh, date: date, meterID: meter.id))
                     }
                 }
-
-                logger.debug("Added \(floorFixture.meters.count) meters to floor \(floorFixture.number)")
             }
         }
 
-        logger.info("Data seeding complete.")
+        print("Data seeding complete.")
     }
 
     /// Adds one additional reading, dated today, to every existing meter.
     func seedMoreReadings() throws {
-        logger.info("Seeding additional readings...")
         let date = Calendar.current.startOfDay(for: Date())
 
         var readingCount = 0
@@ -103,8 +96,6 @@ class DataSeeder {
                 }
             }
         }
-
-        logger.info("Added \(readingCount) new readings")
     }
 
     /// Locates and decodes `SeedFixture.json` from this class's own bundle.

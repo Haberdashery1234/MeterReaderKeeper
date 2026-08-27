@@ -3,15 +3,18 @@
 //  MeterReaderKeeperTests
 //
 //  Created on 8/27/26.
+//  Converted from XCTest to Swift Testing on 8/27/26.
 //
 
-import XCTest
+import Testing
+import Foundation
 @testable import MeterReaderKeeper
 
 /// Mirrors `Source/Model/Domain/MRKBuilding.swift`, which declares both
 /// `MRKBuilding` and `MRKBuildingInput` — this file tests both, in two
-/// separate `XCTestCase`s below.
-final class MRKBuildingTests: XCTestCase {
+/// separate suites below.
+@Suite("MRKBuilding")
+struct MRKBuildingTests {
 
     private func makeFloor(number: Int16, meterCount: Int) -> MRKFloor {
         let meters = (0..<meterCount).map { i in
@@ -23,60 +26,78 @@ final class MRKBuildingTests: XCTestCase {
         return MRKFloor(id: UUID(), number: number, mapImageData: Data(), buildingID: UUID(), meters: meters)
     }
 
-    func testTotalMeterCountSumsAcrossAllFloors() {
+    @Test("totalMeterCount sums across all floors")
+    func totalMeterCountSumsAcrossAllFloors() {
         let building = MRKBuilding(id: UUID(), name: "Test", floors: [
             makeFloor(number: 1, meterCount: 3),
             makeFloor(number: 2, meterCount: 5)
         ])
 
-        XCTAssertEqual(building.totalMeterCount, 8)
+        #expect(building.totalMeterCount == 8)
     }
 
-    func testTotalMeterCountIsZeroWithNoFloors() {
+    @Test("totalMeterCount is zero with no floors")
+    func totalMeterCountIsZeroWithNoFloors() {
         let building = MRKBuilding(id: UUID(), name: "Test", floors: [])
-        XCTAssertEqual(building.totalMeterCount, 0)
+        #expect(building.totalMeterCount == 0)
     }
 
-    func testSortedFloorsOrdersByNumberRegardlessOfInputOrder() {
+    @Test("sortedFloors orders by number regardless of input order")
+    func sortedFloorsOrdersByNumberRegardlessOfInputOrder() {
         let building = MRKBuilding(id: UUID(), name: "Test", floors: [
             makeFloor(number: 3, meterCount: 0),
             makeFloor(number: 1, meterCount: 0),
             makeFloor(number: 2, meterCount: 0)
         ])
 
-        XCTAssertEqual(building.sortedFloors.map { $0.number }, [1, 2, 3])
+        #expect(building.sortedFloors.map { $0.number } == [1, 2, 3])
     }
 
-    func testValidateRejectsBlankName() {
+    @Test("validate rejects a blank name")
+    func validateRejectsBlankName() {
         let building = MRKBuilding(id: UUID(), name: "   ", floors: [])
-        XCTAssertThrowsError(try building.validate())
+        #expect(throws: (any Error).self) {
+            try building.validate()
+        }
     }
 
-    func testValidateAcceptsNonEmptyName() {
+    @Test("validate accepts a non-empty name")
+    func validateAcceptsNonEmptyName() throws {
         let building = MRKBuilding(id: UUID(), name: "121 Seaport", floors: [])
-        XCTAssertNoThrow(try building.validate())
+        try building.validate()
     }
 }
 
-final class MRKBuildingInputTests: XCTestCase {
+@Suite("MRKBuildingInput")
+struct MRKBuildingInputTests {
 
-    func testValidateRejectsBlankName() {
+    @Test("validate rejects a blank name")
+    func validateRejectsBlankName() {
         let input = MRKBuildingInput(name: "  ", numberOfFloors: 5, autoCreateFloors: true)
-        XCTAssertThrowsError(try input.validate())
+        #expect(throws: (any Error).self) {
+            try input.validate()
+        }
     }
 
-    func testValidateRejectsZeroFloors() {
+    @Test("validate rejects zero floors")
+    func validateRejectsZeroFloors() {
         let input = MRKBuildingInput(name: "Test", numberOfFloors: 0, autoCreateFloors: true)
-        XCTAssertThrowsError(try input.validate())
+        #expect(throws: (any Error).self) {
+            try input.validate()
+        }
     }
 
-    func testValidateRejectsMoreThan200Floors() {
+    @Test("validate rejects more than 200 floors")
+    func validateRejectsMoreThan200Floors() {
         let input = MRKBuildingInput(name: "Test", numberOfFloors: 201, autoCreateFloors: true)
-        XCTAssertThrowsError(try input.validate())
+        #expect(throws: (any Error).self) {
+            try input.validate()
+        }
     }
 
-    func testValidateAcceptsBoundaryFloorCounts() {
-        XCTAssertNoThrow(try MRKBuildingInput(name: "Test", numberOfFloors: 1, autoCreateFloors: true).validate())
-        XCTAssertNoThrow(try MRKBuildingInput(name: "Test", numberOfFloors: 200, autoCreateFloors: true).validate())
+    @Test("validate accepts the boundary floor counts")
+    func validateAcceptsBoundaryFloorCounts() throws {
+        try MRKBuildingInput(name: "Test", numberOfFloors: 1, autoCreateFloors: true).validate()
+        try MRKBuildingInput(name: "Test", numberOfFloors: 200, autoCreateFloors: true).validate()
     }
 }

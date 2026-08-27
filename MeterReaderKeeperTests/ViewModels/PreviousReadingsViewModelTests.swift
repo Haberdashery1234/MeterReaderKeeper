@@ -3,23 +3,24 @@
 //  MeterReaderKeeperTests
 //
 //  Created on 8/27/26.
+//  Converted from XCTest to Swift Testing on 8/27/26.
 //
 
-import XCTest
+import Testing
+import Foundation
 @testable import MeterReaderKeeper
 
 /// Mirrors `Source/ViewModels/PreviousReadingsViewModel.swift`.
-final class PreviousReadingsViewModelTests: XCTestCase {
+@Suite("PreviousReadingsViewModel")
+struct PreviousReadingsViewModelTests {
 
-    private var repository: SwiftDataMeterRepository!
-    private var viewModel: PreviousReadingsViewModel!
+    let repository: SwiftDataMeterRepository
+    let viewModel: PreviousReadingsViewModel
+    let buildingA: MRKBuilding
+    let meterA: MRKMeter
+    let meterB: MRKMeter
 
-    private var buildingA: MRKBuilding!
-    private var meterA: MRKMeter!
-    private var meterB: MRKMeter!
-
-    override func setUpWithError() throws {
-        try super.setUpWithError()
+    init() throws {
         repository = SwiftDataMeterRepository(inMemory: true)
         viewModel = PreviousReadingsViewModel(repository: repository)
 
@@ -34,85 +35,83 @@ final class PreviousReadingsViewModelTests: XCTestCase {
         _ = try repository.addReading(MRKReadingInput(kWh: 200, date: yesterday, meterID: meterB.id))
     }
 
-    override func tearDownWithError() throws {
-        repository = nil
-        viewModel = nil
-        buildingA = nil
-        meterA = nil
-        meterB = nil
-        try super.tearDownWithError()
-    }
-
-    func testLoadDataPopulatesBuildingsAndUniqueSortedDates() {
+    @Test("loadData populates buildings and unique sorted dates")
+    func loadDataPopulatesBuildingsAndUniqueSortedDates() {
         viewModel.loadData()
 
-        XCTAssertEqual(viewModel.buildings.count, 1)
-        XCTAssertEqual(viewModel.dates.count, 2)
+        #expect(viewModel.buildings.count == 1)
+        #expect(viewModel.dates.count == 2)
         // Most recent date first.
-        XCTAssertTrue(viewModel.dates[0] > viewModel.dates[1])
+        #expect(viewModel.dates[0] > viewModel.dates[1])
     }
 
-    func testDisplayInfoReturnsNameAndLocationForKnownMeter() throws {
+    @Test("displayInfo returns the name and location for a known meter")
+    func displayInfoReturnsNameAndLocationForKnownMeter() throws {
         viewModel.loadData()
-        let refreshedMeterA = try XCTUnwrap(
+        let refreshedMeterA = try #require(
             repository.getBuildings().first?.floors.first?.meters.first(where: { $0.id == meterA.id })
         )
-        let reading = try XCTUnwrap(refreshedMeterA.readings.first)
+        let reading = try #require(refreshedMeterA.readings.first)
 
         let info = viewModel.displayInfo(for: reading)
 
-        XCTAssertEqual(info?.name, "Meter A")
-        XCTAssertEqual(info?.location, "Building A - Floor 1")
+        #expect(info?.name == "Meter A")
+        #expect(info?.location == "Building A - Floor 1")
     }
 
-    func testApplyFiltersWithNoSelectionReturnsAllReadingsSortedDescending() {
+    @Test("applyFilters with no selection returns all readings sorted descending")
+    func applyFiltersWithNoSelectionReturnsAllReadingsSortedDescending() {
         viewModel.loadData()
 
         viewModel.applyFilters(segment: .date)
 
-        XCTAssertEqual(viewModel.readings.count, 2)
-        XCTAssertTrue(viewModel.readings[0].date >= viewModel.readings[1].date)
+        #expect(viewModel.readings.count == 2)
+        #expect(viewModel.readings[0].date >= viewModel.readings[1].date)
     }
 
-    func testSelectDateAtRowZeroClearsFilter() {
+    @Test("selectDate at row zero clears the filter")
+    func selectDateAtRowZeroClearsFilter() {
         viewModel.loadData()
         viewModel.selectDate(at: 0)
         viewModel.applyFilters(segment: .date)
 
-        XCTAssertEqual(viewModel.readings.count, 2)
+        #expect(viewModel.readings.count == 2)
     }
 
-    func testSelectDateFiltersToJustThatDate() {
+    @Test("selectDate filters to just that date")
+    func selectDateFiltersToJustThatDate() {
         viewModel.loadData()
         viewModel.selectDate(at: 1) // row 0 = "any date"
 
         viewModel.applyFilters(segment: .date)
 
-        XCTAssertEqual(viewModel.readings.count, 1)
-        XCTAssertEqual(viewModel.readings.first?.date, viewModel.dates[0])
+        #expect(viewModel.readings.count == 1)
+        #expect(viewModel.readings.first?.date == viewModel.dates[0])
     }
 
-    func testSelectBuildingResetsFloorAndMeterSelection() {
+    @Test("selectBuilding resets the floor and meter selection")
+    func selectBuildingResetsFloorAndMeterSelection() {
         viewModel.loadData()
         viewModel.selectBuilding(at: 1) // row 0 = "any building"
 
-        XCTAssertEqual(viewModel.selectedBuilding?.id, buildingA.id)
-        XCTAssertFalse(viewModel.floors.isEmpty)
-        XCTAssertNil(viewModel.selectedFloor)
-        XCTAssertTrue(viewModel.meters.isEmpty)
-        XCTAssertNil(viewModel.selectedMeter)
+        #expect(viewModel.selectedBuilding?.id == buildingA.id)
+        #expect(!viewModel.floors.isEmpty)
+        #expect(viewModel.selectedFloor == nil)
+        #expect(viewModel.meters.isEmpty)
+        #expect(viewModel.selectedMeter == nil)
     }
 
-    func testSelectMeterFiltersToThatMeterOnly() throws {
+    @Test("selectMeter filters to just that meter")
+    func selectMeterFiltersToThatMeterOnly() throws {
         viewModel.loadData()
         viewModel.selectBuilding(at: 1)
         viewModel.selectFloor(at: 1)
-        let indexOfMeterA = try XCTUnwrap(viewModel.meters.firstIndex { $0.id == meterA.id })
+        let indexOfMeterA = try #require(viewModel.meters.firstIndex { $0.id == meterA.id })
         viewModel.selectMeter(at: indexOfMeterA + 1) // +1 for the "any meter" row
 
         viewModel.applyFilters(segment: .meter)
 
-        XCTAssertEqual(viewModel.readings.count, 1)
-        XCTAssertEqual(viewModel.readings.first?.meterID, meterA.id)
+        #expect(viewModel.readings.count == 1)
+        #expect(viewModel.readings.first?.meterID == meterA.id)
     }
 }

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import os.log
 
 /// Business logic and repository access for the "take readings" screen for
 /// one building: the floor picker's data, the meter list for the selected
@@ -21,7 +20,6 @@ final class ReadingsMainViewModel {
     }
 
     private let repository: MeterRepositoryProtocol
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "ReadingsMainViewModel")
 
     private(set) var building: MRKBuilding
     private(set) var floors: [MRKFloor]
@@ -35,7 +33,7 @@ final class ReadingsMainViewModel {
         self.floors = sortedFloors
         self.floor = sortedFloors.first
         self.meters = sortedFloors.first?.sortedMeters ?? []
-        logger.info("Loaded \(sortedFloors.count) floors for building \(building.name)")
+        print("Loaded \(sortedFloors.count) floors for building \(building.name)")
     }
 
     @discardableResult
@@ -44,7 +42,7 @@ final class ReadingsMainViewModel {
         let selected = floors[row]
         floor = selected
         meters = selected.sortedMeters
-        logger.info("Selected floor: \(selected.number)")
+        print("Selected floor: \(selected.number)")
         return selected
     }
 

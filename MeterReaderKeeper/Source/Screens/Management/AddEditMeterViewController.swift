@@ -9,15 +9,12 @@
 //
 
 import UIKit
-import os.log
 
 class AddEditMeterViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
     var viewModel: AddEditMeterViewModel!
-    
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditMeterVC")
     
     // MARK: - UI Components
     private let scrollView: UIScrollView = {
@@ -335,7 +332,7 @@ class AddEditMeterViewController: UIViewController {
         } catch let error as FormValidationError {
             showAlert(title: error.title, message: error.message)
         } catch {
-            logger.error("Failed to save meter: \(error.localizedDescription)")
+            print("Failed to save meter: \(error.localizedDescription)")
             showAlert(title: "Save Failed", message: error.localizedDescription)
         }
     }
@@ -444,7 +441,7 @@ extension AddEditMeterViewController: UIImagePickerControllerDelegate, UINavigat
         if let pickedImage = info[.editedImage] as? UIImage ?? info[.originalImage] as? UIImage {
             meterImageImageView.image = pickedImage
             meterImageImageView.tintColor = nil
-            logger.info("Meter image selected")
+            print("Meter image selected")
         }
         
         dismiss(animated: true)

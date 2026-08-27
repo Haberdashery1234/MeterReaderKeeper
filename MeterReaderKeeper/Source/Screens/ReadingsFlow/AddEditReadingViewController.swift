@@ -9,14 +9,12 @@
 //
 
 import UIKit
-import os.log
 
 class AddEditReadingViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
     var viewModel: AddEditReadingViewModel!
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditReadingVC")
     
     // MARK: - UI Components
     private lazy var scrollView: UIScrollView = {
@@ -185,7 +183,7 @@ class AddEditReadingViewController: UIViewController {
         readingTextField.text = viewModel.initialReadingText
         title = viewModel.screenTitle
         
-        logger.info("Loaded meter: \(self.viewModel.meter.name)")
+        print("Loaded meter: \(self.viewModel.meter.name)")
     }
     
     // MARK: - Actions
@@ -200,7 +198,7 @@ class AddEditReadingViewController: UIViewController {
         } catch let error as FormValidationError {
             showAlert(title: error.title, message: error.message)
         } catch {
-            logger.error("Failed to save reading: \(error.localizedDescription)")
+            print("Failed to save reading: \(error.localizedDescription)")
             showAlert(title: "Save Failed", message: error.localizedDescription)
         }
     }

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import os.log
 
 /// Business logic and repository access for the Add/Edit Floor screen.
 ///
@@ -19,7 +18,6 @@ import os.log
 final class AddEditFloorViewModel {
 
     private let repository: MeterRepositoryProtocol
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditFloorViewModel")
 
     /// The floor being edited, or `nil` when adding a new one.
     let floor: MRKFloor?
@@ -97,7 +95,7 @@ final class AddEditFloorViewModel {
             saved = try repository.addFloor(input)
         }
 
-        logger.info("Saved floor \(floorNumber) for building \(building.name)")
+        print("Saved floor \(floorNumber) for building \(building.name)")
         return saved
     }
 }

@@ -3,108 +3,112 @@
 //  MeterReaderKeeperTests
 //
 //  Created on 8/27/26.
+//  Converted from XCTest to Swift Testing on 8/27/26.
 //
 
-import XCTest
+import Testing
+import Foundation
 @testable import MeterReaderKeeper
 
 /// Mirrors `Source/ViewModels/AddEditReadingViewModel.swift`. Uses
-/// `assertThrowsFormValidationError` from `TestSupport/XCTestCase+FormValidationError.swift`.
-final class AddEditReadingViewModelTests: XCTestCase {
+/// `assertThrowsFormValidationError` from
+/// `TestSupport/FormValidationErrorAssertion.swift`.
+@Suite("AddEditReadingViewModel")
+struct AddEditReadingViewModelTests {
 
-    private var repository: SwiftDataMeterRepository!
-    private var building: MRKBuilding!
-    private var floor: MRKFloor!
-    private var meter: MRKMeter!
+    let repository: SwiftDataMeterRepository
+    let building: MRKBuilding
+    let floor: MRKFloor
+    let meter: MRKMeter
 
-    override func setUpWithError() throws {
-        try super.setUpWithError()
+    init() throws {
         repository = SwiftDataMeterRepository(inMemory: true)
         building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         floor = building.floors[0]
         meter = try repository.addMeter(MRKMeterInput(name: "M1", description: "", imageData: Data(), floorID: floor.id))
     }
 
-    override func tearDownWithError() throws {
-        repository = nil
-        building = nil
-        floor = nil
-        meter = nil
-        try super.tearDownWithError()
-    }
-
     // MARK: - Display
 
-    func testAddingReadingDisplayState() {
+    @Test("adding a reading shows the add display state")
+    func addingReadingDisplayState() {
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: nil)
 
-        XCTAssertFalse(viewModel.isEditing)
-        XCTAssertEqual(viewModel.screenTitle, "Add Reading")
-        XCTAssertNil(viewModel.initialReadingText)
+        #expect(!viewModel.isEditing)
+        #expect(viewModel.screenTitle == "Add Reading")
+        #expect(viewModel.initialReadingText == nil)
     }
 
-    func testEditingReadingDisplayState() throws {
+    @Test("editing a reading shows the edit display state")
+    func editingReadingDisplayState() throws {
         let reading = try repository.addReading(MRKReadingInput(kWh: 1234.5, date: Calendar.current.startOfDay(for: Date()), meterID: meter.id))
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: reading)
 
-        XCTAssertTrue(viewModel.isEditing)
-        XCTAssertEqual(viewModel.screenTitle, "Edit Reading")
-        XCTAssertEqual(viewModel.initialReadingText, "1234.50")
+        #expect(viewModel.isEditing)
+        #expect(viewModel.screenTitle == "Edit Reading")
+        #expect(viewModel.initialReadingText == "1234.50")
     }
 
     // MARK: - save validation
 
-    func testSaveRejectsMissingReadingText() {
+    @Test("save rejects missing reading text")
+    func saveRejectsMissingReadingText() {
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: nil)
 
         assertThrowsFormValidationError(try viewModel.save(readingText: nil), title: "Missing Reading")
     }
 
-    func testSaveRejectsBlankReadingText() {
+    @Test("save rejects blank reading text")
+    func saveRejectsBlankReadingText() {
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: nil)
 
         assertThrowsFormValidationError(try viewModel.save(readingText: "   "), title: "Missing Reading")
     }
 
-    func testSaveRejectsNonNumericReadingText() {
+    @Test("save rejects non-numeric reading text")
+    func saveRejectsNonNumericReadingText() {
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: nil)
 
         assertThrowsFormValidationError(try viewModel.save(readingText: "not-a-number"), title: "Invalid Reading")
     }
 
-    func testSaveRejectsNegativeReadingValue() {
+    @Test("save rejects a negative reading value")
+    func saveRejectsNegativeReadingValue() {
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: nil)
 
         assertThrowsFormValidationError(try viewModel.save(readingText: "-5"), title: "Invalid Reading")
     }
 
-    func testSaveAcceptsZero() throws {
+    @Test("save accepts zero")
+    func saveAcceptsZero() throws {
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: nil)
 
         let saved = try viewModel.save(readingText: "0")
 
-        XCTAssertEqual(saved.kWh, 0)
+        #expect(saved.kWh == 0)
     }
 
     // MARK: - save behavior
 
-    func testSaveAddsNewReadingDatedToday() throws {
+    @Test("save adds a new reading dated today")
+    func saveAddsNewReadingDatedToday() throws {
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: nil)
 
         let saved = try viewModel.save(readingText: "15000.25")
 
-        XCTAssertEqual(saved.kWh, 15000.25)
-        XCTAssertEqual(saved.date, Calendar.current.startOfDay(for: Date()))
-        XCTAssertEqual(saved.meterID, meter.id)
+        #expect(saved.kWh == 15000.25)
+        #expect(saved.date == Calendar.current.startOfDay(for: Date()))
+        #expect(saved.meterID == meter.id)
     }
 
-    func testSaveUpdatesExistingReading() throws {
+    @Test("save updates an existing reading")
+    func saveUpdatesExistingReading() throws {
         let existingReading = try repository.addReading(MRKReadingInput(kWh: 100, date: Calendar.current.startOfDay(for: Date()), meterID: meter.id))
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: existingReading)
 
         let saved = try viewModel.save(readingText: "999.99")
 
-        XCTAssertEqual(saved.id, existingReading.id)
-        XCTAssertEqual(saved.kWh, 999.99)
+        #expect(saved.id == existingReading.id)
+        #expect(saved.kWh == 999.99)
     }
 }

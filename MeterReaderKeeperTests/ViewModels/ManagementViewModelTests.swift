@@ -3,43 +3,42 @@
 //  MeterReaderKeeperTests
 //
 //  Created on 8/27/26.
+//  Converted from XCTest to Swift Testing on 8/27/26.
 //
 
-import XCTest
+import Testing
+import Foundation
 @testable import MeterReaderKeeper
 
 /// Mirrors `Source/ViewModels/ManagementViewModel.swift`.
-final class ManagementViewModelTests: XCTestCase {
+@Suite("ManagementViewModel")
+struct ManagementViewModelTests {
 
-    private var repository: SwiftDataMeterRepository!
-    private var viewModel: ManagementViewModel!
+    let repository: SwiftDataMeterRepository
+    let viewModel: ManagementViewModel
 
-    override func setUpWithError() throws {
-        try super.setUpWithError()
+    init() {
         repository = SwiftDataMeterRepository(inMemory: true)
         viewModel = ManagementViewModel(repository: repository)
     }
 
-    override func tearDownWithError() throws {
-        repository = nil
-        viewModel = nil
-        try super.tearDownWithError()
+    @Test("hasFloors is false before loading")
+    func hasFloorsIsFalseBeforeLoading() {
+        #expect(!viewModel.hasFloors)
     }
 
-    func testHasFloorsIsFalseBeforeLoading() {
-        XCTAssertFalse(viewModel.hasFloors)
-    }
-
-    func testLoadDataWithNoBuildingsLeavesEverythingEmpty() {
+    @Test("loadData with no buildings leaves everything empty")
+    func loadDataWithNoBuildingsLeavesEverythingEmpty() {
         viewModel.loadData()
 
-        XCTAssertTrue(viewModel.buildings.isEmpty)
-        XCTAssertTrue(viewModel.floorItems.isEmpty)
-        XCTAssertTrue(viewModel.meterItems.isEmpty)
-        XCTAssertFalse(viewModel.hasFloors)
+        #expect(viewModel.buildings.isEmpty)
+        #expect(viewModel.floorItems.isEmpty)
+        #expect(viewModel.meterItems.isEmpty)
+        #expect(!viewModel.hasFloors)
     }
 
-    func testLoadDataFlattensFloorsAndMetersAcrossBuildings() throws {
+    @Test("loadData flattens floors and meters across buildings")
+    func loadDataFlattensFloorsAndMetersAcrossBuildings() throws {
         let buildingA = try repository.addBuilding(MRKBuildingInput(name: "Building A", numberOfFloors: 2, autoCreateFloors: true))
         let buildingB = try repository.addBuilding(MRKBuildingInput(name: "Building B", numberOfFloors: 1, autoCreateFloors: true))
         _ = try repository.addMeter(MRKMeterInput(name: "M1", description: "", imageData: Data(), floorID: buildingA.floors[0].id))
@@ -47,18 +46,18 @@ final class ManagementViewModelTests: XCTestCase {
 
         viewModel.loadData()
 
-        XCTAssertEqual(viewModel.buildings.count, 2)
-        XCTAssertEqual(viewModel.floorItems.count, 3) // 2 + 1 floors
-        XCTAssertEqual(viewModel.meterItems.count, 2)
-        XCTAssertTrue(viewModel.hasFloors)
+        #expect(viewModel.buildings.count == 2)
+        #expect(viewModel.floorItems.count == 3) // 2 + 1 floors
+        #expect(viewModel.meterItems.count == 2)
+        #expect(viewModel.hasFloors)
 
         // Every FloorItem/MeterItem should carry its correct owning building/floor.
         for item in viewModel.floorItems {
-            XCTAssertEqual(item.floor.buildingID, item.building.id)
+            #expect(item.floor.buildingID == item.building.id)
         }
         for item in viewModel.meterItems {
-            XCTAssertEqual(item.meter.floorID, item.floor.id)
-            XCTAssertEqual(item.floor.buildingID, item.building.id)
+            #expect(item.meter.floorID == item.floor.id)
+            #expect(item.floor.buildingID == item.building.id)
         }
     }
 }

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import os.log
 
 /// Business logic and repository access for the Previous Readings screen:
 /// loading every reading across all buildings, the four cascading filter
@@ -22,7 +21,6 @@ final class PreviousReadingsViewModel {
     }
 
     private let repository: MeterRepositoryProtocol
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "PreviousReadingsViewModel")
 
     private(set) var buildings: [MRKBuilding] = []
     private(set) var dates: [Date] = []
@@ -66,7 +64,7 @@ final class PreviousReadingsViewModel {
         meterDisplayInfo = displayInfo
         dates = allReadingDates.sorted(by: >)
 
-        logger.info("Loaded \(self.buildings.count) buildings and \(self.dates.count) dates")
+        print("Loaded \(self.buildings.count) buildings and \(self.dates.count) dates")
     }
 
     private func allReadings() -> [MRKReading] {
@@ -127,6 +125,6 @@ final class PreviousReadingsViewModel {
 
         readings.sort { $0.date > $1.date }
 
-        logger.info("Applied filters, showing \(self.readings.count) readings")
+        print("Applied filters, showing \(self.readings.count) readings")
     }
 }

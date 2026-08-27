@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import os.log
 
 /// Business logic and repository access for the Add/Edit Building screen.
 /// Validation, duplicate-name checking, and the save/delete calls into the
@@ -21,7 +20,6 @@ final class AddEditBuildingViewModel {
     }
 
     private let repository: MeterRepositoryProtocol
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditBuildingViewModel")
 
     /// The building being edited, or `nil` when adding a new one.
     let building: MRKBuilding?
@@ -107,7 +105,7 @@ final class AddEditBuildingViewModel {
         }
 
         if building != nil {
-            logger.warning("Editing buildings not yet implemented - creating new building instead")
+            print("Editing buildings not yet implemented - creating new building instead")
             throw FormValidationError(
                 title: "Not Implemented",
                 message: "Editing existing buildings is not yet supported. Please delete and recreate the building."
@@ -116,16 +114,16 @@ final class AddEditBuildingViewModel {
 
         let input = MRKBuildingInput(name: name, numberOfFloors: floors, autoCreateFloors: true)
         let newBuilding = try repository.addBuilding(input)
-        logger.info("Successfully created building: \(newBuilding.name)")
+        print("Successfully created building: \(newBuilding.name)")
         return newBuilding
     }
 
     func delete() throws {
         guard let building = building else {
-            logger.warning("Delete requested but no building to delete")
+            print("Delete requested but no building to delete")
             return
         }
         try repository.deleteBuilding(id: building.id)
-        logger.info("Deleted building: \(building.name)")
+        print("Deleted building: \(building.name)")
     }
 }

@@ -3,61 +3,69 @@
 //  MeterReaderKeeperTests
 //
 //  Created on 8/27/26.
+//  Converted from XCTest to Swift Testing on 8/27/26.
 //
 
-import XCTest
+import Testing
+import Foundation
 @testable import MeterReaderKeeper
 
 /// Mirrors `Source/Model/MeterReaderKeeperError.swift`.
-final class MeterKeeperErrorTests: XCTestCase {
+@Suite("MeterKeeperError")
+struct MeterKeeperErrorTests {
 
-    func testValidationErrorDescriptions() {
-        XCTAssertEqual(
-            MeterKeeperError.validationError(.missingRequiredField("Name")).errorDescription,
+    @Test("validation error descriptions")
+    func validationErrorDescriptions() {
+        #expect(
+            MeterKeeperError.validationError(.missingRequiredField("Name")).errorDescription ==
             "Required field is missing: Name"
         )
-        XCTAssertEqual(
-            MeterKeeperError.validationError(.negativeValue).errorDescription,
+        #expect(
+            MeterKeeperError.validationError(.negativeValue).errorDescription ==
             "Value cannot be negative"
         )
-        XCTAssertEqual(
-            MeterKeeperError.validationError(.readingInFuture).errorDescription,
+        #expect(
+            MeterKeeperError.validationError(.readingInFuture).errorDescription ==
             "Reading date cannot be in the future"
         )
-        XCTAssertEqual(
-            MeterKeeperError.validationError(.invalidInput("bad format")).errorDescription,
+        #expect(
+            MeterKeeperError.validationError(.invalidInput("bad format")).errorDescription ==
             "Invalid input: bad format"
         )
-        XCTAssertEqual(
-            MeterKeeperError.validationError(.duplicateName("121 Seaport")).errorDescription,
+        #expect(
+            MeterKeeperError.validationError(.duplicateName("121 Seaport")).errorDescription ==
             "An item with the name '121 Seaport' already exists"
         )
     }
 
-    func testPersistenceErrorWrapsUnderlyingDescription() {
+    @Test("persistenceError wraps the underlying description")
+    func persistenceErrorWrapsUnderlyingDescription() {
         let underlying = NSError(domain: "Test", code: 1, userInfo: [NSLocalizedDescriptionKey: "disk full"])
-        XCTAssertEqual(
-            MeterKeeperError.persistenceError(underlying).errorDescription,
+        #expect(
+            MeterKeeperError.persistenceError(underlying).errorDescription ==
             "Database error: disk full"
         )
     }
 
-    func testFileSystemErrorWrapsUnderlyingDescription() {
+    @Test("fileSystemError wraps the underlying description")
+    func fileSystemErrorWrapsUnderlyingDescription() {
         let underlying = NSError(domain: "Test", code: 2, userInfo: [NSLocalizedDescriptionKey: "no permission"])
-        XCTAssertEqual(
-            MeterKeeperError.fileSystemError(underlying).errorDescription,
+        #expect(
+            MeterKeeperError.fileSystemError(underlying).errorDescription ==
             "File system error: no permission"
         )
     }
 
-    func testNotFoundIncludesTheItemName() {
-        XCTAssertEqual(MeterKeeperError.notFound("Building").errorDescription, "Building not found")
+    @Test("notFound includes the item name")
+    func notFoundIncludesTheItemName() {
+        #expect(MeterKeeperError.notFound("Building").errorDescription == "Building not found")
     }
 
-    func testUnknownWrapsUnderlyingDescription() {
+    @Test("unknown wraps the underlying description")
+    func unknownWrapsUnderlyingDescription() {
         let underlying = NSError(domain: "Test", code: 3, userInfo: [NSLocalizedDescriptionKey: "mystery"])
-        XCTAssertEqual(
-            MeterKeeperError.unknown(underlying).errorDescription,
+        #expect(
+            MeterKeeperError.unknown(underlying).errorDescription ==
             "An unknown error occurred: mystery"
         )
     }

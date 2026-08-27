@@ -8,14 +8,12 @@
 //
 
 import UIKit
-import os.log
 
 class ReadingsMainViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
     var viewModel: ReadingsMainViewModel!
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "ReadingsMainVC")
     
     // MARK: - UI Components
     private lazy var tableView: UITableView = {
@@ -205,9 +203,9 @@ class ReadingsMainViewController: UIViewController {
                 buildingName: viewModel.building.name
             ) { [weak self] result, error in
                 if result == .failed {
-                    self?.logger.error("Email send failed: \(String(describing: error))")
+                    print("Email send failed: \(String(describing: error))")
                 } else {
-                    self?.logger.info("CSV sent successfully")
+                    print("CSV sent successfully")
                 }
             }
         } catch {
@@ -236,7 +234,7 @@ class ReadingsMainViewController: UIViewController {
                 self.mapContainerView.isHidden = false
             }
             
-            logger.info("Showing map for floor \(floor.number)")
+            print("Showing map for floor \(floor.number)")
         } else {
             showAlert(title: "No Map", message: "No map available for this floor")
         }

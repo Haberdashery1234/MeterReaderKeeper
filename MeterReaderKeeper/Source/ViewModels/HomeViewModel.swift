@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import os.log
 
 /// Business logic and repository access for the Home screen.
 ///
@@ -38,8 +37,6 @@ final class HomeViewModel {
     #if DEBUG || TESTING
     private let dataSeeder: DataSeeder
     #endif
-    
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "HomeViewModel")
 
     init(repository: MeterRepositoryProtocol) {
         self.repository = repository
@@ -82,17 +79,17 @@ final class HomeViewModel {
     /// since seeding can mean thousands of individual repository calls,
     /// which would otherwise block the UI for a noticeable stretch of time.
     func seedData(completion: @escaping (Result<SeedOutcome, Error>) -> Void) {
-        DispatchQueue.global(qos: .userInitiated).async { [repository, dataSeeder, logger] in
+        DispatchQueue.global(qos: .userInitiated).async { [repository, dataSeeder] in
             do {
                 let buildingCount = (try? repository.getBuildings())?.count ?? 0
 
                 if buildingCount == 0 {
                     try dataSeeder.seedData()
-                    logger.info("Seeded initial test data")
+                    print("Seeded initial test data")
                     DispatchQueue.main.async { completion(.success(.seededInitialData)) }
                 } else {
                     try dataSeeder.seedMoreReadings()
-                    logger.info("Seeded additional readings")
+                    print("Seeded additional readings")
                     DispatchQueue.main.async { completion(.success(.addedMoreReadings)) }
                 }
             } catch {

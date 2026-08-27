@@ -9,14 +9,12 @@
 //
 
 import UIKit
-import os.log
 
 class ManagementTableViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
     var viewModel: ManagementViewModel!
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "ManagementVC")
     
     private var selectedSegment: ManagementViewModel.Segment {
         ManagementViewModel.Segment(rawValue: segmentedControl.selectedSegmentIndex) ?? .buildings
@@ -127,7 +125,7 @@ class ManagementTableViewController: UIViewController {
     }
     
     @objc private func segmentChanged() {
-        logger.info("Segment changed to index: \(self.segmentedControl.selectedSegmentIndex)")
+        print("Segment changed to index: \(self.segmentedControl.selectedSegmentIndex)")
         tableView.reloadData()
     }
 }

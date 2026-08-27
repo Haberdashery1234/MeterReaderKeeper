@@ -7,14 +7,11 @@
 
 import UIKit
 import MessageUI
-import os.log
 
 /// Service for handling email composition and sending
 class EmailService: NSObject {
     
     static let shared = EmailService()
-    
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "EmailService")
     
     private weak var presentingViewController: UIViewController?
     private var completionHandler: ((MFMailComposeResult, Error?) -> Void)?
@@ -46,7 +43,7 @@ class EmailService: NSObject {
         completion: ((MFMailComposeResult, Error?) -> Void)? = nil
     ) {
         guard MFMailComposeViewController.canSendMail() else {
-            logger.warning("Mail services not available")
+            print("Mail services not available")
             showEmailUnavailableAlert(from: viewController)
             completion?(.failed, EmailError.mailUnavailable)
             return
@@ -65,11 +62,11 @@ class EmailService: NSObject {
            let mimeType = mimeType,
            let fileName = fileName {
             mail.addAttachmentData(attachment, mimeType: mimeType, fileName: fileName)
-            logger.info("Email prepared with attachment: \(fileName) (\(attachment.count) bytes)")
+            print("Email prepared with attachment: \(fileName) (\(attachment.count) bytes)")
         }
         
         viewController.present(mail, animated: true)
-        logger.info("Presented email composer")
+        print("Presented email composer")
     }
     
     /// Convenience method for sending export plist via email
@@ -134,20 +131,20 @@ extension EmailService: MFMailComposeViewControllerDelegate {
         error: Error?
     ) {
         if let error = error {
-            logger.error("Mail compose error: \(error.localizedDescription)")
+            print("Mail compose error: \(error.localizedDescription)")
         }
         
         switch result {
         case .sent:
-            logger.info("Email sent successfully")
+            print("Email sent successfully")
         case .saved:
-            logger.info("Email saved as draft")
+            print("Email saved as draft")
         case .cancelled:
-            logger.info("Email cancelled by user")
+            print("Email cancelled by user")
         case .failed:
-            logger.error("Email send failed")
+            print("Email send failed")
         @unknown default:
-            logger.warning("Unknown mail compose result")
+            print("Unknown mail compose result")
         }
         
         controller.dismiss(animated: true) { [weak self] in

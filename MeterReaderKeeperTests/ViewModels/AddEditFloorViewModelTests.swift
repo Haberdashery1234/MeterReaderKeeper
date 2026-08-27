@@ -3,40 +3,40 @@
 //  MeterReaderKeeperTests
 //
 //  Created on 8/27/26.
+//  Converted from XCTest to Swift Testing on 8/27/26.
 //
 
-import XCTest
+import Testing
+import Foundation
 @testable import MeterReaderKeeper
 
 /// Mirrors `Source/ViewModels/AddEditFloorViewModel.swift`. Uses
-/// `assertThrowsFormValidationError` from `TestSupport/XCTestCase+FormValidationError.swift`.
-final class AddEditFloorViewModelTests: XCTestCase {
+/// `assertThrowsFormValidationError` from
+/// `TestSupport/FormValidationErrorAssertion.swift`.
+@Suite("AddEditFloorViewModel")
+struct AddEditFloorViewModelTests {
 
-    private var repository: SwiftDataMeterRepository!
+    let repository: SwiftDataMeterRepository
 
-    override func setUpWithError() throws {
-        try super.setUpWithError()
+    init() {
         repository = SwiftDataMeterRepository(inMemory: true)
-    }
-
-    override func tearDownWithError() throws {
-        repository = nil
-        try super.tearDownWithError()
     }
 
     // MARK: - Display
 
-    func testAddingFloorDisplayState() throws {
+    @Test("adding a floor shows the add display state")
+    func addingFloorDisplayState() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let viewModel = AddEditFloorViewModel(repository: repository, building: building, floor: nil)
 
-        XCTAssertFalse(viewModel.isEditing)
-        XCTAssertEqual(viewModel.screenTitle, "Add Floor")
-        XCTAssertNil(viewModel.initialFloorNumberText)
-        XCTAssertNil(viewModel.initialMapImageData)
+        #expect(!viewModel.isEditing)
+        #expect(viewModel.screenTitle == "Add Floor")
+        #expect(viewModel.initialFloorNumberText == nil)
+        #expect(viewModel.initialMapImageData == nil)
     }
 
-    func testEditingFloorDisplayState() throws {
+    @Test("editing a floor shows the edit display state")
+    func editingFloorDisplayState() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let mapData = Data([0x01, 0x02, 0x03])
         let floor = try repository.updateFloor(
@@ -45,45 +45,49 @@ final class AddEditFloorViewModelTests: XCTestCase {
         )
         let viewModel = AddEditFloorViewModel(repository: repository, building: building, floor: floor)
 
-        XCTAssertTrue(viewModel.isEditing)
-        XCTAssertEqual(viewModel.screenTitle, "Edit Floor")
-        XCTAssertEqual(viewModel.initialFloorNumberText, "4")
-        XCTAssertEqual(viewModel.initialMapImageData, mapData)
+        #expect(viewModel.isEditing)
+        #expect(viewModel.screenTitle == "Edit Floor")
+        #expect(viewModel.initialFloorNumberText == "4")
+        #expect(viewModel.initialMapImageData == mapData)
     }
 
-    func testInitialMapImageDataIsNilWhenFloorHasNoMap() throws {
+    @Test("initialMapImageData is nil when the floor has no map")
+    func initialMapImageDataIsNilWhenFloorHasNoMap() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let floor = building.floors[0] // auto-created with an empty Data() map
 
         let viewModel = AddEditFloorViewModel(repository: repository, building: building, floor: floor)
 
-        XCTAssertNil(viewModel.initialMapImageData)
+        #expect(viewModel.initialMapImageData == nil)
     }
 
     // MARK: - Building selection
 
-    func testLoadBuildingsAutoSelectsWhenOnlyOneBuildingExists() throws {
+    @Test("loadBuildings auto-selects when only one building exists")
+    func loadBuildingsAutoSelectsWhenOnlyOneBuildingExists() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "Only Building", numberOfFloors: 1, autoCreateFloors: true))
         let viewModel = AddEditFloorViewModel(repository: repository, building: nil, floor: nil)
 
         viewModel.loadBuildings()
 
-        XCTAssertEqual(viewModel.buildings.count, 1)
-        XCTAssertEqual(viewModel.selectedBuilding?.id, building.id)
+        #expect(viewModel.buildings.count == 1)
+        #expect(viewModel.selectedBuilding?.id == building.id)
     }
 
-    func testLoadBuildingsDoesNotAutoSelectWhenMultipleBuildingsExist() throws {
+    @Test("loadBuildings does not auto-select when multiple buildings exist")
+    func loadBuildingsDoesNotAutoSelectWhenMultipleBuildingsExist() throws {
         _ = try repository.addBuilding(MRKBuildingInput(name: "Building A", numberOfFloors: 1, autoCreateFloors: true))
         _ = try repository.addBuilding(MRKBuildingInput(name: "Building B", numberOfFloors: 1, autoCreateFloors: true))
         let viewModel = AddEditFloorViewModel(repository: repository, building: nil, floor: nil)
 
         viewModel.loadBuildings()
 
-        XCTAssertEqual(viewModel.buildings.count, 2)
-        XCTAssertNil(viewModel.selectedBuilding)
+        #expect(viewModel.buildings.count == 2)
+        #expect(viewModel.selectedBuilding == nil)
     }
 
-    func testSelectBuildingAtValidRowUpdatesSelection() throws {
+    @Test("selectBuilding at a valid row updates the selection")
+    func selectBuildingAtValidRowUpdatesSelection() throws {
         _ = try repository.addBuilding(MRKBuildingInput(name: "Building A", numberOfFloors: 1, autoCreateFloors: true))
         _ = try repository.addBuilding(MRKBuildingInput(name: "Building B", numberOfFloors: 1, autoCreateFloors: true))
         let viewModel = AddEditFloorViewModel(repository: repository, building: nil, floor: nil)
@@ -91,33 +95,37 @@ final class AddEditFloorViewModelTests: XCTestCase {
 
         let selected = viewModel.selectBuilding(at: 1)
 
-        XCTAssertEqual(selected?.id, viewModel.buildings[1].id)
-        XCTAssertEqual(viewModel.selectedBuilding?.id, viewModel.buildings[1].id)
+        #expect(selected?.id == viewModel.buildings[1].id)
+        #expect(viewModel.selectedBuilding?.id == viewModel.buildings[1].id)
     }
 
-    func testSelectBuildingAtOutOfBoundsRowReturnsNil() {
+    @Test("selectBuilding at an out-of-bounds row returns nil")
+    func selectBuildingAtOutOfBoundsRowReturnsNil() {
         let viewModel = AddEditFloorViewModel(repository: repository, building: nil, floor: nil)
         viewModel.loadBuildings()
 
-        XCTAssertNil(viewModel.selectBuilding(at: 0))
+        #expect(viewModel.selectBuilding(at: 0) == nil)
     }
 
     // MARK: - save validation
 
-    func testSaveRejectsWhenNoBuildingSelected() {
+    @Test("save rejects when no building is selected")
+    func saveRejectsWhenNoBuildingSelected() {
         let viewModel = AddEditFloorViewModel(repository: repository, building: nil, floor: nil)
 
         assertThrowsFormValidationError(try viewModel.save(floorNumberText: "3", mapImageData: Data()), title: "Missing Building")
     }
 
-    func testSaveRejectsInvalidFloorNumberText() throws {
+    @Test("save rejects invalid floor number text")
+    func saveRejectsInvalidFloorNumberText() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let viewModel = AddEditFloorViewModel(repository: repository, building: building, floor: nil)
 
         assertThrowsFormValidationError(try viewModel.save(floorNumberText: "abc", mapImageData: Data()), title: "Invalid Floor")
     }
 
-    func testSaveRejectsZeroFloorNumber() throws {
+    @Test("save rejects a zero floor number")
+    func saveRejectsZeroFloorNumber() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let viewModel = AddEditFloorViewModel(repository: repository, building: building, floor: nil)
 
@@ -126,22 +134,24 @@ final class AddEditFloorViewModelTests: XCTestCase {
 
     // MARK: - save behavior
 
-    func testSaveAddsNewFloorWhenNotEditing() throws {
+    @Test("save adds a new floor when not editing")
+    func saveAddsNewFloorWhenNotEditing() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let viewModel = AddEditFloorViewModel(repository: repository, building: building, floor: nil)
         let mapData = Data([0xAA])
 
         let saved = try viewModel.save(floorNumberText: "9", mapImageData: mapData)
 
-        XCTAssertEqual(saved.number, 9)
-        XCTAssertEqual(saved.mapImageData, mapData)
-        XCTAssertEqual(saved.buildingID, building.id)
+        #expect(saved.number == 9)
+        #expect(saved.mapImageData == mapData)
+        #expect(saved.buildingID == building.id)
 
         let refreshedBuilding = try repository.getBuildings().first { $0.id == building.id }
-        XCTAssertEqual(refreshedBuilding?.floors.count, 2) // 1 auto-created + 1 new
+        #expect(refreshedBuilding?.floors.count == 2) // 1 auto-created + 1 new
     }
 
-    func testSaveUpdatesExistingFloorWhenEditing() throws {
+    @Test("save updates the existing floor when editing")
+    func saveUpdatesExistingFloorWhenEditing() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let existingFloor = building.floors[0]
         let viewModel = AddEditFloorViewModel(repository: repository, building: building, floor: existingFloor)
@@ -149,11 +159,11 @@ final class AddEditFloorViewModelTests: XCTestCase {
 
         let saved = try viewModel.save(floorNumberText: "7", mapImageData: mapData)
 
-        XCTAssertEqual(saved.id, existingFloor.id)
-        XCTAssertEqual(saved.number, 7)
-        XCTAssertEqual(saved.mapImageData, mapData)
+        #expect(saved.id == existingFloor.id)
+        #expect(saved.number == 7)
+        #expect(saved.mapImageData == mapData)
 
         let refreshedBuilding = try repository.getBuildings().first { $0.id == building.id }
-        XCTAssertEqual(refreshedBuilding?.floors.count, 1) // updated in place, not duplicated
+        #expect(refreshedBuilding?.floors.count == 1) // updated in place, not duplicated
     }
 }

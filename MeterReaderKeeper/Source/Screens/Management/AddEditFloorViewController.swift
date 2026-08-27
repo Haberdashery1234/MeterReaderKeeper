@@ -9,15 +9,12 @@
 //
 
 import UIKit
-import os.log
 
 class AddEditFloorViewController: UIViewController {
     
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
     var viewModel: AddEditFloorViewModel!
-    
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditFloorVC")
     
     // MARK: - UI Components
     private let scrollView: UIScrollView = {
@@ -249,7 +246,7 @@ class AddEditFloorViewController: UIViewController {
         } catch let error as FormValidationError {
             showAlert(title: error.title, message: error.message)
         } catch {
-            logger.error("Failed to save floor: \(error.localizedDescription)")
+            print("Failed to save floor: \(error.localizedDescription)")
             showAlert(title: "Save Failed", message: error.localizedDescription)
         }
     }
@@ -291,7 +288,7 @@ extension AddEditFloorViewController: UIImagePickerControllerDelegate, UINavigat
         if let pickedImage = info[.editedImage] as? UIImage ?? info[.originalImage] as? UIImage {
             currentMapImageView.image = pickedImage
             currentMapImageView.tintColor = nil
-            logger.info("Floor map image selected")
+            print("Floor map image selected")
         }
         
         dismiss(animated: true)

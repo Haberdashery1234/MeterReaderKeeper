@@ -3,43 +3,43 @@
 //  MeterReaderKeeperTests
 //
 //  Created on 8/27/26.
+//  Converted from XCTest to Swift Testing on 8/27/26.
 //
 
-import XCTest
+import Testing
+import Foundation
 @testable import MeterReaderKeeper
 
 /// Mirrors `Source/ViewModels/AddEditMeterViewModel.swift`. Uses
-/// `assertThrowsFormValidationError` from `TestSupport/XCTestCase+FormValidationError.swift`.
-final class AddEditMeterViewModelTests: XCTestCase {
+/// `assertThrowsFormValidationError` from
+/// `TestSupport/FormValidationErrorAssertion.swift`.
+@Suite("AddEditMeterViewModel")
+struct AddEditMeterViewModelTests {
 
-    private var repository: SwiftDataMeterRepository!
+    let repository: SwiftDataMeterRepository
 
-    override func setUpWithError() throws {
-        try super.setUpWithError()
+    init() {
         repository = SwiftDataMeterRepository(inMemory: true)
-    }
-
-    override func tearDownWithError() throws {
-        repository = nil
-        try super.tearDownWithError()
     }
 
     // MARK: - Display
 
-    func testAddingMeterDisplayState() throws {
+    @Test("adding a meter shows the add display state")
+    func addingMeterDisplayState() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let floor = building.floors[0]
         let viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: floor, meter: nil)
 
-        XCTAssertFalse(viewModel.isEditing)
-        XCTAssertEqual(viewModel.screenTitle, "Add Meter")
-        XCTAssertNil(viewModel.initialNameText)
-        XCTAssertNil(viewModel.initialDescriptionText)
-        XCTAssertEqual(viewModel.initialFloorText, "Floor \(floor.number)")
-        XCTAssertNil(viewModel.initialImageData)
+        #expect(!viewModel.isEditing)
+        #expect(viewModel.screenTitle == "Add Meter")
+        #expect(viewModel.initialNameText == nil)
+        #expect(viewModel.initialDescriptionText == nil)
+        #expect(viewModel.initialFloorText == "Floor \(floor.number)")
+        #expect(viewModel.initialImageData == nil)
     }
 
-    func testEditingMeterDisplayState() throws {
+    @Test("editing a meter shows the edit display state")
+    func editingMeterDisplayState() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let floor = building.floors[0]
         let imageData = Data([0x01])
@@ -47,108 +47,119 @@ final class AddEditMeterViewModelTests: XCTestCase {
 
         let viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: floor, meter: meter)
 
-        XCTAssertTrue(viewModel.isEditing)
-        XCTAssertEqual(viewModel.screenTitle, "Edit Meter")
-        XCTAssertEqual(viewModel.initialNameText, "M1")
-        XCTAssertEqual(viewModel.initialDescriptionText, "A meter")
-        XCTAssertEqual(viewModel.initialImageData, imageData)
+        #expect(viewModel.isEditing)
+        #expect(viewModel.screenTitle == "Edit Meter")
+        #expect(viewModel.initialNameText == "M1")
+        #expect(viewModel.initialDescriptionText == "A meter")
+        #expect(viewModel.initialImageData == imageData)
     }
 
-    func testInitialFloorTextIsNilWithNoSelectedFloor() {
+    @Test("initialFloorText is nil with no selected floor")
+    func initialFloorTextIsNilWithNoSelectedFloor() {
         let viewModel = AddEditMeterViewModel(repository: repository, building: nil, floor: nil, meter: nil)
-        XCTAssertNil(viewModel.initialFloorText)
+        #expect(viewModel.initialFloorText == nil)
     }
 
     // MARK: - Loading + selection
 
-    func testLoadBuildingsAndFloorsAutoSelectsSingleBuildingAndItsFloors() throws {
+    @Test("loadBuildingsAndFloors auto-selects a single building and its floors")
+    func loadBuildingsAndFloorsAutoSelectsSingleBuildingAndItsFloors() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "Only Building", numberOfFloors: 3, autoCreateFloors: true))
         let viewModel = AddEditMeterViewModel(repository: repository, building: nil, floor: nil, meter: nil)
 
         viewModel.loadBuildingsAndFloors()
 
-        XCTAssertEqual(viewModel.selectedBuilding?.id, building.id)
-        XCTAssertEqual(viewModel.floors.count, 3)
+        #expect(viewModel.selectedBuilding?.id == building.id)
+        #expect(viewModel.floors.count == 3)
     }
 
-    func testSelectBuildingReloadsFloorsAndClearsSelectedFloor() throws {
+    @Test("selectBuilding reloads floors and clears the selected floor")
+    func selectBuildingReloadsFloorsAndClearsSelectedFloor() throws {
         let buildingA = try repository.addBuilding(MRKBuildingInput(name: "Building A", numberOfFloors: 2, autoCreateFloors: true))
         let buildingB = try repository.addBuilding(MRKBuildingInput(name: "Building B", numberOfFloors: 4, autoCreateFloors: true))
         let viewModel = AddEditMeterViewModel(repository: repository, building: buildingA, floor: buildingA.floors[0], meter: nil)
         viewModel.loadBuildingsAndFloors()
 
-        let indexOfB = try XCTUnwrap(viewModel.buildings.firstIndex { $0.id == buildingB.id })
+        let indexOfB = try #require(viewModel.buildings.firstIndex { $0.id == buildingB.id })
         let selected = viewModel.selectBuilding(at: indexOfB)
 
-        XCTAssertEqual(selected?.id, buildingB.id)
-        XCTAssertEqual(viewModel.floors.count, 4)
-        XCTAssertNil(viewModel.selectedFloor)
+        #expect(selected?.id == buildingB.id)
+        #expect(viewModel.floors.count == 4)
+        #expect(viewModel.selectedFloor == nil)
     }
 
-    func testSelectFloorAtValidRowUpdatesSelection() throws {
+    @Test("selectFloor at a valid row updates the selection")
+    func selectFloorAtValidRowUpdatesSelection() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 3, autoCreateFloors: true))
         let viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: nil, meter: nil)
         viewModel.loadBuildingsAndFloors()
 
         let selected = viewModel.selectFloor(at: 0)
 
-        XCTAssertEqual(selected?.id, viewModel.floors[0].id)
-        XCTAssertEqual(viewModel.selectedFloor?.id, viewModel.floors[0].id)
+        #expect(selected?.id == viewModel.floors[0].id)
+        #expect(viewModel.selectedFloor?.id == viewModel.floors[0].id)
     }
 
-    func testSelectFloorAtOutOfBoundsRowReturnsNil() {
+    @Test("selectFloor at an out-of-bounds row returns nil")
+    func selectFloorAtOutOfBoundsRowReturnsNil() {
         let viewModel = AddEditMeterViewModel(repository: repository, building: nil, floor: nil, meter: nil)
-        XCTAssertNil(viewModel.selectFloor(at: 0))
+        #expect(viewModel.selectFloor(at: 0) == nil)
     }
 
     // MARK: - save validation
 
-    func testSaveRejectsWhenNoBuildingSelected() {
+    @Test("save rejects when no building is selected")
+    func saveRejectsWhenNoBuildingSelected() {
         let viewModel = AddEditMeterViewModel(repository: repository, building: nil, floor: nil, meter: nil)
 
         assertThrowsFormValidationError(try viewModel.save(nameText: "M1", descriptionText: nil, imageData: Data()), title: "Missing Building")
     }
 
-    func testSaveRejectsWhenNoFloorSelected() throws {
+    @Test("save rejects when no floor is selected")
+    func saveRejectsWhenNoFloorSelected() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: nil, meter: nil)
 
         assertThrowsFormValidationError(try viewModel.save(nameText: "M1", descriptionText: nil, imageData: Data()), title: "Missing Floor")
     }
 
-    func testSaveRejectsBlankName() throws {
+    @Test("save rejects a blank name")
+    func saveRejectsBlankName() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: building.floors[0], meter: nil)
 
         assertThrowsFormValidationError(try viewModel.save(nameText: "   ", descriptionText: nil, imageData: Data()), title: "Missing Name")
     }
 
-    func testSaveDefaultsMissingDescriptionToEmptyString() throws {
+    @Test("save defaults a missing description to an empty string")
+    func saveDefaultsMissingDescriptionToEmptyString() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: building.floors[0], meter: nil)
 
         let saved = try viewModel.save(nameText: "M1", descriptionText: nil, imageData: Data())
 
-        XCTAssertEqual(saved.meterDescription, "")
+        #expect(saved.meterDescription == "")
     }
 
     // MARK: - save behavior
 
-    func testSaveAddsNewMeterWhenNotEditing() throws {
+    @Test("save adds a new meter when not editing")
+    func saveAddsNewMeterWhenNotEditing() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let floor = building.floors[0]
         let viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: floor, meter: nil)
 
         let saved = try viewModel.save(nameText: "M1", descriptionText: "A meter", imageData: Data([0x01]))
 
-        XCTAssertEqual(saved.name, "M1")
-        XCTAssertEqual(saved.floorID, floor.id)
+        #expect(saved.name == "M1")
+        #expect(saved.floorID == floor.id)
 
         let refreshedBuilding = try repository.getBuildings().first { $0.id == building.id }
-        XCTAssertEqual(refreshedBuilding?.floors.first?.meters.count, 1)
+        #expect(refreshedBuilding?.floors.first?.meters.count == 1)
     }
 
-    func testSaveUpdatesExistingMeterWhenEditing() throws {
+    @Test("save updates the existing meter when editing")
+    func saveUpdatesExistingMeterWhenEditing() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let floor = building.floors[0]
         let existingMeter = try repository.addMeter(MRKMeterInput(name: "Old Name", description: "Old", imageData: Data(), floorID: floor.id))
@@ -156,21 +167,23 @@ final class AddEditMeterViewModelTests: XCTestCase {
 
         let saved = try viewModel.save(nameText: "New Name", descriptionText: "New", imageData: Data())
 
-        XCTAssertEqual(saved.id, existingMeter.id)
-        XCTAssertEqual(saved.name, "New Name")
+        #expect(saved.id == existingMeter.id)
+        #expect(saved.name == "New Name")
 
         let refreshedBuilding = try repository.getBuildings().first { $0.id == building.id }
-        XCTAssertEqual(refreshedBuilding?.floors.first?.meters.count, 1) // updated, not duplicated
+        #expect(refreshedBuilding?.floors.first?.meters.count == 1) // updated, not duplicated
     }
 
     // MARK: - delete
 
-    func testDeleteWithNoMeterDoesNothing() {
+    @Test("delete with no meter does nothing")
+    func deleteWithNoMeterDoesNothing() throws {
         let viewModel = AddEditMeterViewModel(repository: repository, building: nil, floor: nil, meter: nil)
-        XCTAssertNoThrow(try viewModel.delete())
+        try viewModel.delete()
     }
 
-    func testDeleteRemovesTheMeter() throws {
+    @Test("delete removes the meter")
+    func deleteRemovesTheMeter() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         let floor = building.floors[0]
         let meter = try repository.addMeter(MRKMeterInput(name: "To Delete", description: "", imageData: Data(), floorID: floor.id))
@@ -179,6 +192,6 @@ final class AddEditMeterViewModelTests: XCTestCase {
         try viewModel.delete()
 
         let refreshedBuilding = try repository.getBuildings().first { $0.id == building.id }
-        XCTAssertEqual(refreshedBuilding?.floors.first?.meters.count, 0)
+        #expect(refreshedBuilding?.floors.first?.meters.count == 0)
     }
 }

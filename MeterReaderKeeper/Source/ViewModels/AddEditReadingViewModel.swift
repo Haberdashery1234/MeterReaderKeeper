@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import os.log
 
 /// Business logic and repository access for the Add/Edit Reading screen.
 ///
@@ -18,7 +17,6 @@ import os.log
 final class AddEditReadingViewModel {
 
     private let repository: MeterRepositoryProtocol
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditReadingViewModel")
 
     let meter: MRKMeter
     let floor: MRKFloor
@@ -59,12 +57,10 @@ final class AddEditReadingViewModel {
         let saved: MRKReading
         if let reading = reading {
             saved = try repository.updateReading(id: reading.id, kWh: value)
-            logger.info("Updated reading: \(value) kWh")
         } else {
             let date = Calendar.current.startOfDay(for: Date())
             let input = MRKReadingInput(kWh: value, date: date, meterID: meter.id)
             saved = try repository.addReading(input)
-            logger.info("Added new reading: \(value) kWh for meter: \(self.meter.name)")
         }
         return saved
     }

@@ -7,7 +7,6 @@
 
 import Foundation
 import Combine
-import os.log
 
 /// Business logic and repository access for the Management screen (the
 /// segmented Buildings/Floors/Meters list).
@@ -36,7 +35,6 @@ final class ManagementViewModel {
     }
 
     private let repository: MeterRepositoryProtocol
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "ManagementViewModel")
 
     @Published private(set) var buildings: [MRKBuilding] = []
     @Published private(set) var floorItems: [FloorItem] = []
@@ -64,6 +62,6 @@ final class ManagementViewModel {
             }
         }
 
-        logger.info("Loaded \(self.buildings.count) buildings, \(self.floorItems.count) floors, \(self.meterItems.count) meters")
+        print("Loaded \(self.buildings.count) buildings, \(self.floorItems.count) floors, \(self.meterItems.count) meters")
     }
 }

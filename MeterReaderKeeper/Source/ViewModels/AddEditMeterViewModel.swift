@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import os.log
 
 /// Business logic and repository access for the Add/Edit Meter screen.
 ///
@@ -17,7 +16,6 @@ import os.log
 final class AddEditMeterViewModel {
 
     private let repository: MeterRepositoryProtocol
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "AddEditMeterViewModel")
 
     /// The meter being edited, or `nil` when adding a new one.
     let meter: MRKMeter?
@@ -78,7 +76,7 @@ final class AddEditMeterViewModel {
         selectedBuilding = building
         floors = building.sortedFloors
         selectedFloor = nil
-        logger.info("Building selected: \(building.name)")
+        print("Building selected: \(building.name)")
         return building
     }
 
@@ -87,7 +85,7 @@ final class AddEditMeterViewModel {
         guard floors.indices.contains(row) else { return nil }
         let floor = floors[row]
         selectedFloor = floor
-        logger.info("Floor selected: \(floor.number)")
+        print("Floor selected: \(floor.number)")
         return floor
     }
 
@@ -122,20 +120,20 @@ final class AddEditMeterViewModel {
         let saved: MRKMeter
         if let existingMeter = meter {
             saved = try repository.updateMeter(id: existingMeter.id, input: input)
-            logger.info("Updated meter: \(name)")
+            print("Updated meter: \(name)")
         } else {
             saved = try repository.addMeter(input)
-            logger.info("Created meter: \(name)")
+            print("Created meter: \(name)")
         }
         return saved
     }
 
     func delete() throws {
         guard let meter = meter else {
-            logger.warning("Delete requested but no meter to delete")
+            print("Delete requested but no meter to delete")
             return
         }
         try repository.deleteMeter(id: meter.id)
-        logger.info("Deleted meter: \(meter.name)")
+        print("Deleted meter: \(meter.name)")
     }
 }

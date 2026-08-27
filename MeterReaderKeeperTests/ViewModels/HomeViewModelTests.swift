@@ -3,117 +3,126 @@
 //  MeterReaderKeeperTests
 //
 //  Created on 8/27/26.
+//  Converted from XCTest to Swift Testing on 8/27/26. The completion-
+//  handler-based exportData/seedData tests used to wait via an
+//  XCTestExpectation-backed awaitExportData()/awaitSeedData() helper;
+//  Swift Testing supports genuinely `async` @Test functions, so those
+//  helpers now wrap the completion-based APIs with
+//  withCheckedThrowingContinuation instead. Unlike the XCTest version,
+//  there's no explicit per-call timeout — a hang here just hangs the test
+//  (mirrors how Swift Testing tests are normally written; flagging the
+//  behavior difference rather than silently dropping it).
 //
 
-import XCTest
+import Testing
+import Foundation
 @testable import MeterReaderKeeper
 
 /// Mirrors `Source/ViewModels/HomeViewModel.swift`.
-final class HomeViewModelTests: XCTestCase {
+@Suite("HomeViewModel")
+struct HomeViewModelTests {
 
-    private var repository: SwiftDataMeterRepository!
-    private var viewModel: HomeViewModel!
+    let repository: SwiftDataMeterRepository
+    let viewModel: HomeViewModel
 
-    override func setUpWithError() throws {
-        try super.setUpWithError()
+    init() {
         repository = SwiftDataMeterRepository(inMemory: true)
         viewModel = HomeViewModel(repository: repository)
     }
 
-    override func tearDownWithError() throws {
-        repository = nil
-        viewModel = nil
-        try super.tearDownWithError()
-    }
-
     // MARK: - takeReadingsOutcome
 
-    func testTakeReadingsOutcomeWithNoBuildingsReturnsNoBuildings() {
+    @Test("takeReadingsOutcome returns .noBuildings with no buildings")
+    func takeReadingsOutcomeWithNoBuildingsReturnsNoBuildings() {
         guard case .noBuildings = viewModel.takeReadingsOutcome() else {
-            return XCTFail("Expected .noBuildings")
+            Issue.record("Expected .noBuildings")
+            return
         }
     }
 
-    func testTakeReadingsOutcomeWithOneBuildingReturnsSingleBuilding() throws {
+    @Test("takeReadingsOutcome returns .singleBuilding with one building")
+    func takeReadingsOutcomeWithOneBuildingReturnsSingleBuilding() throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "Only Building", numberOfFloors: 1, autoCreateFloors: true))
 
         guard case .singleBuilding(let returned) = viewModel.takeReadingsOutcome() else {
-            return XCTFail("Expected .singleBuilding")
+            Issue.record("Expected .singleBuilding")
+            return
         }
-        XCTAssertEqual(returned.id, building.id)
+        #expect(returned.id == building.id)
     }
 
-    func testTakeReadingsOutcomeWithMultipleBuildingsReturnsChooseBuilding() throws {
+    @Test("takeReadingsOutcome returns .chooseBuilding with multiple buildings")
+    func takeReadingsOutcomeWithMultipleBuildingsReturnsChooseBuilding() throws {
         _ = try repository.addBuilding(MRKBuildingInput(name: "Building A", numberOfFloors: 1, autoCreateFloors: true))
         _ = try repository.addBuilding(MRKBuildingInput(name: "Building B", numberOfFloors: 1, autoCreateFloors: true))
 
         guard case .chooseBuilding(let returned) = viewModel.takeReadingsOutcome() else {
-            return XCTFail("Expected .chooseBuilding")
+            Issue.record("Expected .chooseBuilding")
+            return
         }
-        XCTAssertEqual(returned.count, 2)
+        #expect(returned.count == 2)
     }
 
     // MARK: - exportData
 
-    func testExportDataReturnsNonEmptyPlistData() throws {
+    @Test("exportData returns non-empty plist data")
+    func exportDataReturnsNonEmptyPlistData() async throws {
         _ = try repository.addBuilding(MRKBuildingInput(name: "Export Building", numberOfFloors: 1, autoCreateFloors: true))
 
-        let data = try awaitExportData()
+        let data = try await awaitExportData()
 
-        XCTAssertFalse(data.isEmpty)
+        #expect(!data.isEmpty)
     }
 
     #if DEBUG || TESTING
     // MARK: - seedData
 
-    func testSeedDataSeedsInitialDataWhenStoreIsEmpty() throws {
-        let outcome = try awaitSeedData()
+    @Test("seedData seeds initial data when the store is empty")
+    func seedDataSeedsInitialDataWhenStoreIsEmpty() async throws {
+        let outcome = try await awaitSeedData()
 
         guard case .seededInitialData = outcome else {
-            return XCTFail("Expected .seededInitialData")
+            Issue.record("Expected .seededInitialData")
+            return
         }
-        XCTAssertFalse(try repository.getBuildings().isEmpty)
+        #expect(!(try repository.getBuildings().isEmpty))
     }
 
-    func testSeedDataAddsMoreReadingsWhenBuildingsAlreadyExist() throws {
+    @Test("seedData adds more readings when buildings already exist")
+    func seedDataAddsMoreReadingsWhenBuildingsAlreadyExist() async throws {
         let building = try repository.addBuilding(MRKBuildingInput(name: "Existing Building", numberOfFloors: 1, autoCreateFloors: true))
         let floor = building.floors[0]
         let meter = try repository.addMeter(MRKMeterInput(name: "M1", description: "", imageData: Data(), floorID: floor.id))
         let readingCountBefore = meter.readings.count
 
-        let outcome = try awaitSeedData()
+        let outcome = try await awaitSeedData()
 
         guard case .addedMoreReadings = outcome else {
-            return XCTFail("Expected .addedMoreReadings")
+            Issue.record("Expected .addedMoreReadings")
+            return
         }
         let refreshedMeter = try repository.getBuildings().first?.floors.first?.meters.first
-        XCTAssertEqual(refreshedMeter?.readings.count, readingCountBefore + 1)
+        #expect(refreshedMeter?.readings.count == readingCountBefore + 1)
     }
     #endif
 
     // MARK: - Async helpers
 
-    private func awaitExportData(timeout: TimeInterval = 10) throws -> Data {
-        let completed = expectation(description: "exportData completes")
-        var result: Result<Data, Error>!
-        viewModel.exportData { completionResult in
-            result = completionResult
-            completed.fulfill()
+    private func awaitExportData() async throws -> Data {
+        try await withCheckedThrowingContinuation { continuation in
+            viewModel.exportData { result in
+                continuation.resume(with: result)
+            }
         }
-        wait(for: [completed], timeout: timeout)
-        return try result.get()
     }
 
     #if DEBUG || TESTING
-    private func awaitSeedData(timeout: TimeInterval = 30) throws -> HomeViewModel.SeedOutcome {
-        let completed = expectation(description: "seedData completes")
-        var result: Result<HomeViewModel.SeedOutcome, Error>!
-        viewModel.seedData { completionResult in
-            result = completionResult
-            completed.fulfill()
+    private func awaitSeedData() async throws -> HomeViewModel.SeedOutcome {
+        try await withCheckedThrowingContinuation { continuation in
+            viewModel.seedData { result in
+                continuation.resume(with: result)
+            }
         }
-        wait(for: [completed], timeout: timeout)
-        return try result.get()
     }
     #endif
 }
