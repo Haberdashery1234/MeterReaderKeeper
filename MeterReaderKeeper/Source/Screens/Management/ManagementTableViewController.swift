@@ -53,8 +53,10 @@ class ManagementTableViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        viewModel.loadData()
-        tableView.reloadData()
+        Task { @MainActor in
+            await viewModel.loadData()
+            tableView.reloadData()
+        }
     }
     
     // MARK: - Setup

@@ -3,6 +3,7 @@
 //  MeterReaderKeeper
 //
 //  Created by MVVM Refactor on 8/26/26.
+//  Converted to async/await + @MainActor on 8/27/26.
 //
 
 import Foundation
@@ -15,6 +16,7 @@ import Foundation
 /// Map image *encoding* (UIImage -> JPEG data) stays in the view controller
 /// since `UIImage` is a UIKit type; this type only accepts and hands back
 /// raw `Data`.
+@MainActor
 final class AddEditFloorViewModel {
 
     private let repository: MeterRepositoryProtocol
@@ -25,7 +27,7 @@ final class AddEditFloorViewModel {
     private(set) var buildings: [MRKBuilding] = []
     private(set) var selectedBuilding: MRKBuilding?
 
-    init(repository: MeterRepositoryProtocol, building: MRKBuilding?, floor: MRKFloor?) {
+    nonisolated init(repository: MeterRepositoryProtocol, building: MRKBuilding?, floor: MRKFloor?) {
         self.repository = repository
         self.floor = floor
         self.selectedBuilding = building
@@ -55,8 +57,8 @@ final class AddEditFloorViewModel {
     /// Loads every building for the picker. If the screen wasn't handed a
     /// building by the coordinator and there's exactly one building in the
     /// app, it's auto-selected — matching the original screen's behavior.
-    func loadBuildings() {
-        buildings = (try? repository.getBuildings()) ?? []
+    func loadBuildings() async {
+        buildings = (try? await repository.getBuildings()) ?? []
         if selectedBuilding == nil, buildings.count == 1 {
             selectedBuilding = buildings[0]
         }
@@ -73,7 +75,7 @@ final class AddEditFloorViewModel {
     // MARK: - Save
 
     @discardableResult
-    func save(floorNumberText: String?, mapImageData: Data) throws -> MRKFloor {
+    func save(floorNumberText: String?, mapImageData: Data) async throws -> MRKFloor {
         guard let building = selectedBuilding else {
             throw FormValidationError(title: "Missing Building", message: "Please select a building")
         }
@@ -90,9 +92,9 @@ final class AddEditFloorViewModel {
 
         let saved: MRKFloor
         if let existingFloor = floor {
-            saved = try repository.updateFloor(id: existingFloor.id, input: input)
+            saved = try await repository.updateFloor(id: existingFloor.id, input: input)
         } else {
-            saved = try repository.addFloor(input)
+            saved = try await repository.addFloor(input)
         }
 
         print("Saved floor \(floorNumber) for building \(building.name)")

@@ -8,6 +8,11 @@
 //  Randomness made injectable for deterministic unit testing on 8/27/26.
 //  seedData() switched to a bundled JSON fixture (SeedFixture.json), shared
 //  verbatim with the unit test target, on 8/27/26.
+//  Converted to async throws to match the repository's ModelActor-backed
+//  MeterRepositoryProtocol on 8/27/26 — this also means the thousands of
+//  individual repository calls seedData() makes now genuinely happen on the
+//  repository's own actor, so the manual DispatchQueue.global backgrounding
+//  that used to live in HomeViewModel.seedData(completion:) is gone too.
 //
 
 #if DEBUG || TESTING
@@ -45,34 +50,34 @@ class DataSeeder {
     /// exactly the same known values.
     ///
     /// This makes one repository call per building/floor/meter/reading —
-    /// several thousand calls for the full fixture — so callers should run
-    /// it off the main thread (see `HomeViewModel.seedData(completion:)`,
-    /// which backgrounds it the same way `exportData(completion:)` already
-    /// backgrounds export).
-    func seedData() throws {
+    /// several thousand calls for the full fixture — each of which now
+    /// genuinely suspends onto the repository's own `ModelActor`, so callers
+    /// don't need to background this themselves (see
+    /// `HomeViewModel.seedData()`).
+    func seedData() async throws {
         print("Starting data seeding...")
 
         let fixture = try Self.loadFixture()
         let today = Calendar.current.startOfDay(for: Date())
 
         for building in fixture.buildings {
-            let newBuilding = try repository.addBuilding(
+            let newBuilding = try await repository.addBuilding(
                 MRKBuildingInput(name: building.name, numberOfFloors: Int16(building.floors.count), autoCreateFloors: false)
             )
 
             for floorFixture in building.floors {
-                let floor = try repository.addFloor(
+                let floor = try await repository.addFloor(
                     MRKFloorInput(number: floorFixture.number, mapImageData: Data(), buildingID: newBuilding.id)
                 )
 
                 for meterFixture in floorFixture.meters {
-                    let meter = try repository.addMeter(
+                    let meter = try await repository.addMeter(
                         MRKMeterInput(name: meterFixture.name, description: meterFixture.description, imageData: Data(), floorID: floor.id)
                     )
 
                     for readingFixture in meterFixture.readings {
                         let date = Calendar.current.date(byAdding: .day, value: -readingFixture.daysAgo, to: today) ?? today
-                        _ = try repository.addReading(MRKReadingInput(kWh: readingFixture.kWh, date: date, meterID: meter.id))
+                        _ = try await repository.addReading(MRKReadingInput(kWh: readingFixture.kWh, date: date, meterID: meter.id))
                     }
                 }
             }
@@ -82,16 +87,16 @@ class DataSeeder {
     }
 
     /// Adds one additional reading, dated today, to every existing meter.
-    func seedMoreReadings() throws {
+    func seedMoreReadings() async throws {
         let date = Calendar.current.startOfDay(for: Date())
 
         var readingCount = 0
 
-        for building in try repository.getBuildings() {
+        for building in try await repository.getBuildings() {
             for floor in building.floors {
                 for meter in floor.meters {
                     let kWh = Double.random(in: Self.additionalReadingKWhRange, using: &rng)
-                    _ = try repository.addReading(MRKReadingInput(kWh: kWh, date: date, meterID: meter.id))
+                    _ = try await repository.addReading(MRKReadingInput(kWh: kWh, date: date, meterID: meter.id))
                     readingCount += 1
                 }
             }
@@ -113,4 +118,3 @@ class DataSeeder {
     }
 }
 #endif // DEBUG || TESTING
-

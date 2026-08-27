@@ -4,6 +4,9 @@
 //
 //  Created on 8/27/26.
 //  Converted from XCTest to Swift Testing on 8/27/26.
+//  Converted to async throws on 8/27/26 when DataSeeder.seedData()/
+//  seedMoreReadings() became async (see "Proper concurrency" migration
+//  note).
 //
 
 import Testing
@@ -27,8 +30,8 @@ struct DataSeederTests {
     let fixture: SeededRepositoryFixture
     let expectedFixture: SeedFixture
 
-    init() throws {
-        fixture = try SeededRepositoryFixture()
+    init() async throws {
+        fixture = try await SeededRepositoryFixture()
         // Loading this can throw for real (a missing/malformed
         // SeedFixture.json), and letting that propagate straight out of
         // `init()` fails every test in this suite clearly — no need for
@@ -111,27 +114,27 @@ struct DataSeederTests {
     }
 
     /// `DataSeeder.seedData()` has no built-in guard against being called
-    /// against a store that already has data — `HomeViewModel.seedData` is
+    /// against a store that already has data — `HomeViewModel.seedData()` is
     /// what decides whether to seed initial data or add readings, by
     /// checking building count first. This documents that assumption.
     @Test("seedData is not idempotent")
-    func seedDataIsNotIdempotent() throws {
-        try fixture.dataSeeder.seedData()
-        let buildingsAfterSecondSeed = try fixture.repository.getBuildings()
+    func seedDataIsNotIdempotent() async throws {
+        try await fixture.dataSeeder.seedData()
+        let buildingsAfterSecondSeed = try await fixture.repository.getBuildings()
         #expect(buildingsAfterSecondSeed.count == expectedFixture.buildings.count * 2)
     }
 
     @Test("seedMoreReadings adds exactly one reading per meter")
-    func seedMoreReadingsAddsExactlyOneReadingPerMeter() throws {
+    func seedMoreReadingsAddsExactlyOneReadingPerMeter() async throws {
         let meterCountBefore = fixture.seededBuildings.reduce(0) { $0 + $1.totalMeterCount }
         let readingCountBefore = fixture.seededBuildings
             .flatMap { $0.floors }
             .flatMap { $0.meters }
             .reduce(0) { $0 + $1.readings.count }
 
-        try fixture.dataSeeder.seedMoreReadings()
+        try await fixture.dataSeeder.seedMoreReadings()
 
-        let buildingsAfter = try fixture.repository.getBuildings()
+        let buildingsAfter = try await fixture.repository.getBuildings()
         let meterCountAfter = buildingsAfter.reduce(0) { $0 + $1.totalMeterCount }
         let metersAfter = buildingsAfter.flatMap { $0.floors }.flatMap { $0.meters }
         let readingCountAfter = metersAfter.reduce(0) { $0 + $1.readings.count }

@@ -10,6 +10,10 @@
 //  doesn't have that inheritance convention, so this now *composes* a
 //  `SeededRepositoryFixture` (see TestSupport) instead of subclassing
 //  anything. See that type's doc comment for why.
+//  Converted to async throws on 8/27/26 when SwiftDataMeterRepository
+//  became a ModelActor (see "Proper concurrency" migration note) — this is
+//  the first real check (compiler included, once Christian builds this) of
+//  whether that actor conversion actually behaves the way it's assumed to.
 //
 
 import Testing
@@ -19,16 +23,16 @@ import Foundation
 /// Exercises `SwiftDataMeterRepository` against `DataSeeder`'s fixture
 /// data. This was the first real check (compiler included) of whether the
 /// Core Data -> SwiftData migration's `@Relationship(inverse:)` cascade
-/// deletes, the `#Predicate` id lookups, and the manual `ModelContext`
-/// queue confinement actually behave the way the migration assumed they
-/// would — none of it had ever been built or run before these existed.
+/// deletes, the `#Predicate` id lookups, and (now) the `@ModelActor`
+/// conversion actually behave the way the migration assumed they would —
+/// none of it had ever been built or run before these existed.
 @Suite("SwiftDataMeterRepository")
 struct SwiftDataMeterRepositoryTests {
 
     let fixture: SeededRepositoryFixture
 
-    init() throws {
-        fixture = try SeededRepositoryFixture()
+    init() async throws {
+        fixture = try await SeededRepositoryFixture()
     }
 
     @Test("getBuildings sorts by name")
@@ -47,31 +51,31 @@ struct SwiftDataMeterRepositoryTests {
     }
 
     @Test("deleting a building removes it and cascades to its meters")
-    func deleteBuildingRemovesItAndCascadesToItsMeters() throws {
+    func deleteBuildingRemovesItAndCascadesToItsMeters() async throws {
         let buildingToDelete = try #require(fixture.seededBuildings.first)
         let orphanedMeterID = try #require(buildingToDelete.floors.flatMap({ $0.meters }).first?.id)
 
-        try fixture.repository.deleteBuilding(id: buildingToDelete.id)
+        try await fixture.repository.deleteBuilding(id: buildingToDelete.id)
 
-        let remainingBuildings = try fixture.repository.getBuildings()
+        let remainingBuildings = try await fixture.repository.getBuildings()
         #expect(!remainingBuildings.contains { $0.id == buildingToDelete.id })
         #expect(remainingBuildings.count == fixture.seededBuildings.count - 1)
 
         // If the cascade rule didn't actually remove the meters under the
         // deleted building, this meter would still be findable.
-        #expect(throws: (any Error).self) {
-            try fixture.repository.addReading(MRKReadingInput(kWh: 100, date: Date(), meterID: orphanedMeterID))
+        await #expect(throws: (any Error).self) {
+            try await fixture.repository.addReading(MRKReadingInput(kWh: 100, date: Date(), meterID: orphanedMeterID))
         }
     }
 
     @Test("updating a meter's floor moves it and updates both sides of the relationship")
-    func updateMeterMovesItBetweenFloorsAndUpdatesBothSides() throws {
+    func updateMeterMovesItBetweenFloorsAndUpdatesBothSides() async throws {
         let building = try #require(fixture.seededBuildings.first(where: { $0.floors.count >= 2 }))
         let sourceFloor = try #require(building.floors.first(where: { !$0.meters.isEmpty }))
         let meter = try #require(sourceFloor.meters.first)
         let destinationFloor = try #require(building.floors.first(where: { $0.id != sourceFloor.id }))
 
-        _ = try fixture.repository.updateMeter(
+        _ = try await fixture.repository.updateMeter(
             id: meter.id,
             input: MRKMeterInput(
                 name: meter.name,
@@ -81,7 +85,7 @@ struct SwiftDataMeterRepositoryTests {
             )
         )
 
-        let refreshedBuilding = try #require(try fixture.repository.getBuildings().first(where: { $0.id == building.id }))
+        let refreshedBuilding = try #require(try await fixture.repository.getBuildings().first(where: { $0.id == building.id }))
         let refreshedSourceFloor = refreshedBuilding.floors.first { $0.id == sourceFloor.id }
         let refreshedDestinationFloor = refreshedBuilding.floors.first { $0.id == destinationFloor.id }
 
@@ -96,40 +100,40 @@ struct SwiftDataMeterRepositoryTests {
     }
 
     @Test("adding a reading rejects negative kWh")
-    func addReadingRejectsNegativeKWh() throws {
+    func addReadingRejectsNegativeKWh() async throws {
         let meter = try #require(fixture.seededBuildings.first?.floors.first?.meters.first)
 
-        #expect(throws: (any Error).self) {
-            try fixture.repository.addReading(MRKReadingInput(kWh: -1, date: Date(), meterID: meter.id))
+        await #expect(throws: (any Error).self) {
+            try await fixture.repository.addReading(MRKReadingInput(kWh: -1, date: Date(), meterID: meter.id))
         }
     }
 
     @Test("adding a reading rejects a future date")
-    func addReadingRejectsFutureDate() throws {
+    func addReadingRejectsFutureDate() async throws {
         let meter = try #require(fixture.seededBuildings.first?.floors.first?.meters.first)
         let tomorrow = try #require(Calendar.current.date(byAdding: .day, value: 1, to: Date()))
 
-        #expect(throws: (any Error).self) {
-            try fixture.repository.addReading(MRKReadingInput(kWh: 100, date: tomorrow, meterID: meter.id))
+        await #expect(throws: (any Error).self) {
+            try await fixture.repository.addReading(MRKReadingInput(kWh: 100, date: tomorrow, meterID: meter.id))
         }
     }
 
     @Test("updating a reading changes its value and re-dates it to today")
-    func updateReadingChangesValueAndRedatesToToday() throws {
+    func updateReadingChangesValueAndRedatesToToday() async throws {
         let meter = try #require(fixture.seededBuildings.first?.floors.first?.meters.first)
         let existingReading = try #require(meter.sortedReadings.first)
 
-        let updated = try fixture.repository.updateReading(id: existingReading.id, kWh: 42)
+        let updated = try await fixture.repository.updateReading(id: existingReading.id, kWh: 42)
 
         #expect(updated.kWh == 42)
         #expect(updated.date == Calendar.current.startOfDay(for: Date()))
     }
 
     @Test("operating on a missing ID throws not-found")
-    func operatingOnAMissingIDThrowsNotFound() {
-        #expect(throws: (any Error).self) { try fixture.repository.deleteBuilding(id: UUID()) }
-        #expect(throws: (any Error).self) { try fixture.repository.deleteMeter(id: UUID()) }
-        #expect(throws: (any Error).self) { try fixture.repository.updateReading(id: UUID(), kWh: 1) }
+    func operatingOnAMissingIDThrowsNotFound() async {
+        await #expect(throws: (any Error).self) { try await fixture.repository.deleteBuilding(id: UUID()) }
+        await #expect(throws: (any Error).self) { try await fixture.repository.deleteMeter(id: UUID()) }
+        await #expect(throws: (any Error).self) { try await fixture.repository.updateReading(id: UUID(), kWh: 1) }
     }
 
     /// Unlike every other test here, this one deliberately ignores
@@ -138,8 +142,8 @@ struct SwiftDataMeterRepositoryTests {
     /// smoke-test, which tested exactly this and had no home of its own
     /// once the "one file per tested class" convention was adopted.
     @Test("a fresh in-memory repository starts empty")
-    func freshInMemoryRepositoryStartsEmpty() throws {
+    func freshInMemoryRepositoryStartsEmpty() async throws {
         let freshRepository = SwiftDataMeterRepository(inMemory: true)
-        #expect(try freshRepository.getBuildings().count == 0)
+        #expect(try await freshRepository.getBuildings().count == 0)
     }
 }

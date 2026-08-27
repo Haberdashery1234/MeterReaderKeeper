@@ -5,6 +5,8 @@
 //  Created on 8/27/26 (Swift Testing migration pilot; became the
 //  permanent replacement for SeededRepositoryTestCase once the XCTest ->
 //  Swift Testing migration finished the same day).
+//  init() became async throws on 8/27/26 when SwiftDataMeterRepository
+//  was converted to a ModelActor (see "Proper concurrency" migration note).
 //
 
 import Foundation
@@ -24,7 +26,7 @@ import Foundation
 /// inherit from.
 ///
 /// Usage: a suite type holds `let fixture: SeededRepositoryFixture`,
-/// created in its own `init() throws { fixture = try SeededRepositoryFixture() }`,
+/// created in its own `init() async throws { fixture = try await SeededRepositoryFixture() }`,
 /// and reads `fixture.repository` / `fixture.dataSeeder` / `fixture.seededBuildings`.
 /// Every suite that does this still gets its own fully independent
 /// in-memory store — nothing here is shared across tests, same as the
@@ -40,13 +42,13 @@ struct SeededRepositoryFixture {
     let dataSeeder: DataSeeder
     let seededBuildings: [MRKBuilding]
 
-    init() throws {
+    init() async throws {
         let repository = SwiftDataMeterRepository(inMemory: true)
         let dataSeeder = DataSeeder(repository: repository, rng: SeededGenerator(seed: Self.fixedSeed))
-        try dataSeeder.seedData()
+        try await dataSeeder.seedData()
 
         self.repository = repository
         self.dataSeeder = dataSeeder
-        self.seededBuildings = try repository.getBuildings()
+        self.seededBuildings = try await repository.getBuildings()
     }
 }

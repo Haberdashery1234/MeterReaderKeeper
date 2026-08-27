@@ -3,6 +3,7 @@
 //  MeterReaderKeeper
 //
 //  Created by MVVM Refactor on 8/26/26.
+//  Converted to async/await + @MainActor on 8/27/26.
 //
 
 import Foundation
@@ -11,6 +12,7 @@ import Foundation
 /// loading every reading across all buildings, the four cascading filter
 /// pickers (Date / Building / Floor / Meter), and the filtered, sorted
 /// list the table displays.
+@MainActor
 final class PreviousReadingsViewModel {
 
     enum FilterSegment: Int, CaseIterable {
@@ -39,14 +41,14 @@ final class PreviousReadingsViewModel {
     /// to carry its own meter/floor/building references.
     private var meterDisplayInfo: [UUID: (name: String, location: String)] = [:]
 
-    init(repository: MeterRepositoryProtocol) {
+    nonisolated init(repository: MeterRepositoryProtocol) {
         self.repository = repository
     }
 
     // MARK: - Loading
 
-    func loadData() {
-        buildings = (try? repository.getBuildings()) ?? []
+    func loadData() async {
+        buildings = (try? await repository.getBuildings()) ?? []
 
         var displayInfo: [UUID: (name: String, location: String)] = [:]
         var allReadingDates = Set<Date>()

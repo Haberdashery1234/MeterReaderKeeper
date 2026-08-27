@@ -4,6 +4,8 @@
 //
 //  Created on 8/27/26.
 //  Converted from XCTest to Swift Testing on 8/27/26.
+//  Converted to async on 8/27/26 when ManagementViewModel.loadData()
+//  became async (see "Proper concurrency" migration note).
 //
 
 import Testing
@@ -28,8 +30,8 @@ struct ManagementViewModelTests {
     }
 
     @Test("loadData with no buildings leaves everything empty")
-    func loadDataWithNoBuildingsLeavesEverythingEmpty() {
-        viewModel.loadData()
+    func loadDataWithNoBuildingsLeavesEverythingEmpty() async {
+        await viewModel.loadData()
 
         #expect(viewModel.buildings.isEmpty)
         #expect(viewModel.floorItems.isEmpty)
@@ -38,13 +40,13 @@ struct ManagementViewModelTests {
     }
 
     @Test("loadData flattens floors and meters across buildings")
-    func loadDataFlattensFloorsAndMetersAcrossBuildings() throws {
-        let buildingA = try repository.addBuilding(MRKBuildingInput(name: "Building A", numberOfFloors: 2, autoCreateFloors: true))
-        let buildingB = try repository.addBuilding(MRKBuildingInput(name: "Building B", numberOfFloors: 1, autoCreateFloors: true))
-        _ = try repository.addMeter(MRKMeterInput(name: "M1", description: "", imageData: Data(), floorID: buildingA.floors[0].id))
-        _ = try repository.addMeter(MRKMeterInput(name: "M2", description: "", imageData: Data(), floorID: buildingB.floors[0].id))
+    func loadDataFlattensFloorsAndMetersAcrossBuildings() async throws {
+        let buildingA = try await repository.addBuilding(MRKBuildingInput(name: "Building A", numberOfFloors: 2, autoCreateFloors: true))
+        let buildingB = try await repository.addBuilding(MRKBuildingInput(name: "Building B", numberOfFloors: 1, autoCreateFloors: true))
+        _ = try await repository.addMeter(MRKMeterInput(name: "M1", description: "", imageData: Data(), floorID: buildingA.floors[0].id))
+        _ = try await repository.addMeter(MRKMeterInput(name: "M2", description: "", imageData: Data(), floorID: buildingB.floors[0].id))
 
-        viewModel.loadData()
+        await viewModel.loadData()
 
         #expect(viewModel.buildings.count == 2)
         #expect(viewModel.floorItems.count == 3) // 2 + 1 floors

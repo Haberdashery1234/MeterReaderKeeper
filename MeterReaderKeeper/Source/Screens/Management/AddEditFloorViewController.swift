@@ -203,21 +203,23 @@ class AddEditFloorViewController: UIViewController {
     }
     
     private func populateData() {
-        viewModel.loadBuildings()
-        buildingTextField.text = viewModel.selectedBuilding?.name
-        
-        if viewModel.isEditing {
-            floorTextField.text = viewModel.initialFloorNumberText
+        Task { @MainActor in
+            await viewModel.loadBuildings()
+            buildingTextField.text = viewModel.selectedBuilding?.name
+
+            if viewModel.isEditing {
+                floorTextField.text = viewModel.initialFloorNumberText
+            }
+
+            if let mapData = viewModel.initialMapImageData, let mapImage = UIImage(data: mapData) {
+                currentMapImageView.image = mapImage
+            } else {
+                currentMapImageView.image = UIImage(systemName: "map")
+                currentMapImageView.tintColor = .systemGray3
+            }
+
+            title = viewModel.screenTitle
         }
-        
-        if let mapData = viewModel.initialMapImageData, let mapImage = UIImage(data: mapData) {
-            currentMapImageView.image = mapImage
-        } else {
-            currentMapImageView.image = UIImage(systemName: "map")
-            currentMapImageView.tintColor = .systemGray3
-        }
-        
-        title = viewModel.screenTitle
     }
     
     // MARK: - Actions
@@ -240,14 +242,16 @@ class AddEditFloorViewController: UIViewController {
             mapData = image.jpegData(compressionQuality: 0.8) ?? Data()
         }
         
-        do {
-            _ = try viewModel.save(floorNumberText: floorTextField.text, mapImageData: mapData)
-            navigationController?.popViewController(animated: true)
-        } catch let error as FormValidationError {
-            showAlert(title: error.title, message: error.message)
-        } catch {
-            print("Failed to save floor: \(error.localizedDescription)")
-            showAlert(title: "Save Failed", message: error.localizedDescription)
+        Task { @MainActor in
+            do {
+                _ = try await viewModel.save(floorNumberText: floorTextField.text, mapImageData: mapData)
+                navigationController?.popViewController(animated: true)
+            } catch let error as FormValidationError {
+                showAlert(title: error.title, message: error.message)
+            } catch {
+                print("Failed to save floor: \(error.localizedDescription)")
+                showAlert(title: "Save Failed", message: error.localizedDescription)
+            }
         }
     }
     

@@ -188,13 +188,15 @@ class AddEditBuildingViewController: UIViewController {
     
     // MARK: - Actions
     @objc private func saveTapped() {
-        do {
-            _ = try viewModel.save(nameText: nameTextField.text, floorsText: floorsTextField.text)
-            navigationController?.popViewController(animated: true)
-        } catch let error as FormValidationError {
-            showAlert(title: error.title, message: error.message)
-        } catch {
-            showAlert(title: "Save Failed", message: error.localizedDescription)
+        Task { @MainActor in
+            do {
+                _ = try await viewModel.save(nameText: nameTextField.text, floorsText: floorsTextField.text)
+                navigationController?.popViewController(animated: true)
+            } catch let error as FormValidationError {
+                showAlert(title: error.title, message: error.message)
+            } catch {
+                showAlert(title: "Save Failed", message: error.localizedDescription)
+            }
         }
     }
     
@@ -213,11 +215,13 @@ class AddEditBuildingViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
             guard let self = self else { return }
-            do {
-                try self.viewModel.delete()
-                self.navigationController?.popViewController(animated: true)
-            } catch {
-                self.showAlert(title: "Delete Failed", message: error.localizedDescription)
+            Task { @MainActor in
+                do {
+                    try await self.viewModel.delete()
+                    self.navigationController?.popViewController(animated: true)
+                } catch {
+                    self.showAlert(title: "Delete Failed", message: error.localizedDescription)
+                }
             }
         })
         

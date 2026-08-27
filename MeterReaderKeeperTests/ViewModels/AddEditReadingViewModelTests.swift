@@ -4,6 +4,8 @@
 //
 //  Created on 8/27/26.
 //  Converted from XCTest to Swift Testing on 8/27/26.
+//  Converted to async throws on 8/27/26 when AddEditReadingViewModel's
+//  save() became async (see "Proper concurrency" migration note).
 //
 
 import Testing
@@ -21,11 +23,11 @@ struct AddEditReadingViewModelTests {
     let floor: MRKFloor
     let meter: MRKMeter
 
-    init() throws {
+    init() async throws {
         repository = SwiftDataMeterRepository(inMemory: true)
-        building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
+        building = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
         floor = building.floors[0]
-        meter = try repository.addMeter(MRKMeterInput(name: "M1", description: "", imageData: Data(), floorID: floor.id))
+        meter = try await repository.addMeter(MRKMeterInput(name: "M1", description: "", imageData: Data(), floorID: floor.id))
     }
 
     // MARK: - Display
@@ -40,8 +42,8 @@ struct AddEditReadingViewModelTests {
     }
 
     @Test("editing a reading shows the edit display state")
-    func editingReadingDisplayState() throws {
-        let reading = try repository.addReading(MRKReadingInput(kWh: 1234.5, date: Calendar.current.startOfDay(for: Date()), meterID: meter.id))
+    func editingReadingDisplayState() async throws {
+        let reading = try await repository.addReading(MRKReadingInput(kWh: 1234.5, date: Calendar.current.startOfDay(for: Date()), meterID: meter.id))
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: reading)
 
         #expect(viewModel.isEditing)
@@ -52,38 +54,38 @@ struct AddEditReadingViewModelTests {
     // MARK: - save validation
 
     @Test("save rejects missing reading text")
-    func saveRejectsMissingReadingText() {
+    func saveRejectsMissingReadingText() async {
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: nil)
 
-        assertThrowsFormValidationError(try viewModel.save(readingText: nil), title: "Missing Reading")
+        await assertThrowsFormValidationError(try await viewModel.save(readingText: nil), title: "Missing Reading")
     }
 
     @Test("save rejects blank reading text")
-    func saveRejectsBlankReadingText() {
+    func saveRejectsBlankReadingText() async {
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: nil)
 
-        assertThrowsFormValidationError(try viewModel.save(readingText: "   "), title: "Missing Reading")
+        await assertThrowsFormValidationError(try await viewModel.save(readingText: "   "), title: "Missing Reading")
     }
 
     @Test("save rejects non-numeric reading text")
-    func saveRejectsNonNumericReadingText() {
+    func saveRejectsNonNumericReadingText() async {
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: nil)
 
-        assertThrowsFormValidationError(try viewModel.save(readingText: "not-a-number"), title: "Invalid Reading")
+        await assertThrowsFormValidationError(try await viewModel.save(readingText: "not-a-number"), title: "Invalid Reading")
     }
 
     @Test("save rejects a negative reading value")
-    func saveRejectsNegativeReadingValue() {
+    func saveRejectsNegativeReadingValue() async {
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: nil)
 
-        assertThrowsFormValidationError(try viewModel.save(readingText: "-5"), title: "Invalid Reading")
+        await assertThrowsFormValidationError(try await viewModel.save(readingText: "-5"), title: "Invalid Reading")
     }
 
     @Test("save accepts zero")
-    func saveAcceptsZero() throws {
+    func saveAcceptsZero() async throws {
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: nil)
 
-        let saved = try viewModel.save(readingText: "0")
+        let saved = try await viewModel.save(readingText: "0")
 
         #expect(saved.kWh == 0)
     }
@@ -91,10 +93,10 @@ struct AddEditReadingViewModelTests {
     // MARK: - save behavior
 
     @Test("save adds a new reading dated today")
-    func saveAddsNewReadingDatedToday() throws {
+    func saveAddsNewReadingDatedToday() async throws {
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: nil)
 
-        let saved = try viewModel.save(readingText: "15000.25")
+        let saved = try await viewModel.save(readingText: "15000.25")
 
         #expect(saved.kWh == 15000.25)
         #expect(saved.date == Calendar.current.startOfDay(for: Date()))
@@ -102,11 +104,11 @@ struct AddEditReadingViewModelTests {
     }
 
     @Test("save updates an existing reading")
-    func saveUpdatesExistingReading() throws {
-        let existingReading = try repository.addReading(MRKReadingInput(kWh: 100, date: Calendar.current.startOfDay(for: Date()), meterID: meter.id))
+    func saveUpdatesExistingReading() async throws {
+        let existingReading = try await repository.addReading(MRKReadingInput(kWh: 100, date: Calendar.current.startOfDay(for: Date()), meterID: meter.id))
         let viewModel = AddEditReadingViewModel(repository: repository, meter: meter, floor: floor, building: building, reading: existingReading)
 
-        let saved = try viewModel.save(readingText: "999.99")
+        let saved = try await viewModel.save(readingText: "999.99")
 
         #expect(saved.id == existingReading.id)
         #expect(saved.kWh == 999.99)

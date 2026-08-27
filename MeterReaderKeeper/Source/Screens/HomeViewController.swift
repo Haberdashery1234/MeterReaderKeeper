@@ -217,16 +217,18 @@ class HomeViewController: UIViewController {
     
     // MARK: - Actions
     @objc private func takeReadingsTapped() {
-        switch viewModel.takeReadingsOutcome() {
-        case .noBuildings:
-            showAlert(
-                title: "No Buildings",
-                message: "Please add buildings and meters before taking readings."
-            )
-        case .singleBuilding(let building):
-            coordinator?.showReadings(for: building)
-        case .chooseBuilding(let buildings):
-            showBuildingPicker(buildings: buildings)
+        Task { @MainActor in
+            switch await viewModel.takeReadingsOutcome() {
+            case .noBuildings:
+                showAlert(
+                    title: "No Buildings",
+                    message: "Please add buildings and meters before taking readings."
+                )
+            case .singleBuilding(let building):
+                coordinator?.showReadings(for: building)
+            case .chooseBuilding(let buildings):
+                showBuildingPicker(buildings: buildings)
+            }
         }
     }
     
@@ -249,14 +251,15 @@ class HomeViewController: UIViewController {
             spinner.bottomAnchor.constraint(equalTo: loadingAlert.view.bottomAnchor, constant: -20)
         ])
         present(loadingAlert, animated: true)
-        
-        viewModel.exportData { [weak self] result in
-            guard let self = self else { return }
-            loadingAlert.dismiss(animated: true) {
-                switch result {
-                case .success(let plistData):
+
+        Task { @MainActor in
+            do {
+                let plistData = try await viewModel.exportData()
+                loadingAlert.dismiss(animated: true) {
                     self.sendPlist(plistData)
-                case .failure(let error):
+                }
+            } catch {
+                loadingAlert.dismiss(animated: true) {
                     self.showAlert(title: "Export Failed", message: error.localizedDescription)
                 }
             }
@@ -278,19 +281,21 @@ class HomeViewController: UIViewController {
         ])
         present(loadingAlert, animated: true)
 
-        viewModel.seedData { [weak self] result in
-            guard let self = self else { return }
-            self.seedDataButton.isEnabled = true
-            loadingAlert.dismiss(animated: true) {
-                switch result {
-                case .success(let outcome):
+        Task { @MainActor in
+            do {
+                let outcome = try await viewModel.seedData()
+                seedDataButton.isEnabled = true
+                loadingAlert.dismiss(animated: true) {
                     switch outcome {
                     case .seededInitialData:
                         self.showAlert(title: "Success", message: "Test data has been seeded successfully.")
                     case .addedMoreReadings:
                         self.showAlert(title: "Success", message: "Additional readings have been added successfully.")
                     }
-                case .failure(let error):
+                }
+            } catch {
+                seedDataButton.isEnabled = true
+                loadingAlert.dismiss(animated: true) {
                     self.showAlert(title: "Seed Failed", message: error.localizedDescription)
                 }
             }

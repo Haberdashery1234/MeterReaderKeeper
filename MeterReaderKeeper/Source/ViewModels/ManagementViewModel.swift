@@ -3,6 +3,7 @@
 //  MeterReaderKeeper
 //
 //  Created by MVVM Refactor on 8/26/26.
+//  Converted to async/await + @MainActor on 8/27/26.
 //
 
 import Foundation
@@ -13,8 +14,9 @@ import Combine
 ///
 /// The three lists are `@Published` so a subscriber could react to
 /// reloads, though the view controller currently just calls `loadData()`
-/// then reloads its table synchronously in `viewWillAppear`, the same
-/// point the original screen refreshed at.
+/// then reloads its table synchronously right after, the same point the
+/// original screen refreshed at.
+@MainActor
 final class ManagementViewModel {
 
     enum Segment: Int, CaseIterable {
@@ -40,7 +42,7 @@ final class ManagementViewModel {
     @Published private(set) var floorItems: [FloorItem] = []
     @Published private(set) var meterItems: [MeterItem] = []
 
-    init(repository: MeterRepositoryProtocol) {
+    nonisolated init(repository: MeterRepositoryProtocol) {
         self.repository = repository
     }
 
@@ -49,8 +51,8 @@ final class ManagementViewModel {
     /// rule.
     var hasFloors: Bool { !floorItems.isEmpty }
 
-    func loadData() {
-        buildings = (try? repository.getBuildings()) ?? []
+    func loadData() async {
+        buildings = (try? await repository.getBuildings()) ?? []
 
         floorItems = buildings.flatMap { building in
             building.sortedFloors.map { FloorItem(floor: $0, building: building) }

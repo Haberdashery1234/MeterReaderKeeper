@@ -3,6 +3,7 @@
 //  MeterReaderKeeper
 //
 //  Created by MVVM Refactor on 8/26/26.
+//  Converted to async/await + @MainActor on 8/27/26.
 //
 
 import Foundation
@@ -11,6 +12,7 @@ import Foundation
 /// Validation, duplicate-name checking, and the save/delete calls into the
 /// repository all live here; the view controller owns only layout and
 /// presenting the alerts this type's thrown errors describe.
+@MainActor
 final class AddEditBuildingViewModel {
 
     private enum Validation {
@@ -24,7 +26,7 @@ final class AddEditBuildingViewModel {
     /// The building being edited, or `nil` when adding a new one.
     let building: MRKBuilding?
 
-    init(repository: MeterRepositoryProtocol, building: MRKBuilding?) {
+    nonisolated init(repository: MeterRepositoryProtocol, building: MRKBuilding?) {
         self.repository = repository
         self.building = building
     }
@@ -80,8 +82,8 @@ final class AddEditBuildingViewModel {
         return (nameText, floorsInt)
     }
 
-    private func isDuplicateName(_ name: String) -> Bool {
-        let buildings = (try? repository.getBuildings()) ?? []
+    private func isDuplicateName(_ name: String) async -> Bool {
+        let buildings = (try? await repository.getBuildings()) ?? []
         return buildings.contains { $0.name.lowercased() == name.lowercased() }
     }
 
@@ -92,11 +94,11 @@ final class AddEditBuildingViewModel {
     /// case throws a `FormValidationError` describing the limitation,
     /// matching the original screen's behavior exactly.
     @discardableResult
-    func save(nameText: String?, floorsText: String?) throws -> MRKBuilding {
+    func save(nameText: String?, floorsText: String?) async throws -> MRKBuilding {
         let (name, floors) = try validate(nameText: nameText, floorsText: floorsText)
 
         if building == nil || building?.name != name {
-            if isDuplicateName(name) {
+            if await isDuplicateName(name) {
                 throw FormValidationError(
                     title: "Duplicate Name",
                     message: "A building with the name '\(name)' already exists. Please choose a different name."
@@ -113,17 +115,17 @@ final class AddEditBuildingViewModel {
         }
 
         let input = MRKBuildingInput(name: name, numberOfFloors: floors, autoCreateFloors: true)
-        let newBuilding = try repository.addBuilding(input)
+        let newBuilding = try await repository.addBuilding(input)
         print("Successfully created building: \(newBuilding.name)")
         return newBuilding
     }
 
-    func delete() throws {
+    func delete() async throws {
         guard let building = building else {
             print("Delete requested but no building to delete")
             return
         }
-        try repository.deleteBuilding(id: building.id)
+        try await repository.deleteBuilding(id: building.id)
         print("Deleted building: \(building.name)")
     }
 }

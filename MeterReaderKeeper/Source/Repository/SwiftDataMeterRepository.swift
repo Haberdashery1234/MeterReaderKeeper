@@ -3,6 +3,8 @@
 //  MeterReaderKeeper
 //
 //  Created by Core Data -> SwiftData Migration on 8/26/26.
+//  Converted from manual queue confinement to a real ModelActor on 8/27/26
+//  (see "Proper concurrency" migration note in project history).
 //
 
 import Foundation
@@ -16,44 +18,51 @@ import SwiftData
 /// this layer — view models, views — works exclusively with the plain
 /// `MRKBuilding` / `MRKFloor` / `MRKMeter` / `MRKReading` domain structs in
 /// `Model/Domain`. This mirrors `CoreDataMeterRepository`, the Core Data
-/// implementation this one replaces.
+/// implementation this one replaced.
 ///
 /// ## Threading design
 ///
-/// `MeterRepositoryProtocol`'s contract (see that file) is that every
-/// method is synchronous and safe to call from *any* thread — a promise the
-/// Core Data implementation kept via `NSManagedObjectContext.performAndWait`.
-/// SwiftData's `ModelContext` has no equivalent built-in "confine to my own
-/// queue and let any caller block on it" primitive; Apple's documented
-/// pattern for background access is a custom `actor` conforming to
-/// `ModelActor`, with `async` methods.
+/// This type is a real `ModelActor` (via the `@ModelActor` macro) — Apple's
+/// documented pattern for SwiftData background access. The macro
+/// synthesizes a `ModelContext` confined to this actor's own serial
+/// executor, exposed as the `modelContext` property every method below
+/// uses. Every method here is declared as a plain (non-`async`)
+/// actor-isolated `throws` function; that's enough to satisfy
+/// `MeterRepositoryProtocol`'s `async throws` requirements, because calling
+/// *any* actor-isolated method from outside the actor requires `await`
+/// regardless of whether the method itself is marked `async` — the `await`
+/// is what crossing the actor boundary requires, not the function's own
+/// keyword.
 ///
-/// Adopting that would mean turning every `MeterRepositoryProtocol` method
-/// `async`, which ripples into every ViewModel and every View's action
-/// handlers — exactly the blast radius the repository/ViewModel split was
-/// built to avoid when swapping persistence technology. Instead, this type
-/// preserves the original synchronous contract by manually confining a
-/// single long-lived `ModelContext` to a private serial `DispatchQueue` and
-/// running every operation via `queue.sync` — the same "queue confinement"
-/// idea Core Data uses internally, applied by hand. `ModelContext` itself
-/// isn't `@MainActor`-isolated (only `ModelContainer.mainContext` is), so
-/// this is legal; it just isn't the officially blessed `ModelActor` pattern,
-/// and it hasn't been compiled or run anywhere with a real SwiftData stack.
-/// If a future build hits Sendability/actor-isolation compiler errors here,
-/// the fallback is adopting `ModelActor` and making the protocol `async`.
-final class SwiftDataMeterRepository: MeterRepositoryProtocol {
-
-    private let container: ModelContainer
-    private let context: ModelContext
-    private let queue = DispatchQueue(label: "com.meterreaderkeeper.swiftdatarepository", qos: .userInitiated)
+/// This replaces an earlier version of this type that manually confined a
+/// single `ModelContext` to a private serial `DispatchQueue` and ran every
+/// operation via `queue.sync`, to preserve a synchronous protocol contract
+/// inherited from the Core Data implementation. That queue-confinement
+/// trick worked in principle but wasn't the officially blessed approach and
+/// was never verified against a real SwiftData stack. Adopting `ModelActor`
+/// directly removes the need to guess — at the cost of every call site
+/// (every ViewModel, and through them every View) now being `async` too, a
+/// ripple the original migration deliberately avoided and this one accepts
+/// in full.
+@ModelActor
+actor SwiftDataMeterRepository: MeterRepositoryProtocol {
 
     /// - Parameter inMemory: pass `true` (e.g. from unit tests) to back the
     ///   store with an in-memory store instead of the real SQLite file on
     ///   disk.
+    ///
+    /// This delegates to the `init(modelContainer:)` the `@ModelActor`
+    /// macro synthesizes, then disables autosave on the context that
+    /// initializer creates — matching the original repository's philosophy
+    /// of saving exactly when `Self.save(context)` is called, never
+    /// implicitly. This is a plain, non-`async` initializer, so constructing
+    /// this actor (`SwiftDataMeterRepository()` / `SwiftDataMeterRepository(inMemory: true)`)
+    /// stays a normal synchronous call from anywhere, same as before.
     init(inMemory: Bool = false) {
         let schema = Schema([SDBuilding.self, SDFloor.self, SDMeter.self, SDReading.self])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
 
+        let container: ModelContainer
         do {
             container = try ModelContainer(for: schema, configurations: [configuration])
         } catch {
@@ -64,215 +73,187 @@ final class SwiftDataMeterRepository: MeterRepositoryProtocol {
             fatalError("Failed to create SwiftData ModelContainer: \(error)")
         }
 
-        context = ModelContext(container)
-        // Explicit save control only, matching the original repository's
-        // philosophy of saving exactly when `Self.save(context)` is called.
-        context.autosaveEnabled = false
+        self.init(modelContainer: container)
+        modelContext.autosaveEnabled = false
     }
 
     // MARK: - Buildings
 
     func getBuildings() throws -> [MRKBuilding] {
-        try performAndWaitThrowing {
-            let descriptor = FetchDescriptor<SDBuilding>(sortBy: [SortDescriptor(\.name, order: .forward)])
-            let managedBuildings = try context.fetch(descriptor)
-            return managedBuildings.map(Self.mapBuilding)
-        }
+        let descriptor = FetchDescriptor<SDBuilding>(sortBy: [SortDescriptor(\.name, order: .forward)])
+        let managedBuildings = try modelContext.fetch(descriptor)
+        return managedBuildings.map(Self.mapBuilding)
     }
 
     func getBuilding(id: UUID) throws -> MRKBuilding {
-        try performAndWaitThrowing {
-            let building = try Self.findBuilding(id: id, in: context)
-            return Self.mapBuilding(building)
-        }
+        let building = try Self.findBuilding(id: id, in: modelContext)
+        return Self.mapBuilding(building)
     }
 
     func addBuilding(_ input: MRKBuildingInput) throws -> MRKBuilding {
         try input.validate()
-        return try performAndWaitThrowing {
-            let building = SDBuilding(name: input.name)
-            context.insert(building)
+        let building = SDBuilding(name: input.name)
+        modelContext.insert(building)
 
-            if input.autoCreateFloors {
-                for i in 1...input.numberOfFloors {
-                    let floor = SDFloor(number: i, mapImageData: Data(), building: building)
-                    context.insert(floor)
-                }
+        if input.autoCreateFloors {
+            for i in 1...input.numberOfFloors {
+                let floor = SDFloor(number: i, mapImageData: Data(), building: building)
+                modelContext.insert(floor)
             }
-
-            try Self.save(context)
-            return Self.mapBuilding(building)
         }
+
+        try Self.save(modelContext)
+        return Self.mapBuilding(building)
     }
 
     func deleteBuilding(id: UUID) throws {
-        try performAndWaitThrowing {
-            let building = try Self.findBuilding(id: id, in: context)
-            context.delete(building)
-            try Self.save(context)
-        }
+        let building = try Self.findBuilding(id: id, in: modelContext)
+        modelContext.delete(building)
+        try Self.save(modelContext)
     }
 
     // MARK: - Floors
 
     func addFloor(_ input: MRKFloorInput) throws -> MRKFloor {
-        try performAndWaitThrowing {
-            let building = try Self.findBuilding(id: input.buildingID, in: context)
+        let building = try Self.findBuilding(id: input.buildingID, in: modelContext)
 
-            let floor = SDFloor(number: input.number, mapImageData: input.mapImageData, building: building)
-            context.insert(floor)
+        let floor = SDFloor(number: input.number, mapImageData: input.mapImageData, building: building)
+        modelContext.insert(floor)
 
-            try Self.save(context)
-            return Self.mapFloor(floor)
-        }
+        try Self.save(modelContext)
+        return Self.mapFloor(floor)
     }
 
     func updateFloor(id: UUID, input: MRKFloorInput) throws -> MRKFloor {
-        try performAndWaitThrowing {
-            let floor = try Self.findFloor(id: id, in: context)
-            let building = try Self.findBuilding(id: input.buildingID, in: context)
+        let floor = try Self.findFloor(id: id, in: modelContext)
+        let building = try Self.findBuilding(id: input.buildingID, in: modelContext)
 
-            floor.building = building
-            floor.number = input.number
-            floor.mapImageData = input.mapImageData
+        floor.building = building
+        floor.number = input.number
+        floor.mapImageData = input.mapImageData
 
-            try Self.save(context)
-            return Self.mapFloor(floor)
-        }
+        try Self.save(modelContext)
+        return Self.mapFloor(floor)
     }
 
     // MARK: - Meters
 
     func addMeter(_ input: MRKMeterInput) throws -> MRKMeter {
         try input.validate()
-        return try performAndWaitThrowing {
-            let floor = try Self.findFloor(id: input.floorID, in: context)
+        let floor = try Self.findFloor(id: input.floorID, in: modelContext)
 
-            let meter = SDMeter(
-                name: input.name,
-                meterDescription: input.description,
-                qrString: Self.qrString(buildingName: floor.building?.name ?? "", floorNumber: floor.number, meterName: input.name),
-                imageData: input.imageData,
-                latestReading: Date.distantPast,
-                floor: floor
-            )
-            context.insert(meter)
+        let meter = SDMeter(
+            name: input.name,
+            meterDescription: input.description,
+            qrString: Self.qrString(buildingName: floor.building?.name ?? "", floorNumber: floor.number, meterName: input.name),
+            imageData: input.imageData,
+            latestReading: Date.distantPast,
+            floor: floor
+        )
+        modelContext.insert(meter)
 
-            try Self.save(context)
-            return Self.mapMeter(meter)
-        }
+        try Self.save(modelContext)
+        return Self.mapMeter(meter)
     }
 
     func updateMeter(id: UUID, input: MRKMeterInput) throws -> MRKMeter {
         try input.validate()
-        return try performAndWaitThrowing {
-            let meter = try Self.findMeter(id: id, in: context)
-            let floor = try Self.findFloor(id: input.floorID, in: context)
+        let meter = try Self.findMeter(id: id, in: modelContext)
+        let floor = try Self.findFloor(id: input.floorID, in: modelContext)
 
-            meter.name = input.name
-            meter.meterDescription = input.description
-            meter.imageData = input.imageData
-            meter.floor = floor
-            meter.qrString = Self.qrString(buildingName: floor.building?.name ?? "", floorNumber: floor.number, meterName: input.name)
+        meter.name = input.name
+        meter.meterDescription = input.description
+        meter.imageData = input.imageData
+        meter.floor = floor
+        meter.qrString = Self.qrString(buildingName: floor.building?.name ?? "", floorNumber: floor.number, meterName: input.name)
 
-            try Self.save(context)
-            return Self.mapMeter(meter)
-        }
+        try Self.save(modelContext)
+        return Self.mapMeter(meter)
     }
 
     func deleteMeter(id: UUID) throws {
-        try performAndWaitThrowing {
-            let meter = try Self.findMeter(id: id, in: context)
-            context.delete(meter)
-            try Self.save(context)
-        }
+        let meter = try Self.findMeter(id: id, in: modelContext)
+        modelContext.delete(meter)
+        try Self.save(modelContext)
     }
 
     // MARK: - Readings
 
     func addReading(_ input: MRKReadingInput) throws -> MRKReading {
         try input.validate()
-        return try performAndWaitThrowing {
-            let meter = try Self.findMeter(id: input.meterID, in: context)
+        let meter = try Self.findMeter(id: input.meterID, in: modelContext)
 
-            if input.date > meter.latestReading {
-                meter.latestReading = input.date
-            }
-
-            let reading = SDReading(date: input.date, kWh: input.kWh, meter: meter)
-            context.insert(reading)
-
-            try Self.save(context)
-            return Self.mapReading(reading)
+        if input.date > meter.latestReading {
+            meter.latestReading = input.date
         }
+
+        let reading = SDReading(date: input.date, kWh: input.kWh, meter: meter)
+        modelContext.insert(reading)
+
+        try Self.save(modelContext)
+        return Self.mapReading(reading)
     }
 
     func updateReading(id: UUID, kWh: Double) throws -> MRKReading {
-        try performAndWaitThrowing {
-            let reading = try Self.findReading(id: id, in: context)
-            let date = Calendar.current.startOfDay(for: Date())
+        let reading = try Self.findReading(id: id, in: modelContext)
+        let date = Calendar.current.startOfDay(for: Date())
 
-            reading.kWh = kWh
-            reading.date = date
-            reading.meter?.latestReading = date
+        reading.kWh = kWh
+        reading.date = date
+        reading.meter?.latestReading = date
 
-            try Self.save(context)
-            return Self.mapReading(reading)
-        }
+        try Self.save(modelContext)
+        return Self.mapReading(reading)
     }
 
     // MARK: - Export
 
     func exportAllDataToPlist() throws -> Data {
-        try performAndWaitThrowing {
-            let descriptor = FetchDescriptor<SDBuilding>(sortBy: [SortDescriptor(\.name, order: .forward)])
-            let buildings = try context.fetch(descriptor)
+        let descriptor = FetchDescriptor<SDBuilding>(sortBy: [SortDescriptor(\.name, order: .forward)])
+        let buildings = try modelContext.fetch(descriptor)
 
-            let exportArray = NSMutableArray()
-            for building in buildings {
-                exportArray.add(building.getExportDictionary())
-            }
+        let exportArray = NSMutableArray()
+        for building in buildings {
+            exportArray.add(building.getExportDictionary())
+        }
 
-            let exportURL = try Self.exportPlistURL()
-            do {
-                try exportArray.write(to: exportURL)
-                return try Data(contentsOf: exportURL)
-            } catch {
-                throw MeterKeeperError.fileSystemError(error)
-            }
+        let exportURL = try Self.exportPlistURL()
+        do {
+            try exportArray.write(to: exportURL)
+            return try Data(contentsOf: exportURL)
+        } catch {
+            throw MeterKeeperError.fileSystemError(error)
         }
     }
 
     func getCSVData(forBuilding buildingID: UUID) throws -> Data {
-        try performAndWaitThrowing {
-            let managedBuilding = try Self.findBuilding(id: buildingID, in: context)
-            let building = Self.mapBuilding(managedBuilding)
+        let managedBuilding = try Self.findBuilding(id: buildingID, in: modelContext)
+        let building = Self.mapBuilding(managedBuilding)
 
-            var csvString = "\(building.name)"
-            for floor in building.sortedFloors {
-                csvString.append("\nFloor \(floor.number)\n")
-                for meter in floor.sortedMeters {
-                    guard let latestReading = meter.sortedReadings.first else { continue }
-                    guard latestReading.date == Calendar.current.startOfDay(for: Date()) else { continue }
+        var csvString = "\(building.name)"
+        for floor in building.sortedFloors {
+            csvString.append("\nFloor \(floor.number)\n")
+            for meter in floor.sortedMeters {
+                guard let latestReading = meter.sortedReadings.first else { continue }
+                guard latestReading.date == Calendar.current.startOfDay(for: Date()) else { continue }
 
-                    let formatter = DateFormatter()
-                    formatter.dateStyle = .short
-                    formatter.timeStyle = .none
+                let formatter = DateFormatter()
+                formatter.dateStyle = .short
+                formatter.timeStyle = .none
 
-                    let meterId = Self.qrString(buildingName: building.name, floorNumber: floor.number, meterName: meter.name)
-                    let latestReadingKWH = String(format: "%.2f kWh", latestReading.kWh)
-                    let latestReadingString = formatter.string(from: latestReading.date)
-                    csvString.append(",\(meterId),\(latestReadingKWH),\(latestReadingString)\n")
-                }
+                let meterId = Self.qrString(buildingName: building.name, floorNumber: floor.number, meterName: meter.name)
+                let latestReadingKWH = String(format: "%.2f kWh", latestReading.kWh)
+                let latestReadingString = formatter.string(from: latestReading.date)
+                csvString.append(",\(meterId),\(latestReadingKWH),\(latestReadingString)\n")
             }
-
-            guard let csvData = csvString.data(using: .utf8) else {
-                throw MeterKeeperError.fileSystemError(
-                    NSError(domain: "MeterReaderKeeper", code: -1, userInfo: [NSLocalizedDescriptionKey: "Could not encode CSV data"])
-                )
-            }
-            return csvData
         }
+
+        guard let csvData = csvString.data(using: .utf8) else {
+            throw MeterKeeperError.fileSystemError(
+                NSError(domain: "MeterReaderKeeper", code: -1, userInfo: [NSLocalizedDescriptionKey: "Could not encode CSV data"])
+            )
+        }
+        return csvData
     }
 
     // MARK: - Mapping: SwiftData -> Domain
@@ -382,14 +363,5 @@ final class SwiftDataMeterRepository: MeterRepositoryProtocol {
             )
         }
         return documentDirectoryURL.appendingPathComponent("exportData.plist", isDirectory: false)
-    }
-
-    // MARK: - Queue confinement
-
-    /// Runs `block` synchronously on this repository's dedicated serial
-    /// queue, the only place `context` is ever touched. See the type-level
-    /// doc comment above for why this exists instead of `ModelActor`.
-    private func performAndWaitThrowing<T>(_ block: () throws -> T) throws -> T {
-        try queue.sync { try block() }
     }
 }

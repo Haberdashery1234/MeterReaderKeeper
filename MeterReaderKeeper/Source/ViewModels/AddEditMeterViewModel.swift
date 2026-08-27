@@ -3,6 +3,7 @@
 //  MeterReaderKeeper
 //
 //  Created by MVVM Refactor on 8/26/26.
+//  Converted to async/await + @MainActor on 8/27/26.
 //
 
 import Foundation
@@ -13,6 +14,7 @@ import Foundation
 /// reloads the floor list and clears the floor selection, matching the
 /// original screen), plus validation, save, and delete. Image encoding
 /// stays in the view controller since `UIImage` is a UIKit type.
+@MainActor
 final class AddEditMeterViewModel {
 
     private let repository: MeterRepositoryProtocol
@@ -25,7 +27,7 @@ final class AddEditMeterViewModel {
     private(set) var selectedBuilding: MRKBuilding?
     private(set) var selectedFloor: MRKFloor?
 
-    init(repository: MeterRepositoryProtocol, building: MRKBuilding?, floor: MRKFloor?, meter: MRKMeter?) {
+    nonisolated init(repository: MeterRepositoryProtocol, building: MRKBuilding?, floor: MRKFloor?, meter: MRKMeter?) {
         self.repository = repository
         self.meter = meter
         self.selectedBuilding = building
@@ -59,8 +61,8 @@ final class AddEditMeterViewModel {
     /// Loads buildings (auto-selecting if there's only one, matching the
     /// original screen), then the floor list for whichever building ends
     /// up selected.
-    func loadBuildingsAndFloors() {
-        buildings = (try? repository.getBuildings()) ?? []
+    func loadBuildingsAndFloors() async {
+        buildings = (try? await repository.getBuildings()) ?? []
 
         if selectedBuilding == nil, buildings.count == 1 {
             selectedBuilding = buildings[0]
@@ -112,28 +114,28 @@ final class AddEditMeterViewModel {
     // MARK: - Actions
 
     @discardableResult
-    func save(nameText: String?, descriptionText: String?, imageData: Data) throws -> MRKMeter {
+    func save(nameText: String?, descriptionText: String?, imageData: Data) async throws -> MRKMeter {
         let (floor, name, description) = try validate(nameText: nameText, descriptionText: descriptionText)
 
         let input = MRKMeterInput(name: name, description: description, imageData: imageData, floorID: floor.id)
 
         let saved: MRKMeter
         if let existingMeter = meter {
-            saved = try repository.updateMeter(id: existingMeter.id, input: input)
+            saved = try await repository.updateMeter(id: existingMeter.id, input: input)
             print("Updated meter: \(name)")
         } else {
-            saved = try repository.addMeter(input)
+            saved = try await repository.addMeter(input)
             print("Created meter: \(name)")
         }
         return saved
     }
 
-    func delete() throws {
+    func delete() async throws {
         guard let meter = meter else {
             print("Delete requested but no meter to delete")
             return
         }
-        try repository.deleteMeter(id: meter.id)
+        try await repository.deleteMeter(id: meter.id)
         print("Deleted meter: \(meter.name)")
     }
 }

@@ -3,6 +3,8 @@
 //  MeterReaderKeeper
 //
 //  Created by MVVM Refactor on 8/26/26.
+//  Converted to async/await + @MainActor on 8/27/26 (see "Proper
+//  concurrency" migration note in project history).
 //
 
 import Foundation
@@ -14,6 +16,13 @@ import Foundation
 /// handing off to `EmailService` (which itself presents `MFMailComposeViewController`,
 /// a UIKit type) — since none of that is meaningfully testable business logic.
 /// This type owns deciding *what* to do and talking to the repository.
+///
+/// `@MainActor`: every stored/computed property here is meant to be read
+/// from UIKit, so the whole type is pinned to the main actor. `init` is
+/// `nonisolated` so `AppCoordinator` (a plain, non-actor-isolated type) can
+/// keep constructing this synchronously from its `showXxx` methods, exactly
+/// as before.
+@MainActor
 final class HomeViewModel {
 
     /// What should happen when "Take Readings" is tapped.
@@ -33,20 +42,20 @@ final class HomeViewModel {
     #endif
 
     private let repository: MeterRepositoryProtocol
-    
+
     #if DEBUG || TESTING
     private let dataSeeder: DataSeeder
     #endif
 
-    init(repository: MeterRepositoryProtocol) {
+    nonisolated init(repository: MeterRepositoryProtocol) {
         self.repository = repository
         #if DEBUG || TESTING
         self.dataSeeder = DataSeeder(repository: repository)
         #endif
     }
 
-    func takeReadingsOutcome() -> TakeReadingsOutcome {
-        let buildings = (try? repository.getBuildings()) ?? []
+    func takeReadingsOutcome() async -> TakeReadingsOutcome {
+        let buildings = (try? await repository.getBuildings()) ?? []
 
         if buildings.isEmpty {
             return .noBuildings
@@ -57,44 +66,32 @@ final class HomeViewModel {
         }
     }
 
-    /// Exports all data to a plist. Runs on a background queue and calls
-    /// back on the main queue — matching the original view controller's
-    /// threading — so the caller can drive a loading indicator and safely
-    /// touch UIKit from the completion handler.
-    func exportData(completion: @escaping (Result<Data, Error>) -> Void) {
-        DispatchQueue.global(qos: .userInitiated).async { [repository] in
-            do {
-                let plistData = try repository.exportAllDataToPlist()
-                DispatchQueue.main.async { completion(.success(plistData)) }
-            } catch {
-                DispatchQueue.main.async { completion(.failure(error)) }
-            }
-        }
+    /// Exports all data to a plist. `repository` is a `ModelActor`, so this
+    /// call already suspends onto the repository's own executor while the
+    /// work happens and hops back to the main actor when it's done — no
+    /// manual `DispatchQueue` wrapping needed here anymore (this used to be
+    /// `exportData(completion:)`, backgrounded by hand).
+    func exportData() async throws -> Data {
+        try await repository.exportAllDataToPlist()
     }
 
     #if DEBUG || TESTING
     /// Seeds initial data if there are no buildings yet, otherwise adds
-    /// more readings to what already exists. Runs on a background queue and
-    /// calls back on the main queue — matching `exportData(completion:)` —
-    /// since seeding can mean thousands of individual repository calls,
-    /// which would otherwise block the UI for a noticeable stretch of time.
-    func seedData(completion: @escaping (Result<SeedOutcome, Error>) -> Void) {
-        DispatchQueue.global(qos: .userInitiated).async { [repository, dataSeeder] in
-            do {
-                let buildingCount = (try? repository.getBuildings())?.count ?? 0
+    /// more readings to what already exists. As with `exportData()`, the
+    /// thousands of individual repository calls this can involve run on the
+    /// repository's own actor, not here, so no manual backgrounding is
+    /// needed (this used to be `seedData(completion:)`).
+    func seedData() async throws -> SeedOutcome {
+        let buildingCount = (try? await repository.getBuildings())?.count ?? 0
 
-                if buildingCount == 0 {
-                    try dataSeeder.seedData()
-                    print("Seeded initial test data")
-                    DispatchQueue.main.async { completion(.success(.seededInitialData)) }
-                } else {
-                    try dataSeeder.seedMoreReadings()
-                    print("Seeded additional readings")
-                    DispatchQueue.main.async { completion(.success(.addedMoreReadings)) }
-                }
-            } catch {
-                DispatchQueue.main.async { completion(.failure(error)) }
-            }
+        if buildingCount == 0 {
+            try await dataSeeder.seedData()
+            print("Seeded initial test data")
+            return .seededInitialData
+        } else {
+            try await dataSeeder.seedMoreReadings()
+            print("Seeded additional readings")
+            return .addedMoreReadings
         }
     }
     #endif

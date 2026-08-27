@@ -3,6 +3,7 @@
 //  MeterReaderKeeper
 //
 //  Created by MVVM Refactor on 8/26/26.
+//  Converted to async/await + @MainActor on 8/27/26.
 //
 
 import Foundation
@@ -12,6 +13,7 @@ import Foundation
 /// floor, deciding whether tapping a meter should add or edit today's
 /// reading, and the CSV export call. Map-overlay presentation and the QR
 /// scanner stub stay in the view controller since they're pure UI.
+@MainActor
 final class ReadingsMainViewModel {
 
     enum ReadingRoute {
@@ -26,7 +28,7 @@ final class ReadingsMainViewModel {
     private(set) var floor: MRKFloor?
     private(set) var meters: [MRKMeter]
 
-    init(repository: MeterRepositoryProtocol, building: MRKBuilding) {
+    nonisolated init(repository: MeterRepositoryProtocol, building: MRKBuilding) {
         self.repository = repository
         self.building = building
         let sortedFloors = building.sortedFloors
@@ -49,8 +51,8 @@ final class ReadingsMainViewModel {
     /// Re-fetches the current building from the repository so readings
     /// taken elsewhere (or on a previous visit to this screen) are
     /// reflected, preserving the selected floor if it still exists.
-    func refreshBuilding() {
-        guard let refreshedBuilding = (try? repository.getBuildings())?.first(where: { $0.id == building.id }) else {
+    func refreshBuilding() async {
+        guard let refreshedBuilding = (try? await repository.getBuildings())?.first(where: { $0.id == building.id }) else {
             return
         }
 
@@ -77,7 +79,7 @@ final class ReadingsMainViewModel {
         }
     }
 
-    func getCSVData() throws -> Data {
-        try repository.getCSVData(forBuilding: building.id)
+    func getCSVData() async throws -> Data {
+        try await repository.getCSVData(forBuilding: building.id)
     }
 }

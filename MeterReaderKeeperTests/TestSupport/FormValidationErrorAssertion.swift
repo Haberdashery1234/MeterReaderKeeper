@@ -5,6 +5,8 @@
 //  Created on 8/27/26.
 //  Replaces XCTestCase+FormValidationError.swift (deleted) as part of the
 //  XCTest -> Swift Testing migration, 8/27/26.
+//  Became async on 8/27/26 when every ViewModel's save()/delete() became
+//  async throws (see "Proper concurrency" migration note).
 //
 
 import Testing
@@ -23,13 +25,17 @@ import Testing
 /// — its default (`#_sourceLocation`) captures the caller's location, so a
 /// failure reported here still points at the test that called this, not
 /// at this function itself.
+///
+/// The autoclosure is `async throws` (not just `throws`) so callers can
+/// pass an `await`-ing expression, e.g.
+/// `await assertThrowsFormValidationError(try await viewModel.save(...), title: "...")`.
 func assertThrowsFormValidationError<T>(
-    _ expression: @autoclosure () throws -> T,
+    _ expression: @autoclosure () async throws -> T,
     title: String,
     sourceLocation: SourceLocation = #_sourceLocation
-) {
+) async {
     do {
-        _ = try expression()
+        _ = try await expression()
         Issue.record(
             "Expected FormValidationError to be thrown, but no error was thrown",
             sourceLocation: sourceLocation

@@ -192,14 +192,16 @@ class AddEditReadingViewController: UIViewController {
     }
     
     @objc private func saveTapped() {
-        do {
-            _ = try viewModel.save(readingText: readingTextField.text)
-            navigationController?.popViewController(animated: true)
-        } catch let error as FormValidationError {
-            showAlert(title: error.title, message: error.message)
-        } catch {
-            print("Failed to save reading: \(error.localizedDescription)")
-            showAlert(title: "Save Failed", message: error.localizedDescription)
+        Task { @MainActor in
+            do {
+                _ = try await viewModel.save(readingText: readingTextField.text)
+                navigationController?.popViewController(animated: true)
+            } catch let error as FormValidationError {
+                showAlert(title: error.title, message: error.message)
+            } catch {
+                print("Failed to save reading: \(error.localizedDescription)")
+                showAlert(title: "Save Failed", message: error.localizedDescription)
+            }
         }
     }
     

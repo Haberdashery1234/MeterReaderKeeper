@@ -4,6 +4,8 @@
 //
 //  Created on 8/27/26.
 //  Converted from XCTest to Swift Testing on 8/27/26.
+//  Converted to async throws on 8/27/26 when PreviousReadingsViewModel.loadData()
+//  became async (see "Proper concurrency" migration note).
 //
 
 import Testing
@@ -20,24 +22,24 @@ struct PreviousReadingsViewModelTests {
     let meterA: MRKMeter
     let meterB: MRKMeter
 
-    init() throws {
+    init() async throws {
         repository = SwiftDataMeterRepository(inMemory: true)
         viewModel = PreviousReadingsViewModel(repository: repository)
 
-        buildingA = try repository.addBuilding(MRKBuildingInput(name: "Building A", numberOfFloors: 1, autoCreateFloors: true))
+        buildingA = try await repository.addBuilding(MRKBuildingInput(name: "Building A", numberOfFloors: 1, autoCreateFloors: true))
         let floorA = buildingA.floors[0]
-        meterA = try repository.addMeter(MRKMeterInput(name: "Meter A", description: "", imageData: Data(), floorID: floorA.id))
-        meterB = try repository.addMeter(MRKMeterInput(name: "Meter B", description: "", imageData: Data(), floorID: floorA.id))
+        meterA = try await repository.addMeter(MRKMeterInput(name: "Meter A", description: "", imageData: Data(), floorID: floorA.id))
+        meterB = try await repository.addMeter(MRKMeterInput(name: "Meter B", description: "", imageData: Data(), floorID: floorA.id))
 
         let today = Calendar.current.startOfDay(for: Date())
         let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: today)!
-        _ = try repository.addReading(MRKReadingInput(kWh: 100, date: today, meterID: meterA.id))
-        _ = try repository.addReading(MRKReadingInput(kWh: 200, date: yesterday, meterID: meterB.id))
+        _ = try await repository.addReading(MRKReadingInput(kWh: 100, date: today, meterID: meterA.id))
+        _ = try await repository.addReading(MRKReadingInput(kWh: 200, date: yesterday, meterID: meterB.id))
     }
 
     @Test("loadData populates buildings and unique sorted dates")
-    func loadDataPopulatesBuildingsAndUniqueSortedDates() {
-        viewModel.loadData()
+    func loadDataPopulatesBuildingsAndUniqueSortedDates() async {
+        await viewModel.loadData()
 
         #expect(viewModel.buildings.count == 1)
         #expect(viewModel.dates.count == 2)
@@ -46,10 +48,10 @@ struct PreviousReadingsViewModelTests {
     }
 
     @Test("displayInfo returns the name and location for a known meter")
-    func displayInfoReturnsNameAndLocationForKnownMeter() throws {
-        viewModel.loadData()
+    func displayInfoReturnsNameAndLocationForKnownMeter() async throws {
+        await viewModel.loadData()
         let refreshedMeterA = try #require(
-            repository.getBuildings().first?.floors.first?.meters.first(where: { $0.id == meterA.id })
+            try await repository.getBuildings().first?.floors.first?.meters.first(where: { $0.id == meterA.id })
         )
         let reading = try #require(refreshedMeterA.readings.first)
 
@@ -60,8 +62,8 @@ struct PreviousReadingsViewModelTests {
     }
 
     @Test("applyFilters with no selection returns all readings sorted descending")
-    func applyFiltersWithNoSelectionReturnsAllReadingsSortedDescending() {
-        viewModel.loadData()
+    func applyFiltersWithNoSelectionReturnsAllReadingsSortedDescending() async {
+        await viewModel.loadData()
 
         viewModel.applyFilters(segment: .date)
 
@@ -70,8 +72,8 @@ struct PreviousReadingsViewModelTests {
     }
 
     @Test("selectDate at row zero clears the filter")
-    func selectDateAtRowZeroClearsFilter() {
-        viewModel.loadData()
+    func selectDateAtRowZeroClearsFilter() async {
+        await viewModel.loadData()
         viewModel.selectDate(at: 0)
         viewModel.applyFilters(segment: .date)
 
@@ -79,8 +81,8 @@ struct PreviousReadingsViewModelTests {
     }
 
     @Test("selectDate filters to just that date")
-    func selectDateFiltersToJustThatDate() {
-        viewModel.loadData()
+    func selectDateFiltersToJustThatDate() async {
+        await viewModel.loadData()
         viewModel.selectDate(at: 1) // row 0 = "any date"
 
         viewModel.applyFilters(segment: .date)
@@ -90,8 +92,8 @@ struct PreviousReadingsViewModelTests {
     }
 
     @Test("selectBuilding resets the floor and meter selection")
-    func selectBuildingResetsFloorAndMeterSelection() {
-        viewModel.loadData()
+    func selectBuildingResetsFloorAndMeterSelection() async {
+        await viewModel.loadData()
         viewModel.selectBuilding(at: 1) // row 0 = "any building"
 
         #expect(viewModel.selectedBuilding?.id == buildingA.id)
@@ -102,8 +104,8 @@ struct PreviousReadingsViewModelTests {
     }
 
     @Test("selectMeter filters to just that meter")
-    func selectMeterFiltersToThatMeterOnly() throws {
-        viewModel.loadData()
+    func selectMeterFiltersToThatMeterOnly() async throws {
+        await viewModel.loadData()
         viewModel.selectBuilding(at: 1)
         viewModel.selectFloor(at: 1)
         let indexOfMeterA = try #require(viewModel.meters.firstIndex { $0.id == meterA.id })

@@ -4,6 +4,8 @@
 //
 //  Created on 8/27/26.
 //  Converted from XCTest to Swift Testing on 8/27/26.
+//  Converted to async throws on 8/27/26 when AddEditBuildingViewModel's
+//  save()/delete() became async (see "Proper concurrency" migration note).
 //
 
 import Testing
@@ -36,8 +38,8 @@ struct AddEditBuildingViewModelTests {
     }
 
     @Test("editing a building shows the edit display state")
-    func editingBuildingDisplayState() throws {
-        let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 5, autoCreateFloors: true))
+    func editingBuildingDisplayState() async throws {
+        let building = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 5, autoCreateFloors: true))
         let viewModel = AddEditBuildingViewModel(repository: repository, building: building)
 
         #expect(viewModel.isEditing)
@@ -50,86 +52,86 @@ struct AddEditBuildingViewModelTests {
     // MARK: - save validation
 
     @Test("save rejects a blank name")
-    func saveRejectsBlankName() {
+    func saveRejectsBlankName() async {
         let viewModel = AddEditBuildingViewModel(repository: repository, building: nil)
-        assertThrowsFormValidationError(try viewModel.save(nameText: "   ", floorsText: "5"), title: "Invalid Name")
+        await assertThrowsFormValidationError(try await viewModel.save(nameText: "   ", floorsText: "5"), title: "Invalid Name")
     }
 
     @Test("save rejects a name over the max length")
-    func saveRejectsNameOverMaxLength() {
+    func saveRejectsNameOverMaxLength() async {
         let viewModel = AddEditBuildingViewModel(repository: repository, building: nil)
         let longName = String(repeating: "A", count: 101)
-        assertThrowsFormValidationError(try viewModel.save(nameText: longName, floorsText: "5"), title: "Name Too Long")
+        await assertThrowsFormValidationError(try await viewModel.save(nameText: longName, floorsText: "5"), title: "Name Too Long")
     }
 
     @Test("save rejects missing floors text")
-    func saveRejectsMissingFloorsText() {
+    func saveRejectsMissingFloorsText() async {
         let viewModel = AddEditBuildingViewModel(repository: repository, building: nil)
-        assertThrowsFormValidationError(try viewModel.save(nameText: "Some Building", floorsText: nil), title: "Invalid Floor Count")
+        await assertThrowsFormValidationError(try await viewModel.save(nameText: "Some Building", floorsText: nil), title: "Invalid Floor Count")
     }
 
     @Test("save rejects non-numeric floors text")
-    func saveRejectsNonNumericFloorsText() {
+    func saveRejectsNonNumericFloorsText() async {
         let viewModel = AddEditBuildingViewModel(repository: repository, building: nil)
-        assertThrowsFormValidationError(try viewModel.save(nameText: "Some Building", floorsText: "abc"), title: "Invalid Floor Count")
+        await assertThrowsFormValidationError(try await viewModel.save(nameText: "Some Building", floorsText: "abc"), title: "Invalid Floor Count")
     }
 
     @Test("save rejects zero floors")
-    func saveRejectsZeroFloors() {
+    func saveRejectsZeroFloors() async {
         let viewModel = AddEditBuildingViewModel(repository: repository, building: nil)
-        assertThrowsFormValidationError(try viewModel.save(nameText: "Some Building", floorsText: "0"), title: "Invalid Floor Count")
+        await assertThrowsFormValidationError(try await viewModel.save(nameText: "Some Building", floorsText: "0"), title: "Invalid Floor Count")
     }
 
     @Test("save rejects too many floors")
-    func saveRejectsTooManyFloors() {
+    func saveRejectsTooManyFloors() async {
         let viewModel = AddEditBuildingViewModel(repository: repository, building: nil)
-        assertThrowsFormValidationError(try viewModel.save(nameText: "Some Building", floorsText: "201"), title: "Too Many Floors")
+        await assertThrowsFormValidationError(try await viewModel.save(nameText: "Some Building", floorsText: "201"), title: "Too Many Floors")
     }
 
     @Test("save rejects a duplicate name case-insensitively")
-    func saveRejectsDuplicateNameCaseInsensitive() throws {
-        _ = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 5, autoCreateFloors: true))
+    func saveRejectsDuplicateNameCaseInsensitive() async throws {
+        _ = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 5, autoCreateFloors: true))
         let viewModel = AddEditBuildingViewModel(repository: repository, building: nil)
 
-        assertThrowsFormValidationError(try viewModel.save(nameText: "121 SEAPORT", floorsText: "3"), title: "Duplicate Name")
+        await assertThrowsFormValidationError(try await viewModel.save(nameText: "121 SEAPORT", floorsText: "3"), title: "Duplicate Name")
     }
 
     @Test("save creates a building with a trimmed name")
-    func saveCreatesBuildingWithTrimmedName() throws {
+    func saveCreatesBuildingWithTrimmedName() async throws {
         let viewModel = AddEditBuildingViewModel(repository: repository, building: nil)
 
-        let saved = try viewModel.save(nameText: "  New Building  ", floorsText: "10")
+        let saved = try await viewModel.save(nameText: "  New Building  ", floorsText: "10")
 
         #expect(saved.name == "New Building")
         #expect(saved.floors.count == 10)
-        #expect(try repository.getBuildings().count == 1)
+        #expect(try await repository.getBuildings().count == 1)
     }
 
     @Test("save on an existing building always throws Not Implemented")
-    func saveOnAnExistingBuildingAlwaysThrowsNotImplemented() throws {
-        let building = try repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 5, autoCreateFloors: true))
+    func saveOnAnExistingBuildingAlwaysThrowsNotImplemented() async throws {
+        let building = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 5, autoCreateFloors: true))
         let viewModel = AddEditBuildingViewModel(repository: repository, building: building)
 
         // Even a fully valid, non-duplicate name should still be rejected —
         // editing an existing building isn't implemented yet.
-        assertThrowsFormValidationError(try viewModel.save(nameText: "A Totally Different Name", floorsText: "5"), title: "Not Implemented")
+        await assertThrowsFormValidationError(try await viewModel.save(nameText: "A Totally Different Name", floorsText: "5"), title: "Not Implemented")
     }
 
     // MARK: - delete
 
     @Test("delete with no building does nothing")
-    func deleteWithNoBuildingDoesNothing() throws {
+    func deleteWithNoBuildingDoesNothing() async throws {
         let viewModel = AddEditBuildingViewModel(repository: repository, building: nil)
-        try viewModel.delete()
+        try await viewModel.delete()
     }
 
     @Test("delete removes the building")
-    func deleteRemovesTheBuilding() throws {
-        let building = try repository.addBuilding(MRKBuildingInput(name: "To Delete", numberOfFloors: 2, autoCreateFloors: true))
+    func deleteRemovesTheBuilding() async throws {
+        let building = try await repository.addBuilding(MRKBuildingInput(name: "To Delete", numberOfFloors: 2, autoCreateFloors: true))
         let viewModel = AddEditBuildingViewModel(repository: repository, building: building)
 
-        try viewModel.delete()
+        try await viewModel.delete()
 
-        #expect(try repository.getBuildings().isEmpty)
+        #expect(try await repository.getBuildings().isEmpty)
     }
 }

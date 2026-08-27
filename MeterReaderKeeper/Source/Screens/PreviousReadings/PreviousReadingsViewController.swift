@@ -109,9 +109,11 @@ class PreviousReadingsViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
-        viewModel.loadData()
-        viewModel.applyFilters(segment: selectedSegment)
-        tableView.reloadData()
+        Task { @MainActor in
+            await viewModel.loadData()
+            viewModel.applyFilters(segment: selectedSegment)
+            tableView.reloadData()
+        }
     }
     
     // MARK: - Setup

@@ -3,6 +3,7 @@
 //  MeterReaderKeeper
 //
 //  Created by MVVM Refactor on 8/26/26.
+//  Converted to async/await + @MainActor on 8/27/26.
 //
 
 import Foundation
@@ -14,6 +15,7 @@ import Foundation
 /// original view controller — which stored them as optionals and bailed
 /// out with a logged error if they were missing — this type takes them as
 /// required `init` parameters and that failure mode can't occur.
+@MainActor
 final class AddEditReadingViewModel {
 
     private let repository: MeterRepositoryProtocol
@@ -23,7 +25,7 @@ final class AddEditReadingViewModel {
     let building: MRKBuilding
     let reading: MRKReading?
 
-    init(repository: MeterRepositoryProtocol, meter: MRKMeter, floor: MRKFloor, building: MRKBuilding, reading: MRKReading?) {
+    nonisolated init(repository: MeterRepositoryProtocol, meter: MRKMeter, floor: MRKFloor, building: MRKBuilding, reading: MRKReading?) {
         self.repository = repository
         self.meter = meter
         self.floor = floor
@@ -41,7 +43,7 @@ final class AddEditReadingViewModel {
     }
 
     @discardableResult
-    func save(readingText: String?) throws -> MRKReading {
+    func save(readingText: String?) async throws -> MRKReading {
         guard let text = readingText?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else {
             throw FormValidationError(title: "Missing Reading", message: "Please enter a reading value.")
         }
@@ -56,11 +58,11 @@ final class AddEditReadingViewModel {
 
         let saved: MRKReading
         if let reading = reading {
-            saved = try repository.updateReading(id: reading.id, kWh: value)
+            saved = try await repository.updateReading(id: reading.id, kWh: value)
         } else {
             let date = Calendar.current.startOfDay(for: Date())
             let input = MRKReadingInput(kWh: value, date: date, meterID: meter.id)
-            saved = try repository.addReading(input)
+            saved = try await repository.addReading(input)
         }
         return saved
     }

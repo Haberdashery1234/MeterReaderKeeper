@@ -300,23 +300,25 @@ class AddEditMeterViewController: UIViewController {
     }
     
     private func populateData() {
-        viewModel.loadBuildingsAndFloors()
-        buildingTextField.text = viewModel.selectedBuilding?.name
-        floorTextField.text = viewModel.initialFloorText
-        
-        if viewModel.isEditing {
-            nameTextField.text = viewModel.initialNameText
-            descriptionTextField.text = viewModel.initialDescriptionText
+        Task { @MainActor in
+            await viewModel.loadBuildingsAndFloors()
+            buildingTextField.text = viewModel.selectedBuilding?.name
+            floorTextField.text = viewModel.initialFloorText
+
+            if viewModel.isEditing {
+                nameTextField.text = viewModel.initialNameText
+                descriptionTextField.text = viewModel.initialDescriptionText
+            }
+
+            if let imageData = viewModel.initialImageData, let image = UIImage(data: imageData) {
+                meterImageImageView.image = image
+            } else {
+                meterImageImageView.image = UIImage(systemName: "gauge")
+                meterImageImageView.tintColor = .systemGray3
+            }
+
+            title = viewModel.screenTitle
         }
-        
-        if let imageData = viewModel.initialImageData, let image = UIImage(data: imageData) {
-            meterImageImageView.image = image
-        } else {
-            meterImageImageView.image = UIImage(systemName: "gauge")
-            meterImageImageView.tintColor = .systemGray3
-        }
-        
-        title = viewModel.screenTitle
     }
     
     // MARK: - Actions
@@ -326,14 +328,16 @@ class AddEditMeterViewController: UIViewController {
             imageData = image.jpegData(compressionQuality: 0.8) ?? Data()
         }
         
-        do {
-            _ = try viewModel.save(nameText: nameTextField.text, descriptionText: descriptionTextField.text, imageData: imageData)
-            navigationController?.popViewController(animated: true)
-        } catch let error as FormValidationError {
-            showAlert(title: error.title, message: error.message)
-        } catch {
-            print("Failed to save meter: \(error.localizedDescription)")
-            showAlert(title: "Save Failed", message: error.localizedDescription)
+        Task { @MainActor in
+            do {
+                _ = try await viewModel.save(nameText: nameTextField.text, descriptionText: descriptionTextField.text, imageData: imageData)
+                navigationController?.popViewController(animated: true)
+            } catch let error as FormValidationError {
+                showAlert(title: error.title, message: error.message)
+            } catch {
+                print("Failed to save meter: \(error.localizedDescription)")
+                showAlert(title: "Save Failed", message: error.localizedDescription)
+            }
         }
     }
     
@@ -351,11 +355,13 @@ class AddEditMeterViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
             guard let self = self else { return }
-            do {
-                try self.viewModel.delete()
-                self.navigationController?.popViewController(animated: true)
-            } catch {
-                self.showAlert(title: "Delete Failed", message: error.localizedDescription)
+            Task { @MainActor in
+                do {
+                    try await self.viewModel.delete()
+                    self.navigationController?.popViewController(animated: true)
+                } catch {
+                    self.showAlert(title: "Delete Failed", message: error.localizedDescription)
+                }
             }
         })
         

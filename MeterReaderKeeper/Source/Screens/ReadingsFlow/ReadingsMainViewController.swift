@@ -100,10 +100,12 @@ class ReadingsMainViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
+
         // Refresh data (in case a reading/meter changed elsewhere)
-        viewModel.refreshBuilding()
-        refreshFloorDisplay()
+        Task { @MainActor in
+            await viewModel.refreshBuilding()
+            refreshFloorDisplay()
+        }
     }
     
     // MARK: - Setup
@@ -195,21 +197,23 @@ class ReadingsMainViewController: UIViewController {
     
     // MARK: - Actions
     @objc private func sendButtonTapped() {
-        do {
-            let csvData = try viewModel.getCSVData()
-            EmailService.shared.sendCSV(
-                from: self,
-                csvData: csvData,
-                buildingName: viewModel.building.name
-            ) { [weak self] result, error in
-                if result == .failed {
-                    print("Email send failed: \(String(describing: error))")
-                } else {
-                    print("CSV sent successfully")
+        Task { @MainActor in
+            do {
+                let csvData = try await viewModel.getCSVData()
+                EmailService.shared.sendCSV(
+                    from: self,
+                    csvData: csvData,
+                    buildingName: viewModel.building.name
+                ) { [weak self] result, error in
+                    if result == .failed {
+                        print("Email send failed: \(String(describing: error))")
+                    } else {
+                        print("CSV sent successfully")
+                    }
                 }
+            } catch {
+                showAlert(title: "Export Failed", message: error.localizedDescription)
             }
-        } catch {
-            showAlert(title: "Export Failed", message: error.localizedDescription)
         }
     }
     
