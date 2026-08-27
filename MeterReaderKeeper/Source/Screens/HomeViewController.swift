@@ -95,6 +95,7 @@ class HomeViewController: UIViewController {
         return button
     }()
     
+    #if DEBUG
     private lazy var seedDataButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Seed Test Data", for: .normal)
@@ -104,6 +105,7 @@ class HomeViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
+    #endif
     
     private let buttonStackView: UIStackView = {
         let stackView = UIStackView()
@@ -132,7 +134,10 @@ class HomeViewController: UIViewController {
         contentView.addSubview(titleLabel)
         contentView.addSubview(subtitleLabel)
         contentView.addSubview(buttonStackView)
+        
+        #if DEBUG
         contentView.addSubview(seedDataButton)
+        #endif
         
         buttonStackView.addArrangedSubview(takeReadingsButton)
         buttonStackView.addArrangedSubview(previousReadingsButton)
@@ -177,17 +182,25 @@ class HomeViewController: UIViewController {
             buttonStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             buttonStackView.heightAnchor.constraint(equalToConstant: 240), // 4 buttons * 56 height + 3 * 16 spacing
             
-            // Seed Data Button
-            seedDataButton.topAnchor.constraint(equalTo: buttonStackView.bottomAnchor, constant: 32),
-            seedDataButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            seedDataButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
-            
             // Button heights
             takeReadingsButton.heightAnchor.constraint(equalToConstant: 56),
             previousReadingsButton.heightAnchor.constraint(equalToConstant: 56),
             manageButton.heightAnchor.constraint(equalToConstant: 56),
             exportButton.heightAnchor.constraint(equalToConstant: 56),
         ])
+        
+        #if DEBUG
+        NSLayoutConstraint.activate([
+            // Seed Data Button
+            seedDataButton.topAnchor.constraint(equalTo: buttonStackView.bottomAnchor, constant: 32),
+            seedDataButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            seedDataButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
+        ])
+        #else
+        NSLayoutConstraint.activate([
+            buttonStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
+        ])
+        #endif
     }
     
     private func createStyledButton(title: String, backgroundColor: UIColor, action: Selector) -> UIButton {
@@ -250,6 +263,7 @@ class HomeViewController: UIViewController {
         }
     }
     
+    #if DEBUG
     @objc private func seedDataTapped() {
         seedDataButton.isEnabled = false
 
@@ -282,6 +296,7 @@ class HomeViewController: UIViewController {
             }
         }
     }
+    #endif
     
     // MARK: - Private Methods
     private func sendPlist(_ plistData: Data) {

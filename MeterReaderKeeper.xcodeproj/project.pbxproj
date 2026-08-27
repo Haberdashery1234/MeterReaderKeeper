@@ -449,6 +449,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.brazisgrise.Meter-Reader-KeeperTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = TESTING;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MeterReaderKeeper.app/MeterReaderKeeper";

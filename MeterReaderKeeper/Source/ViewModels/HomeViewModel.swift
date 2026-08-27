@@ -24,20 +24,28 @@ final class HomeViewModel {
         case chooseBuilding([MRKBuilding])
     }
 
+    #if DEBUG || TESTING
     /// Which seeding operation actually ran, so the View can show the
     /// matching success message.
     enum SeedOutcome {
         case seededInitialData
         case addedMoreReadings
     }
+    #endif
 
     private let repository: MeterRepositoryProtocol
+    
+    #if DEBUG || TESTING
     private let dataSeeder: DataSeeder
+    #endif
+    
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeterReaderKeeper", category: "HomeViewModel")
 
     init(repository: MeterRepositoryProtocol) {
         self.repository = repository
+        #if DEBUG || TESTING
         self.dataSeeder = DataSeeder(repository: repository)
+        #endif
     }
 
     func takeReadingsOutcome() -> TakeReadingsOutcome {
@@ -67,6 +75,7 @@ final class HomeViewModel {
         }
     }
 
+    #if DEBUG || TESTING
     /// Seeds initial data if there are no buildings yet, otherwise adds
     /// more readings to what already exists. Runs on a background queue and
     /// calls back on the main queue — matching `exportData(completion:)` —
@@ -91,4 +100,5 @@ final class HomeViewModel {
             }
         }
     }
+    #endif
 }

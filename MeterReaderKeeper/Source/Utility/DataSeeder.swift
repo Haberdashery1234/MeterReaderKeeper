@@ -10,6 +10,8 @@
 //  verbatim with the unit test target, on 8/27/26.
 //
 
+#if DEBUG || TESTING
+
 import Foundation
 import os.log
 
@@ -119,3 +121,5 @@ class DataSeeder {
         return try SeedFixture.decode(from: data)
     }
 }
+#endif // DEBUG || TESTING
+

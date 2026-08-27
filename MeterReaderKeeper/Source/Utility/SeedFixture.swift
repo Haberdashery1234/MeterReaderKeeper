@@ -5,6 +5,8 @@
 //  Created on 8/27/26.
 //
 
+#if DEBUG || TESTING
+
 import Foundation
 
 /// Decodes `SeedFixture.json` (bundled at `Source/Resources/SeedFixture.json`)
@@ -53,3 +55,5 @@ struct SeedFixture: Decodable {
         try JSONDecoder().decode(SeedFixture.self, from: data)
     }
 }
+#endif // DEBUG || TESTING
+
