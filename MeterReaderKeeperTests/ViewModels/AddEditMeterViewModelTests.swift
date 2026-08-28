@@ -16,7 +16,7 @@ import Foundation
 /// Mirrors `Source/ViewModels/AddEditMeterViewModel.swift`. Uses
 /// `assertThrowsFormValidationError` from
 /// `TestSupport/FormValidationErrorAssertion.swift`.
-@Suite("AddEditMeterViewModel")
+@MainActor @Suite("AddEditMeterViewModel")
 struct AddEditMeterViewModelTests {
 
     let repository: SwiftDataMeterRepository

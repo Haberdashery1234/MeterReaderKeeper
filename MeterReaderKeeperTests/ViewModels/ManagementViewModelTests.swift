@@ -13,7 +13,7 @@ import Foundation
 @testable import MeterReaderKeeper
 
 /// Mirrors `Source/ViewModels/ManagementViewModel.swift`.
-@Suite("ManagementViewModel")
+@MainActor @Suite("ManagementViewModel")
 struct ManagementViewModelTests {
 
     let repository: SwiftDataMeterRepository
