@@ -34,7 +34,7 @@ class PreviousReadingsViewController: UIViewController {
     private lazy var dateTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "All"
-        textField.borderStyle = .roundedRect
+        AppStyle.stylePaddedTextField(textField)
         textField.inputView = datePickerView
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.accessibilityIdentifier = "PreviousReadings.dateTextField"
@@ -44,7 +44,7 @@ class PreviousReadingsViewController: UIViewController {
     private lazy var buildingTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "All"
-        textField.borderStyle = .roundedRect
+        AppStyle.stylePaddedTextField(textField)
         textField.inputView = buildingPickerView
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.accessibilityIdentifier = "PreviousReadings.buildingTextField"
@@ -54,7 +54,7 @@ class PreviousReadingsViewController: UIViewController {
     private lazy var floorTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "All"
-        textField.borderStyle = .roundedRect
+        AppStyle.stylePaddedTextField(textField)
         textField.inputView = floorPickerView
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.accessibilityIdentifier = "PreviousReadings.floorTextField"
@@ -64,7 +64,7 @@ class PreviousReadingsViewController: UIViewController {
     private lazy var meterTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "All"
-        textField.borderStyle = .roundedRect
+        AppStyle.stylePaddedTextField(textField)
         textField.inputView = meterPickerView
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.accessibilityIdentifier = "PreviousReadings.meterTextField"
@@ -72,10 +72,11 @@ class PreviousReadingsViewController: UIViewController {
     }()
     
     private lazy var tableView: UITableView = {
-        let tableView = UITableView(frame: .zero, style: .plain)
+        let tableView = UITableView(frame: .zero, style: .insetGrouped)
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(PreviousReadingTableViewCell.self, forCellReuseIdentifier: "ReadingCell")
+        tableView.backgroundColor = .clear
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.accessibilityIdentifier = "PreviousReadings.tableView"
         return tableView
@@ -124,7 +125,7 @@ class PreviousReadingsViewController: UIViewController {
     
     // MARK: - Setup
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .systemGroupedBackground
         
         view.addSubview(segmentedControl)
         view.addSubview(dateTextField)
@@ -143,32 +144,34 @@ class PreviousReadingsViewController: UIViewController {
             segmentedControl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             segmentedControl.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
-            // Date TextField
+            // Filter TextFields — only one is ever visible at a time (see
+            // updateVisibleFilters), so all four share the same position
+            // instead of being chained top-to-bottom. Chaining them meant
+            // the three hidden fields still reserved their layout space
+            // (`isHidden` hides a view but doesn't remove it from Auto
+            // Layout), leaving a large empty gap above the results.
             dateTextField.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: 16),
             dateTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             dateTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             dateTextField.heightAnchor.constraint(equalToConstant: 44),
             
-            // Building TextField
-            buildingTextField.topAnchor.constraint(equalTo: dateTextField.bottomAnchor, constant: 12),
-            buildingTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            buildingTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            buildingTextField.heightAnchor.constraint(equalToConstant: 44),
+            buildingTextField.topAnchor.constraint(equalTo: dateTextField.topAnchor),
+            buildingTextField.leadingAnchor.constraint(equalTo: dateTextField.leadingAnchor),
+            buildingTextField.trailingAnchor.constraint(equalTo: dateTextField.trailingAnchor),
+            buildingTextField.heightAnchor.constraint(equalTo: dateTextField.heightAnchor),
             
-            // Floor TextField
-            floorTextField.topAnchor.constraint(equalTo: buildingTextField.bottomAnchor, constant: 12),
-            floorTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            floorTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            floorTextField.heightAnchor.constraint(equalToConstant: 44),
+            floorTextField.topAnchor.constraint(equalTo: dateTextField.topAnchor),
+            floorTextField.leadingAnchor.constraint(equalTo: dateTextField.leadingAnchor),
+            floorTextField.trailingAnchor.constraint(equalTo: dateTextField.trailingAnchor),
+            floorTextField.heightAnchor.constraint(equalTo: dateTextField.heightAnchor),
             
-            // Meter TextField
-            meterTextField.topAnchor.constraint(equalTo: floorTextField.bottomAnchor, constant: 12),
-            meterTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            meterTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            meterTextField.heightAnchor.constraint(equalToConstant: 44),
+            meterTextField.topAnchor.constraint(equalTo: dateTextField.topAnchor),
+            meterTextField.leadingAnchor.constraint(equalTo: dateTextField.leadingAnchor),
+            meterTextField.trailingAnchor.constraint(equalTo: dateTextField.trailingAnchor),
+            meterTextField.heightAnchor.constraint(equalTo: dateTextField.heightAnchor),
             
             // Table View
-            tableView.topAnchor.constraint(equalTo: meterTextField.bottomAnchor, constant: 16),
+            tableView.topAnchor.constraint(equalTo: dateTextField.bottomAnchor, constant: 16),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -199,15 +202,20 @@ class PreviousReadingsViewController: UIViewController {
 // MARK: - UITableViewDataSource & Delegate
 extension PreviousReadingsViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel.readings.count
+        return viewModel.meterSummaries.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ReadingCell", for: indexPath) as! PreviousReadingTableViewCell
-        let reading = viewModel.readings[indexPath.row]
-        let info = viewModel.displayInfo(for: reading)
-        cell.setup(reading: reading, meterName: info?.name ?? "Unknown Meter", locationString: info?.location ?? "")
+        cell.setup(summary: viewModel.meterSummaries[indexPath.row])
+        cell.accessoryType = .disclosureIndicator
         return cell
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        let summary = viewModel.meterSummaries[indexPath.row]
+        coordinator?.showMeterHistory(for: summary.meter, floor: summary.floor, building: summary.building)
     }
 }
 

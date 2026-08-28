@@ -135,4 +135,19 @@ class AppCoordinator: Coordinator {
         readingVC.title = "Edit Reading"
         navigationController.pushViewController(readingVC, animated: true)
     }
+
+    /// Read-only meter detail screen: Building, Floor, most recent reading,
+    /// and a chart of every reading over time. Named `showMeterHistory`
+    /// rather than `showMeterDetails` to avoid colliding with the existing
+    /// `showMeterDetails(meter:floor:building:)` above, which is actually
+    /// the Add/Edit Meter form, not this screen — Christian asked for this
+    /// as "a meter details screen" reached by tapping a row on Previous
+    /// Readings (2026-08-28).
+    func showMeterHistory(for meter: MRKMeter, floor: MRKFloor, building: MRKBuilding) {
+        let meterHistoryVC = MeterHistoryViewController()
+        meterHistoryVC.coordinator = self
+        meterHistoryVC.viewModel = MeterHistoryViewModel(repository: repository, meter: meter, floor: floor, building: building)
+        meterHistoryVC.title = meter.name
+        navigationController.pushViewController(meterHistoryVC, animated: true)
+    }
 }

@@ -32,9 +32,7 @@ class AddEditReadingViewController: UIViewController {
     private lazy var meterImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
-        imageView.clipsToBounds = true
-        imageView.layer.cornerRadius = 8
-        imageView.backgroundColor = .systemGray5
+        AppStyle.styleImageWell(imageView)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -74,7 +72,7 @@ class AddEditReadingViewController: UIViewController {
     private lazy var readingTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Enter reading value"
-        textField.borderStyle = .roundedRect
+        AppStyle.stylePaddedTextField(textField)
         textField.keyboardType = .decimalPad
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.accessibilityIdentifier = "AddEditReading.readingTextField"
@@ -84,10 +82,7 @@ class AddEditReadingViewController: UIViewController {
     private lazy var saveButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Save Reading", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        button.backgroundColor = .systemBlue
-        button.layer.cornerRadius = 12
+        AppStyle.styleAsPrimaryButton(button)
         button.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.accessibilityIdentifier = "AddEditReading.saveButton"
@@ -113,7 +108,7 @@ class AddEditReadingViewController: UIViewController {
     
     // MARK: - Setup
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .systemGroupedBackground
         
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)

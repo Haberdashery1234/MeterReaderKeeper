@@ -117,14 +117,14 @@ class HomeViewController: UIViewController {
         let metersColumn = makeStatColumn(valueLabel: meterCountValueLabel, caption: "Meters")
         let lastReadingColumn = makeStatColumn(valueLabel: lastReadingValueLabel, caption: "Last Reading")
 
-        let row = UIStackView(arrangedSubviews: [buildingsColumn, makeDivider(vertical: true), metersColumn, makeDivider(vertical: true), lastReadingColumn])
+        let row = UIStackView(arrangedSubviews: [buildingsColumn, AppStyle.makeDivider(vertical: true), metersColumn, AppStyle.makeDivider(vertical: true), lastReadingColumn])
         row.axis = .horizontal
         row.alignment = .fill
         row.distribution = .fillEqually
         row.spacing = 0
         row.translatesAutoresizingMaskIntoConstraints = false
 
-        let card = makeCardContainer()
+        let card = AppStyle.makeCardContainer()
         card.addSubview(row)
         NSLayoutConstraint.activate([
             row.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
@@ -136,7 +136,7 @@ class HomeViewController: UIViewController {
     }()
 
     private lazy var atGlanceSection: UIStackView = {
-        let stackView = UIStackView(arrangedSubviews: [makeSectionHeaderLabel("At a Glance"), atGlanceCard])
+        let stackView = UIStackView(arrangedSubviews: [AppStyle.makeSectionHeaderLabel("At a Glance"), atGlanceCard])
         stackView.axis = .vertical
         stackView.spacing = 8
         stackView.alignment = .fill
@@ -154,7 +154,7 @@ class HomeViewController: UIViewController {
     }()
 
     private lazy var needsAttentionCard: UIView = {
-        let card = makeCardContainer()
+        let card = AppStyle.makeCardContainer()
         card.addSubview(needsAttentionRowsStackView)
         needsAttentionRowsStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -170,7 +170,7 @@ class HomeViewController: UIViewController {
     /// there's nothing useful to show (or hide behind an empty card)
     /// otherwise.
     private lazy var needsAttentionSection: UIStackView = {
-        let stackView = UIStackView(arrangedSubviews: [makeSectionHeaderLabel("Needs Attention"), needsAttentionCard])
+        let stackView = UIStackView(arrangedSubviews: [AppStyle.makeSectionHeaderLabel("Needs Attention"), needsAttentionCard])
         stackView.axis = .vertical
         stackView.spacing = 8
         stackView.alignment = .fill
@@ -271,20 +271,13 @@ class HomeViewController: UIViewController {
     /// matches the "Soft Cards" Home redesign.
     private func createActionCard(title: String, systemImage: String, action: Selector) -> UIButton {
         let button = UIButton(type: .system)
-        button.backgroundColor = .secondarySystemGroupedBackground
-        button.layer.cornerRadius = 14
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.separator.cgColor
-        button.layer.shadowColor = UIColor.black.cgColor
-        button.layer.shadowOpacity = 0.05
-        button.layer.shadowRadius = 3
-        button.layer.shadowOffset = CGSize(width: 0, height: 1)
+        AppStyle.applyCardStyle(to: button)
         button.addTarget(self, action: action, for: .touchUpInside)
         button.accessibilityLabel = title
         button.translatesAutoresizingMaskIntoConstraints = false
 
         let icon = UIImageView(image: UIImage(systemName: systemImage))
-        icon.tintColor = UIColor(named: "AccentColor")
+        icon.tintColor = AppStyle.accent
         icon.contentMode = .scaleAspectFit
         icon.isUserInteractionEnabled = false
         icon.isAccessibilityElement = false
@@ -315,28 +308,6 @@ class HomeViewController: UIViewController {
         return button
     }
 
-    private func makeCardContainer() -> UIView {
-        let card = UIView()
-        card.backgroundColor = .secondarySystemGroupedBackground
-        card.layer.cornerRadius = 14
-        card.layer.borderWidth = 1
-        card.layer.borderColor = UIColor.separator.cgColor
-        card.layer.shadowColor = UIColor.black.cgColor
-        card.layer.shadowOpacity = 0.05
-        card.layer.shadowRadius = 3
-        card.layer.shadowOffset = CGSize(width: 0, height: 1)
-        card.translatesAutoresizingMaskIntoConstraints = false
-        return card
-    }
-
-    private func makeSectionHeaderLabel(_ text: String) -> UILabel {
-        let label = UILabel()
-        label.text = text.uppercased()
-        label.font = .systemFont(ofSize: 13, weight: .semibold)
-        label.textColor = .secondaryLabel
-        return label
-    }
-
     private static func makeStatValueLabel(fontSize: CGFloat = 22) -> UILabel {
         let label = UILabel()
         label.font = .systemFont(ofSize: fontSize, weight: .bold)
@@ -360,18 +331,6 @@ class HomeViewController: UIViewController {
         stackView.spacing = 3
         stackView.alignment = .fill
         return stackView
-    }
-
-    private func makeDivider(vertical: Bool) -> UIView {
-        let divider = UIView()
-        divider.backgroundColor = .separator
-        divider.translatesAutoresizingMaskIntoConstraints = false
-        if vertical {
-            divider.widthAnchor.constraint(equalToConstant: 1).isActive = true
-        } else {
-            divider.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
-        }
-        return divider
     }
 
     /// One row in the "Needs Attention" card: the meter's location on the
@@ -455,7 +414,7 @@ class HomeViewController: UIViewController {
 
         for (index, item) in summary.overdueMeters.enumerated() {
             if index > 0 {
-                needsAttentionRowsStackView.addArrangedSubview(makeDivider(vertical: false))
+                needsAttentionRowsStackView.addArrangedSubview(AppStyle.makeDivider(vertical: false))
             }
             needsAttentionRowsStackView.addArrangedSubview(makeOverdueRow(item))
         }

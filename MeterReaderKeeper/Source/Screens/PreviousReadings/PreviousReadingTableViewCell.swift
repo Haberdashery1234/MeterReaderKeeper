@@ -43,8 +43,16 @@ class PreviousReadingTableViewCell: UITableViewCell {
         return label
     }()
     
+    private lazy var readingCountLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 12)
+        label.textColor = .tertiaryLabel
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     private lazy var leftStackView: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [readingMeterLabel, readingLocationLabel])
+        let stack = UIStackView(arrangedSubviews: [readingMeterLabel, readingLocationLabel, readingCountLabel])
         stack.axis = .vertical
         stack.spacing = 4
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -60,7 +68,6 @@ class PreviousReadingTableViewCell: UITableViewCell {
         return stack
     }()
 
-    var reading = MRKReading(id: UUID(), date: Date(), kWh: 0, meterID: UUID())
     
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -92,11 +99,13 @@ class PreviousReadingTableViewCell: UITableViewCell {
         rightStackView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
     }
     
-    func setup(reading: MRKReading, meterName: String, locationString: String) {
-        self.reading = reading
-        readingValueLabel.text = reading.formattedValue
-        readingDateLabel.text = reading.formattedDate
-        readingMeterLabel.text = meterName
-        readingLocationLabel.text = locationString
+    /// One row now represents a whole meter (its most recent reading), not
+    /// a single reading — see `PreviousReadingsViewModel.MeterReadingSummary`.
+    func setup(summary: PreviousReadingsViewModel.MeterReadingSummary) {
+        readingMeterLabel.text = summary.meterName
+        readingLocationLabel.text = summary.location
+        readingCountLabel.text = summary.readingCountText
+        readingValueLabel.text = summary.formattedLastReadingValue
+        readingDateLabel.text = summary.formattedLastReadingDate
     }
 }

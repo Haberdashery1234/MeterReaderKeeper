@@ -17,12 +17,13 @@ class ReadingsMainViewController: UIViewController {
     
     // MARK: - UI Components
     private lazy var tableView: UITableView = {
-        let tableView = UITableView(frame: .zero, style: .plain)
+        let tableView = UITableView(frame: .zero, style: .insetGrouped)
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(ReadingMeterTableViewCell.self, forCellReuseIdentifier: "ReadingMeterCell")
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 80
+        tableView.backgroundColor = .clear
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.accessibilityIdentifier = "ReadingsMain.tableView"
         return tableView
@@ -39,7 +40,7 @@ class ReadingsMainViewController: UIViewController {
     private lazy var floorTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Select floor"
-        textField.borderStyle = .roundedRect
+        AppStyle.stylePaddedTextField(textField, horizontalInset: 12)
         textField.inputView = floorPickerView
         textField.tintColor = .clear // Hide cursor
         textField.translatesAutoresizingMaskIntoConstraints = false
@@ -82,9 +83,7 @@ class ReadingsMainViewController: UIViewController {
     private lazy var closeMapButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Close", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        button.backgroundColor = .systemBlue
+        AppStyle.styleAsPrimaryButton(button)
         button.layer.cornerRadius = 8
         button.addTarget(self, action: #selector(closeMapTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -112,7 +111,7 @@ class ReadingsMainViewController: UIViewController {
     
     // MARK: - Setup
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .systemGroupedBackground
         
         view.addSubview(floorStackView)
         floorStackView.addArrangedSubview(floorLabel)
@@ -276,6 +275,7 @@ extension ReadingsMainViewController: UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ReadingMeterCell", for: indexPath) as! ReadingMeterTableViewCell
         let meter = viewModel.meters[indexPath.row]
         cell.setup(meter: meter, floorNumber: viewModel.floor?.number ?? 0)
+        cell.accessoryType = .disclosureIndicator
         return cell
     }
 }

@@ -40,7 +40,7 @@ class AddEditBuildingViewController: UIViewController {
     private lazy var nameTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Enter building name"
-        textField.borderStyle = .roundedRect
+        AppStyle.stylePaddedTextField(textField)
         textField.autocapitalizationType = .words
         textField.returnKeyType = .next
         textField.delegate = self
@@ -60,7 +60,7 @@ class AddEditBuildingViewController: UIViewController {
     private lazy var floorsTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Enter number of floors"
-        textField.borderStyle = .roundedRect
+        AppStyle.stylePaddedTextField(textField)
         textField.keyboardType = .numberPad
         textField.delegate = self
         textField.translatesAutoresizingMaskIntoConstraints = false
@@ -71,10 +71,7 @@ class AddEditBuildingViewController: UIViewController {
     private lazy var saveButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Save", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        button.backgroundColor = .systemBlue
-        button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 12
+        AppStyle.styleAsPrimaryButton(button)
         button.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.accessibilityIdentifier = "AddEditBuilding.saveButton"
@@ -103,7 +100,7 @@ class AddEditBuildingViewController: UIViewController {
     
     // MARK: - Setup
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .systemGroupedBackground
         
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)

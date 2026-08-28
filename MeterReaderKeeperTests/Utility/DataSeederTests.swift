@@ -124,13 +124,16 @@ struct DataSeederTests {
         #expect(buildingsAfterSecondSeed.count == expectedFixture.buildings.count * 2)
     }
 
-    @Test("seedMoreReadings adds exactly one reading per meter")
+    @Test("seedMoreReadings adds exactly one reading per meter, always higher than its previous reading")
     func seedMoreReadingsAddsExactlyOneReadingPerMeter() async throws {
+        let metersBefore = fixture.seededBuildings.flatMap { $0.floors }.flatMap { $0.meters }
         let meterCountBefore = fixture.seededBuildings.reduce(0) { $0 + $1.totalMeterCount }
-        let readingCountBefore = fixture.seededBuildings
-            .flatMap { $0.floors }
-            .flatMap { $0.meters }
-            .reduce(0) { $0 + $1.readings.count }
+        let readingCountBefore = metersBefore.reduce(0) { $0 + $1.readings.count }
+        // Every meter here comes from `SeedFixture.json` via `seedData()`, so
+        // every one already has a latest reading — `mostRecentReading` isn't
+        // expected to be nil, but the dictionary stores the optional as-is
+        // rather than assuming that.
+        let latestKWhBeforeByID = Dictionary(uniqueKeysWithValues: metersBefore.map { ($0.id, $0.mostRecentReading?.kWh) })
 
         try await fixture.dataSeeder.seedMoreReadings()
 
@@ -147,8 +150,20 @@ struct DataSeederTests {
                 Issue.record("Every meter should have at least one reading")
                 continue
             }
-            #expect(DataSeeder.additionalReadingKWhRange.contains(latest.kWh))
             #expect(latest.date == Calendar.current.startOfDay(for: Date()))
+
+            guard let previousKWh = latestKWhBeforeByID[meter.id] ?? nil else {
+                // No prior reading to compare against for this meter — just
+                // confirm the increment itself landed in the expected range.
+                #expect(DataSeeder.additionalReadingIncrementRange.contains(latest.kWh))
+                continue
+            }
+            // The core of Christian's ask (2026-08-28): a real electric
+            // meter's cumulative reading never goes down, so every newly
+            // seeded reading must be strictly higher than whatever that
+            // meter's latest reading was before this call.
+            #expect(latest.kWh > previousKWh, "\(meter.name)'s new reading should be higher than its previous latest reading")
+            #expect(DataSeeder.additionalReadingIncrementRange.contains(latest.kWh - previousKWh))
         }
     }
 }

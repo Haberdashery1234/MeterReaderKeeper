@@ -6,6 +6,10 @@
 	objectVersion = 70;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		03A2AE03303E400A0031F869 /* DGCharts in Frameworks */ = {isa = PBXBuildFile; productRef = 03A2AE02303E400A0031F869 /* DGCharts */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		7C4AF808263CD436002E65CB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -64,6 +68,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				03A2AE03303E400A0031F869 /* DGCharts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -123,6 +128,9 @@
 				03A2ADBE303E34CE0031F869 /* MeterReaderKeeper */,
 			);
 			name = MeterReaderKeeper;
+			packageProductDependencies = (
+				03A2AE02303E400A0031F869 /* DGCharts */,
+			);
 			productName = MeterReaderKeeper;
 			productReference = 7C4AF7F1263CD435002E65CB /* MeterReaderKeeper.app */;
 			productType = "com.apple.product-type.application";
@@ -201,6 +209,9 @@
 				Base,
 			);
 			mainGroup = 7C4AF7E8263CD435002E65CB;
+			packageReferences = (
+				03A2AE01303E400A0031F869 /* XCRemoteSwiftPackageReference "Charts" */,
+			);
 			productRefGroup = 7C4AF7F2263CD435002E65CB /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -557,6 +568,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		03A2AE01303E400A0031F869 /* XCRemoteSwiftPackageReference "Charts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ChartsOrg/Charts.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		03A2AE02303E400A0031F869 /* DGCharts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 03A2AE01303E400A0031F869 /* XCRemoteSwiftPackageReference "Charts" */;
+			productName = DGCharts;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7C4AF7E9263CD435002E65CB /* Project object */;
 }

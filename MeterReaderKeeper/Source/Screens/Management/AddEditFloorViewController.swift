@@ -40,7 +40,7 @@ class AddEditFloorViewController: UIViewController {
     private lazy var buildingTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Select building"
-        textField.borderStyle = .roundedRect
+        AppStyle.stylePaddedTextField(textField)
         textField.inputView = buildingPickerView
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.accessibilityIdentifier = "AddEditFloor.buildingTextField"
@@ -58,7 +58,7 @@ class AddEditFloorViewController: UIViewController {
     private lazy var floorTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Enter floor number"
-        textField.borderStyle = .roundedRect
+        AppStyle.stylePaddedTextField(textField)
         textField.keyboardType = .numberPad
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.accessibilityIdentifier = "AddEditFloor.floorTextField"
@@ -76,9 +76,7 @@ class AddEditFloorViewController: UIViewController {
     private lazy var currentMapImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
-        imageView.backgroundColor = .systemGray6
-        imageView.layer.cornerRadius = 8
-        imageView.clipsToBounds = true
+        AppStyle.styleImageWell(imageView)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -96,10 +94,7 @@ class AddEditFloorViewController: UIViewController {
     private lazy var saveButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Save", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        button.backgroundColor = .systemBlue
-        button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 12
+        AppStyle.styleAsPrimaryButton(button)
         button.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.accessibilityIdentifier = "AddEditFloor.saveButton"
@@ -124,7 +119,7 @@ class AddEditFloorViewController: UIViewController {
     
     // MARK: - Setup
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .systemGroupedBackground
         
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)

@@ -40,7 +40,7 @@ class AddEditMeterViewController: UIViewController {
     private lazy var buildingTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Select building"
-        textField.borderStyle = .roundedRect
+        AppStyle.stylePaddedTextField(textField)
         textField.inputView = buildingPickerView
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.accessibilityIdentifier = "AddEditMeter.buildingTextField"
@@ -58,7 +58,7 @@ class AddEditMeterViewController: UIViewController {
     private lazy var floorTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Select floor"
-        textField.borderStyle = .roundedRect
+        AppStyle.stylePaddedTextField(textField)
         textField.inputView = floorPickerView
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.accessibilityIdentifier = "AddEditMeter.floorTextField"
@@ -76,7 +76,7 @@ class AddEditMeterViewController: UIViewController {
     private lazy var nameTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Enter meter name"
-        textField.borderStyle = .roundedRect
+        AppStyle.stylePaddedTextField(textField)
         textField.autocapitalizationType = .words
         textField.returnKeyType = .next
         textField.delegate = self
@@ -96,7 +96,7 @@ class AddEditMeterViewController: UIViewController {
     private lazy var descriptionTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Enter description"
-        textField.borderStyle = .roundedRect
+        AppStyle.stylePaddedTextField(textField)
         textField.returnKeyType = .done
         textField.delegate = self
         textField.translatesAutoresizingMaskIntoConstraints = false
@@ -115,9 +115,7 @@ class AddEditMeterViewController: UIViewController {
     private lazy var meterImageImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
-        imageView.backgroundColor = .systemGray6
-        imageView.layer.cornerRadius = 8
-        imageView.clipsToBounds = true
+        AppStyle.styleImageWell(imageView)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -135,10 +133,7 @@ class AddEditMeterViewController: UIViewController {
     private lazy var saveButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Save", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        button.backgroundColor = .systemBlue
-        button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 12
+        AppStyle.styleAsPrimaryButton(button)
         button.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.accessibilityIdentifier = "AddEditMeter.saveButton"
@@ -181,7 +176,7 @@ class AddEditMeterViewController: UIViewController {
     
     // MARK: - Setup
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .systemGroupedBackground
         
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)

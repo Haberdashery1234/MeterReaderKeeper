@@ -22,7 +22,7 @@ class ManagementTableViewController: UIViewController {
     
     // MARK: - UI Components
     private lazy var tableView: UITableView = {
-        let tableView = UITableView(frame: .zero, style: .plain)
+        let tableView = UITableView(frame: .zero, style: .insetGrouped)
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(BuildingTableViewCell.self, forCellReuseIdentifier: "BuildingCell")
@@ -30,6 +30,7 @@ class ManagementTableViewController: UIViewController {
         tableView.register(MeterTableViewCell.self, forCellReuseIdentifier: "MeterCell")
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60
+        tableView.backgroundColor = .clear
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.accessibilityIdentifier = "Management.tableView"
         return tableView
@@ -63,7 +64,7 @@ class ManagementTableViewController: UIViewController {
     
     // MARK: - Setup
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .systemGroupedBackground
         
         view.addSubview(segmentedControl)
         view.addSubview(tableView)
@@ -183,18 +184,21 @@ extension ManagementTableViewController: UITableViewDataSource {
         case .buildings:
             let cell = tableView.dequeueReusableCell(withIdentifier: "BuildingCell", for: indexPath) as! BuildingTableViewCell
             cell.setup(withBuilding: viewModel.buildings[indexPath.row])
+            cell.accessoryType = .disclosureIndicator
             return cell
             
         case .floors:
             let cell = tableView.dequeueReusableCell(withIdentifier: "FloorCell", for: indexPath) as! FloorTableViewCell
             let item = viewModel.floorItems[indexPath.row]
             cell.setup(floor: item.floor, buildingName: item.building.name)
+            cell.accessoryType = .disclosureIndicator
             return cell
             
         case .meters:
             let cell = tableView.dequeueReusableCell(withIdentifier: "MeterCell", for: indexPath) as! MeterTableViewCell
             let item = viewModel.meterItems[indexPath.row]
             cell.setup(meter: item.meter, locationString: "\(item.building.name) - Floor \(item.floor.number)")
+            cell.accessoryType = .disclosureIndicator
             return cell
         }
     }

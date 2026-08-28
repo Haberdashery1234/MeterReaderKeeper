@@ -21,12 +21,23 @@ import Foundation
 
 class DataSeeder {
 
-    /// kWh range for `seedMoreReadings()`'s additional readings. `seedData()`
-    /// no longer draws from a range — its data comes from `SeedFixture.json`
-    /// instead (see below) — but `seedMoreReadings()` is a "top up whatever
-    /// already exists" operation with nothing sensible to source from a
-    /// fixture, so it still generates a value each time it's called.
-    static let additionalReadingKWhRange: ClosedRange<Double> = 10_000...50_000
+    /// kWh **increment** range for `seedMoreReadings()`'s additional
+    /// readings. `seedData()` no longer draws from a range — its data comes
+    /// from `SeedFixture.json` instead (see below) — but `seedMoreReadings()`
+    /// is a "top up whatever already exists" operation with nothing sensible
+    /// to source from a fixture, so it still generates a value each time
+    /// it's called.
+    ///
+    /// This is an **increment added on top of the meter's current latest
+    /// reading**, not an absolute value (renamed from
+    /// `additionalReadingKWhRange` — it used to be an absolute
+    /// 10_000...50_000 draw, independent of whatever the meter's existing
+    /// readings were, which could easily produce a *lower* reading than one
+    /// already on file). Electric meters are cumulative: a real meter's
+    /// reading never goes down, so every new reading this generates must be
+    /// strictly higher than the meter's previous one — Christian flagged
+    /// this after noticing the Meter Details chart could dip (2026-08-28).
+    static let additionalReadingIncrementRange: ClosedRange<Double> = 50...500
 
     private let repository: MeterRepositoryProtocol
 
@@ -86,7 +97,12 @@ class DataSeeder {
         print("Data seeding complete.")
     }
 
-    /// Adds one additional reading, dated today, to every existing meter.
+    /// Adds one additional reading, dated today, to every existing meter —
+    /// always **higher** than that meter's current latest reading (an
+    /// electric meter's cumulative total only ever goes up). Falls back to
+    /// `0` as the baseline for a meter with no prior readings at all
+    /// (shouldn't happen via `seedData()`, which always seeds 5 per meter,
+    /// but keeps this correct standalone too).
     func seedMoreReadings() async throws {
         let date = Calendar.current.startOfDay(for: Date())
 
@@ -95,7 +111,9 @@ class DataSeeder {
         for building in try await repository.getBuildings() {
             for floor in building.floors {
                 for meter in floor.meters {
-                    let kWh = Double.random(in: Self.additionalReadingKWhRange, using: &rng)
+                    let increment = Double.random(in: Self.additionalReadingIncrementRange, using: &rng)
+                    let baseline = meter.mostRecentReading?.kWh ?? 0
+                    let kWh = baseline + increment
                     _ = try await repository.addReading(MRKReadingInput(kWh: kWh, date: date, meterID: meter.id))
                     readingCount += 1
                 }
