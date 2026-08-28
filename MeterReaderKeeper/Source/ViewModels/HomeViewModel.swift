@@ -32,6 +32,41 @@ final class HomeViewModel {
         case chooseBuilding([MRKBuilding])
     }
 
+    /// The data behind the Home screen's "At a Glance" stats row and
+    /// "Needs Attention" list.
+    struct HomeSummary {
+        let buildingCount: Int
+        let meterCount: Int
+        /// Human-readable relative time of the most recent reading across
+        /// every meter (e.g. "Today", "Yesterday", "6d ago"), or "\u{2014}" if
+        /// no reading has ever been recorded.
+        let lastReadingText: String
+        /// Meters that haven't been read in at least `staleMeterThresholdDays`
+        /// days, most-overdue first, capped to the top 3.
+        let overdueMeters: [OverdueMeterSummary]
+
+        static let empty = HomeSummary(buildingCount: 0, meterCount: 0, lastReadingText: "\u{2014}", overdueMeters: [])
+    }
+
+    struct OverdueMeterSummary: Identifiable {
+        let id: UUID
+        /// e.g. "141 Franklin \u{B7} Floor 9 \u{B7} Meter 3"
+        let label: String
+        /// `nil` means the meter has never had a reading recorded at all.
+        let daysSinceReading: Int?
+        /// Carried along so tapping this row can jump straight to adding a
+        /// reading for this exact meter.
+        let meter: MRKMeter
+        let floor: MRKFloor
+        let building: MRKBuilding
+    }
+
+    /// Meters with no reading in at least this many days are surfaced in
+    /// the "Needs Attention" list. This is the threshold from the Home
+    /// redesign mockup -- a starting guess, not a value you've confirmed,
+    /// so treat it as easy to change here if it doesn't feel right.
+    static let staleMeterThresholdDays = 14
+
     #if DEBUG || TESTING
     /// Which seeding operation actually ran, so the View can show the
     /// matching success message.
@@ -47,7 +82,7 @@ final class HomeViewModel {
     private let dataSeeder: DataSeeder
     #endif
 
-    nonisolated init(repository: MeterRepositoryProtocol) {
+    init(repository: MeterRepositoryProtocol) {
         self.repository = repository
         #if DEBUG || TESTING
         self.dataSeeder = DataSeeder(repository: repository)
@@ -63,6 +98,88 @@ final class HomeViewModel {
             return .singleBuilding(buildings[0])
         } else {
             return .chooseBuilding(buildings)
+        }
+    }
+
+    /// Loads the data behind the Home screen's "At a Glance" stats and
+    /// "Needs Attention" list. Best-effort: a repository failure resolves
+    /// to an empty summary rather than throwing, since Home should never
+    /// fail to render because this secondary content couldn't load.
+    func loadSummary() async -> HomeSummary {
+        let buildings = (try? await repository.getBuildings()) ?? []
+
+        let meterCount = buildings.reduce(0) { $0 + $1.totalMeterCount }
+
+        var mostRecentReadingDate: Date?
+        var overdue: [OverdueMeterSummary] = []
+        let now = Date()
+
+        for building in buildings {
+            for floor in building.floors {
+                for meter in floor.meters {
+                    if meter.latestReadingDate > (mostRecentReadingDate ?? .distantPast) {
+                        mostRecentReadingDate = meter.latestReadingDate
+                    }
+
+                    // `latestReadingDate` defaults to `.distantPast` for a
+                    // meter that has never had a reading recorded.
+                    if meter.latestReadingDate == .distantPast {
+                        overdue.append(OverdueMeterSummary(
+                            id: meter.id,
+                            label: "\(building.name) \u{B7} Floor \(floor.number) \u{B7} \(meter.name)",
+                            daysSinceReading: nil,
+                            meter: meter,
+                            floor: floor,
+                            building: building
+                        ))
+                        continue
+                    }
+
+                    let days = Calendar.current.dateComponents(
+                        [.day], from: meter.latestReadingDate, to: now
+                    ).day ?? 0
+
+                    if days >= Self.staleMeterThresholdDays {
+                        overdue.append(OverdueMeterSummary(
+                            id: meter.id,
+                            label: "\(building.name) \u{B7} Floor \(floor.number) \u{B7} \(meter.name)",
+                            daysSinceReading: days,
+                            meter: meter,
+                            floor: floor,
+                            building: building
+                        ))
+                    }
+                }
+            }
+        }
+
+        // Never-read meters are the most overdue by definition; among the
+        // rest, longest-overdue first.
+        overdue.sort { lhs, rhs in
+            switch (lhs.daysSinceReading, rhs.daysSinceReading) {
+            case (nil, nil): return false
+            case (nil, _): return true
+            case (_, nil): return false
+            case let (l?, r?): return l > r
+            }
+        }
+
+        return HomeSummary(
+            buildingCount: buildings.count,
+            meterCount: meterCount,
+            lastReadingText: Self.formatLastReading(mostRecentReadingDate),
+            overdueMeters: Array(overdue.prefix(3))
+        )
+    }
+
+    private static func formatLastReading(_ date: Date?) -> String {
+        guard let date else { return "\u{2014}" }
+        let days = Calendar.current.dateComponents([.day], from: date, to: Date()).day ?? 0
+        switch days {
+        case ..<0: return "\u{2014}" // clock skew guard; shouldn't happen
+        case 0: return "Today"
+        case 1: return "Yesterday"
+        default: return "\(days)d ago"
         }
     }
 

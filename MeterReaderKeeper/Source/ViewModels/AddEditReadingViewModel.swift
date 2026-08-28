@@ -25,7 +25,7 @@ final class AddEditReadingViewModel {
     let building: MRKBuilding
     let reading: MRKReading?
 
-    nonisolated init(repository: MeterRepositoryProtocol, meter: MRKMeter, floor: MRKFloor, building: MRKBuilding, reading: MRKReading?) {
+    init(repository: MeterRepositoryProtocol, meter: MRKMeter, floor: MRKFloor, building: MRKBuilding, reading: MRKReading?) {
         self.repository = repository
         self.meter = meter
         self.floor = floor

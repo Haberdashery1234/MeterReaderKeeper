@@ -9,7 +9,18 @@
 
 import UIKit
 
-/// Base protocol for all coordinators
+/// Base protocol for all coordinators.
+///
+/// Marked `@MainActor`: every conformer owns a `UINavigationController` and
+/// pushes/sets view controllers on it, which is inherently main-thread-only
+/// UIKit work — there's no legitimate background-work case for a
+/// coordinator the way there is for, say, `MeterRepositoryProtocol`. Since
+/// `AppCoordinator` (the only conformer) is already `@MainActor` itself,
+/// declaring that isolation on the protocol directly means the conformance
+/// no longer "crosses into actor-isolated code" — it matches it exactly, so
+/// no `@preconcurrency` escape hatch is needed here the way one was for
+/// `SwiftDataMeterRepository`'s conformance to `MeterRepositoryProtocol`.
+@MainActor
 protocol Coordinator: AnyObject {
     var navigationController: UINavigationController { get set }
     var childCoordinators: [Coordinator] { get set }
@@ -36,6 +47,7 @@ extension Coordinator {
 /// handing it the repository and whatever navigation context (a building,
 /// floor, meter, or reading) the coordinator already has, and injects it
 /// into the view controller.
+@MainActor
 class AppCoordinator: Coordinator {
     var navigationController: UINavigationController
     var childCoordinators: [Coordinator] = []

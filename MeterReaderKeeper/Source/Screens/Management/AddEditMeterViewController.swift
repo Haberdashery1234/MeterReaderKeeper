@@ -43,6 +43,7 @@ class AddEditMeterViewController: UIViewController {
         textField.borderStyle = .roundedRect
         textField.inputView = buildingPickerView
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityIdentifier = "AddEditMeter.buildingTextField"
         return textField
     }()
     
@@ -60,6 +61,7 @@ class AddEditMeterViewController: UIViewController {
         textField.borderStyle = .roundedRect
         textField.inputView = floorPickerView
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityIdentifier = "AddEditMeter.floorTextField"
         return textField
     }()
     
@@ -79,6 +81,7 @@ class AddEditMeterViewController: UIViewController {
         textField.returnKeyType = .next
         textField.delegate = self
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityIdentifier = "AddEditMeter.nameTextField"
         return textField
     }()
     
@@ -97,6 +100,7 @@ class AddEditMeterViewController: UIViewController {
         textField.returnKeyType = .done
         textField.delegate = self
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityIdentifier = "AddEditMeter.descriptionTextField"
         return textField
     }()
     
@@ -137,6 +141,7 @@ class AddEditMeterViewController: UIViewController {
         button.layer.cornerRadius = 12
         button.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityIdentifier = "AddEditMeter.saveButton"
         return button
     }()
     
@@ -147,6 +152,7 @@ class AddEditMeterViewController: UIViewController {
         button.setTitleColor(.systemRed, for: .normal)
         button.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityIdentifier = "AddEditMeter.deleteButton"
         return button
     }()
     

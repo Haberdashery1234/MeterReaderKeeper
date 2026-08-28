@@ -6,6 +6,8 @@
 //  Refactored to programmatic UI on 8/25/26.
 //  Updated to use MeterRepositoryProtocol on 8/26/26.
 //  Thinned to use HomeViewModel on 8/26/26.
+//  Redesigned to match the "Soft Cards" mockup (muted single-accent,
+//  At a Glance stats, Needs Attention list) on 8/28/26.
 //
 
 import UIKit
@@ -28,93 +30,176 @@ class HomeViewController: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-    
-    private let logoImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage(systemName: "gauge.medium")
-        imageView.tintColor = .systemBlue
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        return imageView
+
+    /// Top-level vertical layout. Sections are added as arranged subviews;
+    /// the gaps between specific sections are set with `setCustomSpacing`
+    /// below rather than a single uniform `spacing`, to match the rhythm
+    /// from the redesign mockup.
+    private let rootStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.spacing = 20
+        stackView.alignment = .fill
+        stackView.distribution = .fill
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
     }()
     
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Meter Reader Keeper"
-        label.font = .systemFont(ofSize: 28, weight: .bold)
-        label.textAlignment = .center
+        label.font = .systemFont(ofSize: 34, weight: .heavy)
+        label.textColor = .label
         label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
     private let subtitleLabel: UILabel = {
         let label = UILabel()
         label.text = "Manage building meters and readings"
-        label.font = .systemFont(ofSize: 16, weight: .regular)
-        label.textAlignment = .center
+        label.font = .systemFont(ofSize: 15, weight: .regular)
         label.textColor = .secondaryLabel
         label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
-    private lazy var takeReadingsButton: UIButton = {
-        let button = createStyledButton(
-            title: "Take Readings",
-            backgroundColor: .systemBlue,
-            action: #selector(takeReadingsTapped)
-        )
-        return button
+
+    private lazy var headerStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
+        stackView.axis = .vertical
+        stackView.spacing = 4
+        stackView.alignment = .fill
+        return stackView
     }()
     
-    private lazy var previousReadingsButton: UIButton = {
-        let button = createStyledButton(
-            title: "Previous Readings",
-            backgroundColor: .systemGreen,
-            action: #selector(previousReadingsTapped)
-        )
-        return button
-    }()
+    private lazy var takeReadingsButton = createActionCard(
+        title: "Take Readings",
+        systemImage: "gauge.medium",
+        action: #selector(takeReadingsTapped)
+    )
     
-    private lazy var manageButton: UIButton = {
-        let button = createStyledButton(
-            title: "Manage Buildings & Meters",
-            backgroundColor: .systemOrange,
-            action: #selector(manageTapped)
-        )
-        return button
-    }()
+    private lazy var previousReadingsButton = createActionCard(
+        title: "Previous Readings",
+        systemImage: "clock.arrow.circlepath",
+        action: #selector(previousReadingsTapped)
+    )
     
-    private lazy var exportButton: UIButton = {
-        let button = createStyledButton(
-            title: "Export Data",
-            backgroundColor: .systemPurple,
-            action: #selector(exportDataTapped)
-        )
-        return button
+    private lazy var manageButton = createActionCard(
+        title: "Manage Buildings & Meters",
+        systemImage: "building.2",
+        action: #selector(manageTapped)
+    )
+    
+    private lazy var exportButton = createActionCard(
+        title: "Export Data",
+        systemImage: "square.and.arrow.up",
+        action: #selector(exportDataTapped)
+    )
+    
+    private lazy var actionsStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [
+            takeReadingsButton, previousReadingsButton, manageButton, exportButton
+        ])
+        stackView.axis = .vertical
+        stackView.spacing = 12
+        stackView.alignment = .fill
+        stackView.distribution = .fill
+        return stackView
+    }()
+
+    // MARK: At a Glance
+
+    private let buildingCountValueLabel = HomeViewController.makeStatValueLabel()
+    private let meterCountValueLabel = HomeViewController.makeStatValueLabel()
+    private let lastReadingValueLabel = HomeViewController.makeStatValueLabel(fontSize: 15)
+
+    private lazy var atGlanceCard: UIView = {
+        let buildingsColumn = makeStatColumn(valueLabel: buildingCountValueLabel, caption: "Buildings")
+        let metersColumn = makeStatColumn(valueLabel: meterCountValueLabel, caption: "Meters")
+        let lastReadingColumn = makeStatColumn(valueLabel: lastReadingValueLabel, caption: "Last Reading")
+
+        let row = UIStackView(arrangedSubviews: [buildingsColumn, makeDivider(vertical: true), metersColumn, makeDivider(vertical: true), lastReadingColumn])
+        row.axis = .horizontal
+        row.alignment = .fill
+        row.distribution = .fillEqually
+        row.spacing = 0
+        row.translatesAutoresizingMaskIntoConstraints = false
+
+        let card = makeCardContainer()
+        card.addSubview(row)
+        NSLayoutConstraint.activate([
+            row.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
+            row.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -16),
+            row.leadingAnchor.constraint(equalTo: card.leadingAnchor),
+            row.trailingAnchor.constraint(equalTo: card.trailingAnchor),
+        ])
+        return card
+    }()
+
+    private lazy var atGlanceSection: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [makeSectionHeaderLabel("At a Glance"), atGlanceCard])
+        stackView.axis = .vertical
+        stackView.spacing = 8
+        stackView.alignment = .fill
+        return stackView
+    }()
+
+    // MARK: Needs Attention
+
+    private let needsAttentionRowsStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.spacing = 0
+        stackView.alignment = .fill
+        return stackView
+    }()
+
+    private lazy var needsAttentionCard: UIView = {
+        let card = makeCardContainer()
+        card.addSubview(needsAttentionRowsStackView)
+        needsAttentionRowsStackView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            needsAttentionRowsStackView.topAnchor.constraint(equalTo: card.topAnchor),
+            needsAttentionRowsStackView.bottomAnchor.constraint(equalTo: card.bottomAnchor),
+            needsAttentionRowsStackView.leadingAnchor.constraint(equalTo: card.leadingAnchor),
+            needsAttentionRowsStackView.trailingAnchor.constraint(equalTo: card.trailingAnchor),
+        ])
+        return card
+    }()
+
+    /// Hidden until `loadSummary()` reports at least one overdue meter —
+    /// there's nothing useful to show (or hide behind an empty card)
+    /// otherwise.
+    private lazy var needsAttentionSection: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [makeSectionHeaderLabel("Needs Attention"), needsAttentionCard])
+        stackView.axis = .vertical
+        stackView.spacing = 8
+        stackView.alignment = .fill
+        stackView.isHidden = true
+        return stackView
     }()
     
     #if DEBUG
     private lazy var seedDataButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Seed Test Data", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .regular)
-        button.setTitleColor(.systemGray, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 13, weight: .regular)
+        button.setTitleColor(.tertiaryLabel, for: .normal)
         button.addTarget(self, action: #selector(seedDataTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    #endif
-    
-    private let buttonStackView: UIStackView = {
-        let stackView = UIStackView()
-        stackView.axis = .vertical
-        stackView.spacing = 16
-        stackView.distribution = .fillEqually
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        return stackView
+
+    private lazy var seedDataRow: UIView = {
+        let container = UIView()
+        container.addSubview(seedDataButton)
+        seedDataButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            seedDataButton.topAnchor.constraint(equalTo: container.topAnchor),
+            seedDataButton.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            seedDataButton.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+        ])
+        return container
     }()
+    #endif
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -122,27 +207,32 @@ class HomeViewController: UIViewController {
         setupUI()
         setupConstraints()
     }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        loadSummary()
+    }
     
     // MARK: - Setup
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .systemGroupedBackground
         
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
-        
-        contentView.addSubview(logoImageView)
-        contentView.addSubview(titleLabel)
-        contentView.addSubview(subtitleLabel)
-        contentView.addSubview(buttonStackView)
-        
+        contentView.addSubview(rootStackView)
+
+        rootStackView.addArrangedSubview(headerStackView)
+        rootStackView.addArrangedSubview(actionsStackView)
+        rootStackView.addArrangedSubview(atGlanceSection)
+        rootStackView.addArrangedSubview(needsAttentionSection)
+
         #if DEBUG
-        contentView.addSubview(seedDataButton)
+        rootStackView.addArrangedSubview(seedDataRow)
         #endif
-        
-        buttonStackView.addArrangedSubview(takeReadingsButton)
-        buttonStackView.addArrangedSubview(previousReadingsButton)
-        buttonStackView.addArrangedSubview(manageButton)
-        buttonStackView.addArrangedSubview(exportButton)
+
+        rootStackView.setCustomSpacing(28, after: actionsStackView)
+        rootStackView.setCustomSpacing(26, after: atGlanceSection)
+        rootStackView.setCustomSpacing(22, after: needsAttentionSection)
     }
     
     private func setupConstraints() {
@@ -159,60 +249,218 @@ class HomeViewController: UIViewController {
             contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-            
-            // Logo
-            logoImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 40),
-            logoImageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            logoImageView.widthAnchor.constraint(equalToConstant: 100),
-            logoImageView.heightAnchor.constraint(equalToConstant: 100),
-            
-            // Title
-            titleLabel.topAnchor.constraint(equalTo: logoImageView.bottomAnchor, constant: 24),
-            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            
-            // Subtitle
-            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
-            subtitleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            subtitleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            
-            // Button Stack
-            buttonStackView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 40),
-            buttonStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            buttonStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            buttonStackView.heightAnchor.constraint(equalToConstant: 240), // 4 buttons * 56 height + 3 * 16 spacing
-            
-            // Button heights
+
+            // Root stack
+            rootStackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+            rootStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            rootStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            rootStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24),
+
+            // Action card heights
             takeReadingsButton.heightAnchor.constraint(equalToConstant: 56),
             previousReadingsButton.heightAnchor.constraint(equalToConstant: 56),
             manageButton.heightAnchor.constraint(equalToConstant: 56),
             exportButton.heightAnchor.constraint(equalToConstant: 56),
         ])
-        
-        #if DEBUG
-        NSLayoutConstraint.activate([
-            // Seed Data Button
-            seedDataButton.topAnchor.constraint(equalTo: buttonStackView.bottomAnchor, constant: 32),
-            seedDataButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            seedDataButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
-        ])
-        #else
-        NSLayoutConstraint.activate([
-            buttonStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
-        ])
-        #endif
     }
-    
-    private func createStyledButton(title: String, backgroundColor: UIColor, action: Selector) -> UIButton {
+
+    // MARK: - View factories
+
+    /// Icon + title, styled as an individually-cardified row: white
+    /// (adaptive) background, hairline border, subtle shadow, no chevron —
+    /// matches the "Soft Cards" Home redesign.
+    private func createActionCard(title: String, systemImage: String, action: Selector) -> UIButton {
         let button = UIButton(type: .system)
-        button.setTitle(title, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        button.backgroundColor = backgroundColor
-        button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 12
+        button.backgroundColor = .secondarySystemGroupedBackground
+        button.layer.cornerRadius = 14
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.separator.cgColor
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOpacity = 0.05
+        button.layer.shadowRadius = 3
+        button.layer.shadowOffset = CGSize(width: 0, height: 1)
         button.addTarget(self, action: action, for: .touchUpInside)
+        button.accessibilityLabel = title
         button.translatesAutoresizingMaskIntoConstraints = false
+
+        let icon = UIImageView(image: UIImage(systemName: systemImage))
+        icon.tintColor = UIColor(named: "AccentColor")
+        icon.contentMode = .scaleAspectFit
+        icon.isUserInteractionEnabled = false
+        icon.isAccessibilityElement = false
+        icon.translatesAutoresizingMaskIntoConstraints = false
+
+        let label = UILabel()
+        label.text = title
+        label.font = .systemFont(ofSize: 17, weight: .semibold)
+        label.textColor = .label
+        label.isUserInteractionEnabled = false
+        label.isAccessibilityElement = false
+        label.translatesAutoresizingMaskIntoConstraints = false
+
+        button.addSubview(icon)
+        button.addSubview(label)
+
+        NSLayoutConstraint.activate([
+            icon.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 18),
+            icon.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+            icon.widthAnchor.constraint(equalToConstant: 24),
+            icon.heightAnchor.constraint(equalToConstant: 24),
+
+            label.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: 14),
+            label.trailingAnchor.constraint(lessThanOrEqualTo: button.trailingAnchor, constant: -18),
+            label.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+        ])
+
         return button
+    }
+
+    private func makeCardContainer() -> UIView {
+        let card = UIView()
+        card.backgroundColor = .secondarySystemGroupedBackground
+        card.layer.cornerRadius = 14
+        card.layer.borderWidth = 1
+        card.layer.borderColor = UIColor.separator.cgColor
+        card.layer.shadowColor = UIColor.black.cgColor
+        card.layer.shadowOpacity = 0.05
+        card.layer.shadowRadius = 3
+        card.layer.shadowOffset = CGSize(width: 0, height: 1)
+        card.translatesAutoresizingMaskIntoConstraints = false
+        return card
+    }
+
+    private func makeSectionHeaderLabel(_ text: String) -> UILabel {
+        let label = UILabel()
+        label.text = text.uppercased()
+        label.font = .systemFont(ofSize: 13, weight: .semibold)
+        label.textColor = .secondaryLabel
+        return label
+    }
+
+    private static func makeStatValueLabel(fontSize: CGFloat = 22) -> UILabel {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: fontSize, weight: .bold)
+        label.textColor = .label
+        label.textAlignment = .center
+        label.adjustsFontSizeToFitWidth = true
+        label.minimumScaleFactor = 0.6
+        label.text = "\u{2013}"
+        return label
+    }
+
+    private func makeStatColumn(valueLabel: UILabel, caption: String) -> UIView {
+        let captionLabel = UILabel()
+        captionLabel.text = caption
+        captionLabel.font = .systemFont(ofSize: 12, weight: .regular)
+        captionLabel.textColor = .secondaryLabel
+        captionLabel.textAlignment = .center
+
+        let stackView = UIStackView(arrangedSubviews: [valueLabel, captionLabel])
+        stackView.axis = .vertical
+        stackView.spacing = 3
+        stackView.alignment = .fill
+        return stackView
+    }
+
+    private func makeDivider(vertical: Bool) -> UIView {
+        let divider = UIView()
+        divider.backgroundColor = .separator
+        divider.translatesAutoresizingMaskIntoConstraints = false
+        if vertical {
+            divider.widthAnchor.constraint(equalToConstant: 1).isActive = true
+        } else {
+            divider.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
+        }
+        return divider
+    }
+
+    /// One row in the "Needs Attention" card: the meter's location on the
+    /// left, days-since-last-reading (or "Never") and a chevron on the
+    /// right. Tapping jumps straight into adding a reading for that meter.
+    private func makeOverdueRow(_ item: HomeViewModel.OverdueMeterSummary) -> UIView {
+        let locationLabel = UILabel()
+        locationLabel.text = item.label
+        locationLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        locationLabel.textColor = .label
+        locationLabel.lineBreakMode = .byTruncatingTail
+        locationLabel.isAccessibilityElement = false
+
+        let daysDescription = item.daysSinceReading.map { "\($0) days since last reading" } ?? "Never read"
+        let daysLabel = UILabel()
+        daysLabel.text = item.daysSinceReading.map { "\($0)d" } ?? "Never"
+        daysLabel.font = .systemFont(ofSize: 13, weight: .semibold)
+        daysLabel.textColor = .systemOrange
+        daysLabel.isAccessibilityElement = false
+
+        let chevron = UIImageView(image: UIImage(systemName: "chevron.right"))
+        chevron.tintColor = .tertiaryLabel
+        chevron.contentMode = .scaleAspectFit
+        chevron.isAccessibilityElement = false
+        chevron.setContentHuggingPriority(.required, for: .horizontal)
+
+        let trailingStack = UIStackView(arrangedSubviews: [daysLabel, chevron])
+        trailingStack.axis = .horizontal
+        trailingStack.spacing = 6
+        trailingStack.alignment = .center
+        trailingStack.setContentHuggingPriority(.required, for: .horizontal)
+
+        let rowStack = UIStackView(arrangedSubviews: [locationLabel, trailingStack])
+        rowStack.axis = .horizontal
+        rowStack.spacing = 10
+        rowStack.alignment = .center
+        rowStack.isLayoutMarginsRelativeArrangement = true
+        rowStack.layoutMargins = UIEdgeInsets(top: 13, left: 16, bottom: 13, right: 16)
+        rowStack.isUserInteractionEnabled = false
+        rowStack.translatesAutoresizingMaskIntoConstraints = false
+
+        let row = UIControl()
+        row.isAccessibilityElement = true
+        row.accessibilityLabel = item.label
+        row.accessibilityValue = daysDescription
+        row.accessibilityTraits = .button
+        row.addSubview(rowStack)
+        NSLayoutConstraint.activate([
+            rowStack.topAnchor.constraint(equalTo: row.topAnchor),
+            rowStack.bottomAnchor.constraint(equalTo: row.bottomAnchor),
+            rowStack.leadingAnchor.constraint(equalTo: row.leadingAnchor),
+            rowStack.trailingAnchor.constraint(equalTo: row.trailingAnchor),
+        ])
+        row.addAction(UIAction { [weak self] _ in
+            self?.coordinator?.showAddReading(for: item.meter, floor: item.floor, building: item.building)
+        }, for: .touchUpInside)
+        row.addAction(UIAction { [weak row] _ in row?.backgroundColor = .systemGray5 }, for: .touchDown)
+        row.addAction(UIAction { [weak row] _ in row?.backgroundColor = .clear }, for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragExit])
+
+        return row
+    }
+
+    // MARK: - Data
+
+    private func loadSummary() {
+        Task { @MainActor in
+            let summary = await viewModel.loadSummary()
+            apply(summary)
+        }
+    }
+
+    private func apply(_ summary: HomeViewModel.HomeSummary) {
+        buildingCountValueLabel.text = "\(summary.buildingCount)"
+        meterCountValueLabel.text = "\(summary.meterCount)"
+        lastReadingValueLabel.text = summary.lastReadingText
+
+        needsAttentionRowsStackView.arrangedSubviews.forEach {
+            needsAttentionRowsStackView.removeArrangedSubview($0)
+            $0.removeFromSuperview()
+        }
+
+        for (index, item) in summary.overdueMeters.enumerated() {
+            if index > 0 {
+                needsAttentionRowsStackView.addArrangedSubview(makeDivider(vertical: false))
+            }
+            needsAttentionRowsStackView.addArrangedSubview(makeOverdueRow(item))
+        }
+
+        needsAttentionSection.isHidden = summary.overdueMeters.isEmpty
     }
     
     // MARK: - Actions
@@ -293,6 +541,7 @@ class HomeViewController: UIViewController {
                         self.showAlert(title: "Success", message: "Additional readings have been added successfully.")
                     }
                 }
+                self.loadSummary()
             } catch {
                 seedDataButton.isEnabled = true
                 loadingAlert.dismiss(animated: true) {

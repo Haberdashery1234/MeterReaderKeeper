@@ -45,6 +45,7 @@ class AddEditBuildingViewController: UIViewController {
         textField.returnKeyType = .next
         textField.delegate = self
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityIdentifier = "AddEditBuilding.nameTextField"
         return textField
     }()
     
@@ -63,6 +64,7 @@ class AddEditBuildingViewController: UIViewController {
         textField.keyboardType = .numberPad
         textField.delegate = self
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityIdentifier = "AddEditBuilding.floorsTextField"
         return textField
     }()
     
@@ -75,6 +77,7 @@ class AddEditBuildingViewController: UIViewController {
         button.layer.cornerRadius = 12
         button.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityIdentifier = "AddEditBuilding.saveButton"
         return button
     }()
     
@@ -85,6 +88,7 @@ class AddEditBuildingViewController: UIViewController {
         button.setTitleColor(.systemRed, for: .normal)
         button.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityIdentifier = "AddEditBuilding.deleteButton"
         return button
     }()
     

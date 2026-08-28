@@ -42,7 +42,7 @@ final class ManagementViewModel {
     @Published private(set) var floorItems: [FloorItem] = []
     @Published private(set) var meterItems: [MeterItem] = []
 
-    nonisolated init(repository: MeterRepositoryProtocol) {
+    init(repository: MeterRepositoryProtocol) {
         self.repository = repository
     }
 

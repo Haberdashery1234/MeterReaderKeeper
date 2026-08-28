@@ -77,6 +77,7 @@ class AddEditReadingViewController: UIViewController {
         textField.borderStyle = .roundedRect
         textField.keyboardType = .decimalPad
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityIdentifier = "AddEditReading.readingTextField"
         return textField
     }()
     
@@ -89,6 +90,7 @@ class AddEditReadingViewController: UIViewController {
         button.layer.cornerRadius = 12
         button.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityIdentifier = "AddEditReading.saveButton"
         return button
     }()
     

@@ -31,6 +31,7 @@ class ManagementTableViewController: UIViewController {
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60
         tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.accessibilityIdentifier = "Management.tableView"
         return tableView
     }()
     
@@ -40,6 +41,7 @@ class ManagementTableViewController: UIViewController {
         control.selectedSegmentIndex = 0
         control.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
         control.translatesAutoresizingMaskIntoConstraints = false
+        control.accessibilityIdentifier = "Management.segmentedControl"
         return control
     }()
     
@@ -88,6 +90,7 @@ class ManagementTableViewController: UIViewController {
             target: self,
             action: #selector(addTapped)
         )
+        addButton.accessibilityIdentifier = "Management.addButton"
         navigationItem.rightBarButtonItem = addButton
     }
     

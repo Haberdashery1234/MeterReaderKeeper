@@ -24,6 +24,7 @@ class ReadingsMainViewController: UIViewController {
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 80
         tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.accessibilityIdentifier = "ReadingsMain.tableView"
         return tableView
     }()
     
@@ -42,6 +43,7 @@ class ReadingsMainViewController: UIViewController {
         textField.inputView = floorPickerView
         textField.tintColor = .clear // Hide cursor
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityIdentifier = "ReadingsMain.floorTextField"
         return textField
     }()
     
@@ -170,6 +172,7 @@ class ReadingsMainViewController: UIViewController {
             target: self,
             action: #selector(scanQRCodeTapped)
         )
+        scanButton.accessibilityIdentifier = "ReadingsMain.scanButton"
         
         // Map button
         let mapButton = UIBarButtonItem(
@@ -178,6 +181,7 @@ class ReadingsMainViewController: UIViewController {
             target: self,
             action: #selector(mapButtonTapped)
         )
+        mapButton.accessibilityIdentifier = "ReadingsMain.mapButton"
         
         // Send button
         let sendButton = UIBarButtonItem(
@@ -186,6 +190,7 @@ class ReadingsMainViewController: UIViewController {
             target: self,
             action: #selector(sendButtonTapped)
         )
+        sendButton.accessibilityIdentifier = "ReadingsMain.sendButton"
         
         navigationItem.rightBarButtonItems = [sendButton, scanButton, mapButton]
     }
@@ -204,7 +209,7 @@ class ReadingsMainViewController: UIViewController {
                     from: self,
                     csvData: csvData,
                     buildingName: viewModel.building.name
-                ) { [weak self] result, error in
+                ) { result, error in
                     if result == .failed {
                         print("Email send failed: \(String(describing: error))")
                     } else {

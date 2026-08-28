@@ -26,6 +26,7 @@ class PreviousReadingsViewController: UIViewController {
         control.selectedSegmentIndex = 0
         control.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
         control.translatesAutoresizingMaskIntoConstraints = false
+        control.accessibilityIdentifier = "PreviousReadings.segmentedControl"
         return control
     }()
     
@@ -36,6 +37,7 @@ class PreviousReadingsViewController: UIViewController {
         textField.borderStyle = .roundedRect
         textField.inputView = datePickerView
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityIdentifier = "PreviousReadings.dateTextField"
         return textField
     }()
     
@@ -45,6 +47,7 @@ class PreviousReadingsViewController: UIViewController {
         textField.borderStyle = .roundedRect
         textField.inputView = buildingPickerView
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityIdentifier = "PreviousReadings.buildingTextField"
         return textField
     }()
     
@@ -54,6 +57,7 @@ class PreviousReadingsViewController: UIViewController {
         textField.borderStyle = .roundedRect
         textField.inputView = floorPickerView
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityIdentifier = "PreviousReadings.floorTextField"
         return textField
     }()
     
@@ -63,6 +67,7 @@ class PreviousReadingsViewController: UIViewController {
         textField.borderStyle = .roundedRect
         textField.inputView = meterPickerView
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityIdentifier = "PreviousReadings.meterTextField"
         return textField
     }()
     
@@ -72,6 +77,7 @@ class PreviousReadingsViewController: UIViewController {
         tableView.dataSource = self
         tableView.register(PreviousReadingTableViewCell.self, forCellReuseIdentifier: "ReadingCell")
         tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.accessibilityIdentifier = "PreviousReadings.tableView"
         return tableView
     }()
     

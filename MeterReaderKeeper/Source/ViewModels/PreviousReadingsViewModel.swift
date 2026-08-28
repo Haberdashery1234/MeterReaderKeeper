@@ -41,7 +41,7 @@ final class PreviousReadingsViewModel {
     /// to carry its own meter/floor/building references.
     private var meterDisplayInfo: [UUID: (name: String, location: String)] = [:]
 
-    nonisolated init(repository: MeterRepositoryProtocol) {
+    init(repository: MeterRepositoryProtocol) {
         self.repository = repository
     }
 

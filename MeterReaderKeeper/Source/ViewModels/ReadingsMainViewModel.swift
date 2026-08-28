@@ -28,7 +28,7 @@ final class ReadingsMainViewModel {
     private(set) var floor: MRKFloor?
     private(set) var meters: [MRKMeter]
 
-    nonisolated init(repository: MeterRepositoryProtocol, building: MRKBuilding) {
+    init(repository: MeterRepositoryProtocol, building: MRKBuilding) {
         self.repository = repository
         self.building = building
         let sortedFloors = building.sortedFloors

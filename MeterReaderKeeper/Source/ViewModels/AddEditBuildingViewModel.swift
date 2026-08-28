@@ -26,7 +26,7 @@ final class AddEditBuildingViewModel {
     /// The building being edited, or `nil` when adding a new one.
     let building: MRKBuilding?
 
-    nonisolated init(repository: MeterRepositoryProtocol, building: MRKBuilding?) {
+    init(repository: MeterRepositoryProtocol, building: MRKBuilding?) {
         self.repository = repository
         self.building = building
     }

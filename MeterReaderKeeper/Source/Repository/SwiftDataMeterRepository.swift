@@ -26,13 +26,15 @@ import SwiftData
 /// documented pattern for SwiftData background access. The macro
 /// synthesizes a `ModelContext` confined to this actor's own serial
 /// executor, exposed as the `modelContext` property every method below
-/// uses. Every method here is declared as a plain (non-`async`)
-/// actor-isolated `throws` function; that's enough to satisfy
-/// `MeterRepositoryProtocol`'s `async throws` requirements, because calling
-/// *any* actor-isolated method from outside the actor requires `await`
-/// regardless of whether the method itself is marked `async` — the `await`
-/// is what crossing the actor boundary requires, not the function's own
-/// keyword.
+/// uses. Every method here is declared `async throws` explicitly, matching
+/// `MeterRepositoryProtocol`'s requirements and Apple's own `ModelActor`
+/// sample code — even though each method's body is internally synchronous,
+/// spelling out `async` on the witness avoids a "crosses into actor-isolated
+/// code and can cause data races" diagnostic that an isolated-but-implicitly-
+/// async witness can trigger under stricter concurrency checking. The
+/// conformance clause also opts the protocol in via `@preconcurrency`
+/// (`actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol`)
+/// as a second safety net against the same diagnostic class.
 ///
 /// This replaces an earlier version of this type that manually confined a
 /// single `ModelContext` to a private serial `DispatchQueue` and ran every
@@ -45,19 +47,40 @@ import SwiftData
 /// ripple the original migration deliberately avoided and this one accepts
 /// in full.
 @ModelActor
-actor SwiftDataMeterRepository: MeterRepositoryProtocol {
+actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
 
     /// - Parameter inMemory: pass `true` (e.g. from unit tests) to back the
     ///   store with an in-memory store instead of the real SQLite file on
     ///   disk.
     ///
-    /// This delegates to the `init(modelContainer:)` the `@ModelActor`
-    /// macro synthesizes, then disables autosave on the context that
-    /// initializer creates — matching the original repository's philosophy
-    /// of saving exactly when `Self.save(context)` is called, never
-    /// implicitly. This is a plain, non-`async` initializer, so constructing
-    /// this actor (`SwiftDataMeterRepository()` / `SwiftDataMeterRepository(inMemory: true)`)
-    /// stays a normal synchronous call from anywhere, same as before.
+    /// This does **not** delegate to the `init(modelContainer:)` the
+    /// `@ModelActor` macro synthesizes. A synchronous, non-`async`
+    /// *delegating* actor initializer (one that calls `self.init(...)`) is
+    /// nonisolated for its entire body, including every statement after the
+    /// delegating call — so touching the actor-isolated `modelContext`
+    /// property anywhere in this initializer, even after
+    /// `self.init(modelContainer:)` returns, fails to compile ("Actor-isolated
+    /// property 'modelContext' can not be referenced from a nonisolated
+    /// context"). That's true whether `modelContext` is accessed directly or
+    /// through a local `let` copy of it — the isolation check is on the
+    /// property access itself, not on what you do with the value afterward.
+    ///
+    /// Instead, this initializer directly assigns the two properties the
+    /// macro's own synthesized `init(modelContainer:)` assigns —
+    /// `modelContainer` and `modelExecutor` (`modelContext` itself is a
+    /// *computed* property derived from `modelExecutor.modelContext`, never
+    /// a stored one, so it's never assigned directly by either version of
+    /// this initializer). Because this makes the initializer a genuine
+    /// designated (non-delegating) init, disabling autosave on a plain local
+    /// `ModelContext` *before* wrapping it into `modelExecutor` sidesteps
+    /// actor isolation entirely — that local `context` variable isn't
+    /// actor-isolated storage yet, so mutating it is legal from anywhere,
+    /// including this nonisolated initializer. This still matches the
+    /// original repository's philosophy of saving exactly when
+    /// `Self.save(context)` is called, never implicitly. This stays a plain,
+    /// non-`async` initializer, so constructing this actor
+    /// (`SwiftDataMeterRepository()` / `SwiftDataMeterRepository(inMemory: true)`)
+    /// remains a normal synchronous call from anywhere, same as before.
     init(inMemory: Bool = false) {
         let schema = Schema([SDBuilding.self, SDFloor.self, SDMeter.self, SDReading.self])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
@@ -73,24 +96,30 @@ actor SwiftDataMeterRepository: MeterRepositoryProtocol {
             fatalError("Failed to create SwiftData ModelContainer: \(error)")
         }
 
-        self.init(modelContainer: container)
-        modelContext.autosaveEnabled = false
+        // Disable autosave on the context *before* it's actor-isolated —
+        // see the doc comment above for why this can't be done after
+        // delegating to the macro-synthesized init(modelContainer:).
+        let context = ModelContext(container)
+        context.autosaveEnabled = false
+
+        self.modelContainer = container
+        self.modelExecutor = DefaultSerialModelExecutor(modelContext: context)
     }
 
     // MARK: - Buildings
 
-    func getBuildings() throws -> [MRKBuilding] {
+    func getBuildings() async throws -> [MRKBuilding] {
         let descriptor = FetchDescriptor<SDBuilding>(sortBy: [SortDescriptor(\.name, order: .forward)])
         let managedBuildings = try modelContext.fetch(descriptor)
         return managedBuildings.map(Self.mapBuilding)
     }
 
-    func getBuilding(id: UUID) throws -> MRKBuilding {
+    func getBuilding(id: UUID) async throws -> MRKBuilding {
         let building = try Self.findBuilding(id: id, in: modelContext)
         return Self.mapBuilding(building)
     }
 
-    func addBuilding(_ input: MRKBuildingInput) throws -> MRKBuilding {
+    func addBuilding(_ input: MRKBuildingInput) async throws -> MRKBuilding {
         try input.validate()
         let building = SDBuilding(name: input.name)
         modelContext.insert(building)
@@ -106,7 +135,7 @@ actor SwiftDataMeterRepository: MeterRepositoryProtocol {
         return Self.mapBuilding(building)
     }
 
-    func deleteBuilding(id: UUID) throws {
+    func deleteBuilding(id: UUID) async throws {
         let building = try Self.findBuilding(id: id, in: modelContext)
         modelContext.delete(building)
         try Self.save(modelContext)
@@ -114,7 +143,7 @@ actor SwiftDataMeterRepository: MeterRepositoryProtocol {
 
     // MARK: - Floors
 
-    func addFloor(_ input: MRKFloorInput) throws -> MRKFloor {
+    func addFloor(_ input: MRKFloorInput) async throws -> MRKFloor {
         let building = try Self.findBuilding(id: input.buildingID, in: modelContext)
 
         let floor = SDFloor(number: input.number, mapImageData: input.mapImageData, building: building)
@@ -124,7 +153,7 @@ actor SwiftDataMeterRepository: MeterRepositoryProtocol {
         return Self.mapFloor(floor)
     }
 
-    func updateFloor(id: UUID, input: MRKFloorInput) throws -> MRKFloor {
+    func updateFloor(id: UUID, input: MRKFloorInput) async throws -> MRKFloor {
         let floor = try Self.findFloor(id: id, in: modelContext)
         let building = try Self.findBuilding(id: input.buildingID, in: modelContext)
 
@@ -138,7 +167,7 @@ actor SwiftDataMeterRepository: MeterRepositoryProtocol {
 
     // MARK: - Meters
 
-    func addMeter(_ input: MRKMeterInput) throws -> MRKMeter {
+    func addMeter(_ input: MRKMeterInput) async throws -> MRKMeter {
         try input.validate()
         let floor = try Self.findFloor(id: input.floorID, in: modelContext)
 
@@ -156,7 +185,7 @@ actor SwiftDataMeterRepository: MeterRepositoryProtocol {
         return Self.mapMeter(meter)
     }
 
-    func updateMeter(id: UUID, input: MRKMeterInput) throws -> MRKMeter {
+    func updateMeter(id: UUID, input: MRKMeterInput) async throws -> MRKMeter {
         try input.validate()
         let meter = try Self.findMeter(id: id, in: modelContext)
         let floor = try Self.findFloor(id: input.floorID, in: modelContext)
@@ -171,7 +200,7 @@ actor SwiftDataMeterRepository: MeterRepositoryProtocol {
         return Self.mapMeter(meter)
     }
 
-    func deleteMeter(id: UUID) throws {
+    func deleteMeter(id: UUID) async throws {
         let meter = try Self.findMeter(id: id, in: modelContext)
         modelContext.delete(meter)
         try Self.save(modelContext)
@@ -179,7 +208,7 @@ actor SwiftDataMeterRepository: MeterRepositoryProtocol {
 
     // MARK: - Readings
 
-    func addReading(_ input: MRKReadingInput) throws -> MRKReading {
+    func addReading(_ input: MRKReadingInput) async throws -> MRKReading {
         try input.validate()
         let meter = try Self.findMeter(id: input.meterID, in: modelContext)
 
@@ -194,7 +223,7 @@ actor SwiftDataMeterRepository: MeterRepositoryProtocol {
         return Self.mapReading(reading)
     }
 
-    func updateReading(id: UUID, kWh: Double) throws -> MRKReading {
+    func updateReading(id: UUID, kWh: Double) async throws -> MRKReading {
         let reading = try Self.findReading(id: id, in: modelContext)
         let date = Calendar.current.startOfDay(for: Date())
 
@@ -208,7 +237,7 @@ actor SwiftDataMeterRepository: MeterRepositoryProtocol {
 
     // MARK: - Export
 
-    func exportAllDataToPlist() throws -> Data {
+    func exportAllDataToPlist() async throws -> Data {
         let descriptor = FetchDescriptor<SDBuilding>(sortBy: [SortDescriptor(\.name, order: .forward)])
         let buildings = try modelContext.fetch(descriptor)
 
@@ -226,7 +255,7 @@ actor SwiftDataMeterRepository: MeterRepositoryProtocol {
         }
     }
 
-    func getCSVData(forBuilding buildingID: UUID) throws -> Data {
+    func getCSVData(forBuilding buildingID: UUID) async throws -> Data {
         let managedBuilding = try Self.findBuilding(id: buildingID, in: modelContext)
         let building = Self.mapBuilding(managedBuilding)
 

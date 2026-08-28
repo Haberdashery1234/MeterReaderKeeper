@@ -15,7 +15,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var appCoordinator: AppCoordinator?
     
     /// The app's single repository instance, owning the SwiftData stack.
-    private let repository: MeterRepositoryProtocol = SwiftDataMeterRepository()
+    ///
+    /// Backed by an in-memory store instead of the real on-disk one when
+    /// launched with `UITestAppLauncher.inMemoryStoreLaunchArgument` (see
+    /// `MeterReaderKeeperUITests/TestSupport/UITestAppLauncher.swift`) —
+    /// this is how the UI test target gets a guaranteed-empty database on
+    /// every launch instead of accumulating state in the real store run
+    /// over run. `#if DEBUG`-gated so a stray launch argument could never
+    /// affect a release build.
+    private let repository: MeterRepositoryProtocol = SceneDelegate.makeRepository()
+
+    private static func makeRepository() -> MeterRepositoryProtocol {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-UITestInMemoryStore") {
+            return SwiftDataMeterRepository(inMemory: true)
+        }
+        #endif
+        return SwiftDataMeterRepository()
+    }
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }

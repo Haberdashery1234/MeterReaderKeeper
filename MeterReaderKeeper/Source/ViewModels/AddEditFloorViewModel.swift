@@ -27,7 +27,7 @@ final class AddEditFloorViewModel {
     private(set) var buildings: [MRKBuilding] = []
     private(set) var selectedBuilding: MRKBuilding?
 
-    nonisolated init(repository: MeterRepositoryProtocol, building: MRKBuilding?, floor: MRKFloor?) {
+    init(repository: MeterRepositoryProtocol, building: MRKBuilding?, floor: MRKFloor?) {
         self.repository = repository
         self.floor = floor
         self.selectedBuilding = building

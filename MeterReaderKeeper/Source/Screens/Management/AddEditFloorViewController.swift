@@ -43,6 +43,7 @@ class AddEditFloorViewController: UIViewController {
         textField.borderStyle = .roundedRect
         textField.inputView = buildingPickerView
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityIdentifier = "AddEditFloor.buildingTextField"
         return textField
     }()
     
@@ -60,6 +61,7 @@ class AddEditFloorViewController: UIViewController {
         textField.borderStyle = .roundedRect
         textField.keyboardType = .numberPad
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.accessibilityIdentifier = "AddEditFloor.floorTextField"
         return textField
     }()
     
@@ -100,6 +102,7 @@ class AddEditFloorViewController: UIViewController {
         button.layer.cornerRadius = 12
         button.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityIdentifier = "AddEditFloor.saveButton"
         return button
     }()
     
