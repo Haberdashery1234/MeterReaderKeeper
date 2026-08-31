@@ -8,6 +8,10 @@
 
 import UIKit
 
+/// A Previous Readings row: meter name/location and reading count on the
+/// left, the most recent matching reading's value/date on the right. One
+/// row represents a whole meter, not a single reading — see
+/// `PreviousReadingsViewModel.MeterReadingSummary`.
 class PreviousReadingTableViewCell: UITableViewCell {
 
     // MARK: - UI Components
@@ -80,6 +84,9 @@ class PreviousReadingTableViewCell: UITableViewCell {
     }
     
     // MARK: - Setup
+
+    /// Pins the left (name/location/count) and right (value/date) stacks
+    /// to the content view.
     private func setupUI() {
         contentView.addSubview(leftStackView)
         contentView.addSubview(rightStackView)
@@ -99,8 +106,10 @@ class PreviousReadingTableViewCell: UITableViewCell {
         rightStackView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
     }
     
-    /// One row now represents a whole meter (its most recent reading), not
-    /// a single reading — see `PreviousReadingsViewModel.MeterReadingSummary`.
+    /// Configures the cell's labels from one meter's reading summary.
+    ///
+    /// - Parameter summary: The meter, its location, and its most recent
+    ///   matching reading.
     func setup(summary: PreviousReadingsViewModel.MeterReadingSummary) {
         readingMeterLabel.text = summary.meterName
         readingLocationLabel.text = summary.location

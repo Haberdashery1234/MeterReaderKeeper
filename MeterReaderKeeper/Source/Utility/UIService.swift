@@ -7,8 +7,12 @@
 
 import UIKit
 
+/// Image-compression helpers used when building the app's data export
+/// (building/floor/meter photos are size-capped before being embedded in
+/// the exported plist — see `SDFloor.getExportDictionary()` and
+/// `SDMeter.getExportDictionary()`).
 class UIService {
-    
+
     static let shared = UIService()
     
     /// Compresses image data to meet a maximum size requirement
@@ -29,6 +33,9 @@ class UIService {
     ///   - image: The source image
     ///   - ofMaxSizeMB: Maximum size in megabytes
     /// - Returns: Compressed image data, or original PNG data if already small enough
+    /// Binary-searches JPEG compression quality to fit `image` under
+    /// `ofMaxSizeMB`, falling back to its PNG data if already small enough
+    /// or the best achievable JPEG is still larger than the limit.
     func getExportSizeImage(from image: UIImage, ofMaxSizeMB: Float) -> Data? {
         guard let pngData = image.pngData() else {
             print("Failed to generate PNG data from image")

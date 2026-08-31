@@ -9,6 +9,10 @@
 
 import UIKit
 
+/// The "take readings" screen for one building: a floor picker, the
+/// meter list for the selected floor (tapping a row adds or edits today's
+/// reading), a floor-map overlay, and a CSV-export button. Owns all UI
+/// presentation; `ReadingsMainViewModel` owns the data behind it.
 class ReadingsMainViewController: UIViewController {
     
     // MARK: - Properties
@@ -99,17 +103,19 @@ class ReadingsMainViewController: UIViewController {
         refreshFloorDisplay()
     }
     
+    /// Re-fetches the building each time this screen becomes visible, so a
+    /// reading or meter changed elsewhere is reflected.
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
-        // Refresh data (in case a reading/meter changed elsewhere)
         Task { @MainActor in
             await viewModel.refreshBuilding()
             refreshFloorDisplay()
         }
     }
-    
+
     // MARK: - Setup
+
+    /// Adds the floor picker, table view, and map overlay to the view hierarchy.
     private func setupUI() {
         view.backgroundColor = .systemGroupedBackground
         
@@ -125,6 +131,7 @@ class ReadingsMainViewController: UIViewController {
         mapContainerView.addSubview(closeMapButton)
     }
     
+    /// Activates the floor picker / table view / map overlay Auto Layout constraints.
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             // Floor Stack
@@ -163,8 +170,8 @@ class ReadingsMainViewController: UIViewController {
         ])
     }
     
+    /// Adds the nav-bar Send/Scan/Map buttons.
     private func setupNavigationBar() {
-        // QR Scan button
         let scanButton = UIBarButtonItem(
             image: UIImage(systemName: "qrcode.viewfinder"),
             style: .plain,
@@ -172,8 +179,7 @@ class ReadingsMainViewController: UIViewController {
             action: #selector(scanQRCodeTapped)
         )
         scanButton.accessibilityIdentifier = "ReadingsMain.scanButton"
-        
-        // Map button
+
         let mapButton = UIBarButtonItem(
             image: UIImage(systemName: "map"),
             style: .plain,
@@ -181,8 +187,7 @@ class ReadingsMainViewController: UIViewController {
             action: #selector(mapButtonTapped)
         )
         mapButton.accessibilityIdentifier = "ReadingsMain.mapButton"
-        
-        // Send button
+
         let sendButton = UIBarButtonItem(
             image: UIImage(systemName: "envelope"),
             style: .plain,
@@ -190,16 +195,20 @@ class ReadingsMainViewController: UIViewController {
             action: #selector(sendButtonTapped)
         )
         sendButton.accessibilityIdentifier = "ReadingsMain.sendButton"
-        
+
         navigationItem.rightBarButtonItems = [sendButton, scanButton, mapButton]
     }
-    
+
+    /// Updates the floor text field and reloads the meter list for the
+    /// currently selected floor.
     private func refreshFloorDisplay() {
         floorTextField.text = viewModel.floor.map { "Floor \($0.number)" }
         tableView.reloadData()
     }
-    
+
     // MARK: - Actions
+
+    /// Emails a CSV of today's readings for this building via `EmailService`.
     @objc private func sendButtonTapped() {
         Task { @MainActor in
             do {
@@ -221,15 +230,20 @@ class ReadingsMainViewController: UIViewController {
         }
     }
     
+    /// Placeholder for the QR scanner entry point — `QrScannerViewController`
+    /// exists but isn't wired into the coordinator yet, so this shows an
+    /// alert directing the user to pick a meter from the list instead.
+    ///
+    /// - TODO: Implement QR scanner with coordinator.
     @objc private func scanQRCodeTapped() {
-        // TODO: Implement QR scanner with coordinator
-        // For now, show alert
         showAlert(
-            title: "QR Scanner", 
+            title: "QR Scanner",
             message: "QR scanner will be available in a future update. Please select meters from the list below."
         )
     }
-    
+
+    /// Shows the selected floor's map image as a full-screen overlay, if one
+    /// has been set.
     @objc private func mapButtonTapped() {
         guard let floor = viewModel.floor else { return }
         
@@ -248,12 +262,14 @@ class ReadingsMainViewController: UIViewController {
         }
     }
     
+    /// Dismisses the map overlay.
     @objc private func closeMapTapped() {
         UIView.animate(withDuration: Constants.UIValues.animationDuration) {
             self.mapContainerView.isHidden = true
         }
     }
-    
+
+    /// Presents a simple single-button ("OK") alert.
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
@@ -282,11 +298,14 @@ extension ReadingsMainViewController: UITableViewDataSource {
 
 // MARK: - UITableViewDelegate
 extension ReadingsMainViewController: UITableViewDelegate {
+    /// Opens Add or Edit Reading for the tapped meter, per
+    /// `ReadingsMainViewModel.readingRoute(forMeterAt:)`.
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
+
         guard let route = viewModel.readingRoute(forMeterAt: indexPath.row) else { return }
-        
+
+
         switch route {
         case .add(let meter, let floor, let building):
             coordinator?.showAddReading(for: meter, floor: floor, building: building)
@@ -310,6 +329,7 @@ extension ReadingsMainViewController: UIPickerViewDelegate, UIPickerViewDataSour
         return "Floor \(viewModel.floors[row].number)"
     }
     
+    /// Selects the picked floor and refreshes the meter list for it.
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         viewModel.selectFloor(at: row)
         refreshFloorDisplay()

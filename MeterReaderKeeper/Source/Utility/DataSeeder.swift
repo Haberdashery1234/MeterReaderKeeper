@@ -35,8 +35,8 @@ class DataSeeder {
     /// readings were, which could easily produce a *lower* reading than one
     /// already on file). Electric meters are cumulative: a real meter's
     /// reading never goes down, so every new reading this generates must be
-    /// strictly higher than the meter's previous one — Christian flagged
-    /// this after noticing the Meter Details chart could dip (2026-08-28).
+    /// strictly higher than the meter's previous one — fixed after the
+    /// Meter Details chart was observed to dip (2026-08-28).
     static let additionalReadingIncrementRange: ClosedRange<Double> = 50...500
 
     private let repository: MeterRepositoryProtocol

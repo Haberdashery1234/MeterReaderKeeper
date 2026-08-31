@@ -27,6 +27,14 @@ final class AddEditFloorViewModel {
     private(set) var buildings: [MRKBuilding] = []
     private(set) var selectedBuilding: MRKBuilding?
 
+    /// Creates the Add/Edit Floor view model.
+    ///
+    /// - Parameters:
+    ///   - repository: The repository to save to.
+    ///   - building: The floor's building, if already known (e.g. reached
+    ///     via a specific building's Management section). May also end up
+    ///     auto-selected by `loadBuildings()` if there's only one building.
+    ///   - floor: The floor to edit, or `nil` to add a new one.
     init(repository: MeterRepositoryProtocol, building: MRKBuilding?, floor: MRKFloor?) {
         self.repository = repository
         self.floor = floor
@@ -35,10 +43,13 @@ final class AddEditFloorViewModel {
 
     // MARK: - Display
 
+    /// Whether this screen is editing an existing floor (vs. adding one).
     var isEditing: Bool { floor != nil }
 
+    /// The navigation title to show.
     var screenTitle: String { isEditing ? "Edit Floor" : "Add Floor" }
 
+    /// The floor-number field's initial text, or `nil` when adding.
     var initialFloorNumberText: String? {
         guard let floor = floor else { return nil }
         return "\(floor.number)"
@@ -64,6 +75,10 @@ final class AddEditFloorViewModel {
         }
     }
 
+    /// Selects the building at `row` in `buildings` as the floor's new building.
+    ///
+    /// - Parameter row: The picker row that was selected.
+    /// - Returns: The newly selected building, or `nil` if `row` is out of range.
     @discardableResult
     func selectBuilding(at row: Int) -> MRKBuilding? {
         guard buildings.indices.contains(row) else { return nil }
@@ -74,6 +89,15 @@ final class AddEditFloorViewModel {
 
     // MARK: - Save
 
+    /// Validates the form and creates or updates the floor.
+    ///
+    /// - Parameters:
+    ///   - floorNumberText: The floor-number field's raw text.
+    ///   - mapImageData: The floor's map image data (already JPEG-encoded
+    ///     by the view controller), or empty `Data()` for none.
+    /// - Returns: The saved floor.
+    /// - Throws: `FormValidationError` if no building is selected or the
+    ///   floor number is missing/invalid.
     @discardableResult
     func save(floorNumberText: String?, mapImageData: Data) async throws -> MRKFloor {
         guard let building = selectedBuilding else {

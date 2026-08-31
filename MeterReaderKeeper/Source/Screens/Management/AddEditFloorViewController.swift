@@ -10,10 +10,18 @@
 
 import UIKit
 
+/// Add/edit form for a single `MRKFloor`. Reused for both creating a new
+/// floor and editing an existing one — `viewModel.isEditing` decides the
+/// screen title and whether the floor-number field is pre-filled. Also
+/// lets the user pick which building the floor belongs to (via
+/// `buildingPickerView`) and attach an optional floor map image. Pushed by
+/// `AppCoordinator.showFloorDetails(building:floor:)`.
 class AddEditFloorViewController: UIViewController {
-    
+
     // MARK: - Properties
+    /// Used to pop back to the previous screen after a successful save.
     weak var coordinator: AppCoordinator?
+    /// Supplies the form's initial values, the building list, and validates/persists a save.
     var viewModel: AddEditFloorViewModel!
     
     // MARK: - UI Components
@@ -116,8 +124,9 @@ class AddEditFloorViewController: UIViewController {
         setupKeyboardHandling()
         populateData()
     }
-    
+
     // MARK: - Setup
+    /// Adds the form's subviews.
     private func setupUI() {
         view.backgroundColor = .systemGroupedBackground
         
@@ -134,6 +143,7 @@ class AddEditFloorViewController: UIViewController {
         contentView.addSubview(saveButton)
     }
     
+    /// Lays out the form.
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             // ScrollView
@@ -195,11 +205,17 @@ class AddEditFloorViewController: UIViewController {
         ])
     }
     
+    /// Adds a tap-to-dismiss gesture so tapping outside a text field closes the keyboard.
     private func setupKeyboardHandling() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
     }
-    
+
+    /// Loads the building list for the picker, then fills the form from
+    /// `viewModel`'s initial values. `currentMapImageView` falls back to a
+    /// placeholder "map" glyph (tinted gray) when there's no existing map
+    /// image, which `saveTapped()` uses to distinguish "no image" from "an
+    /// actual picked image" via `currentMapImageView.tintColor == nil`.
     private func populateData() {
         Task { @MainActor in
             await viewModel.loadBuildings()
@@ -219,8 +235,9 @@ class AddEditFloorViewController: UIViewController {
             title = viewModel.screenTitle
         }
     }
-    
+
     // MARK: - Actions
+    /// Presents a photo library picker for choosing a floor map image.
     @objc private func addMapTapped() {
         guard UIImagePickerController.isSourceTypeAvailable(.photoLibrary) else {
             showAlert(title: "Not Available", message: "Photo library is not available")
@@ -234,6 +251,10 @@ class AddEditFloorViewController: UIViewController {
         present(imagePicker, animated: true)
     }
     
+    /// Save button handler. Only treats `currentMapImageView.image` as new
+    /// map data to persist when it's an actual picked photo (`tintColor ==
+    /// nil` distinguishes that from the placeholder glyph set in
+    /// `populateData()`); otherwise saves an empty `Data()`.
     @objc private func saveTapped() {
         var mapData = Data()
         if let image = currentMapImageView.image, currentMapImageView.tintColor == nil {
@@ -256,7 +277,8 @@ class AddEditFloorViewController: UIViewController {
     @objc private func dismissKeyboard() {
         view.endEditing(true)
     }
-    
+
+    /// Presents a single-button ("OK") informational alert.
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
@@ -269,15 +291,16 @@ extension AddEditFloorViewController: UIPickerViewDelegate, UIPickerViewDataSour
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
     }
-    
+
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         return viewModel.buildings.count
     }
-    
+
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
         return viewModel.buildings[row].name
     }
-    
+
+    /// Records the picked building via `viewModel.selectBuilding(at:)` and reflects it in the text field.
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         let building = viewModel.selectBuilding(at: row)
         buildingTextField.text = building?.name
@@ -286,16 +309,19 @@ extension AddEditFloorViewController: UIPickerViewDelegate, UIPickerViewDataSour
 
 // MARK: - UIImagePickerControllerDelegate
 extension AddEditFloorViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    /// Applies the picked (or edited) photo as the new map image, clearing
+    /// `tintColor` so `saveTapped()` recognizes it as real image data rather
+    /// than the placeholder glyph.
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         if let pickedImage = info[.editedImage] as? UIImage ?? info[.originalImage] as? UIImage {
             currentMapImageView.image = pickedImage
             currentMapImageView.tintColor = nil
             print("Floor map image selected")
         }
-        
+
         dismiss(animated: true)
     }
-    
+
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         dismiss(animated: true)
     }

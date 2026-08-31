@@ -8,6 +8,8 @@
 
 import UIKit
 
+/// A Management "Buildings" segment row: building name, floor count, and
+/// meter count, stacked vertically and self-sizing.
 class BuildingTableViewCell: UITableViewCell {
 
     // MARK: - UI Components
@@ -42,19 +44,25 @@ class BuildingTableViewCell: UITableViewCell {
         return stack
     }()
     
+    /// The building this row represents. Defaults to an empty placeholder
+    /// until `setup(withBuilding:)` is called.
     var building = MRKBuilding(id: UUID(), name: "", floors: [])
-    
+
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     // MARK: - Setup
+
+    /// Pins the name/floors/meters stack to the content view's top and
+    /// bottom (not centered), so the cell self-sizes via
+    /// `UITableView.automaticDimension`.
     private func setupUI() {
         contentView.addSubview(stackView)
         
@@ -66,6 +74,7 @@ class BuildingTableViewCell: UITableViewCell {
         ])
     }
     
+    /// Configures the cell's labels from a building.
     func setup(withBuilding building: MRKBuilding) {
         self.building = building
         nameLabel.text = building.name

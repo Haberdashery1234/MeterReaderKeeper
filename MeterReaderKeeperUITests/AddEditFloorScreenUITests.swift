@@ -11,17 +11,20 @@ import XCTest
 ///
 /// There is no "Add Floor" entry point anywhere in the app's UI — floors
 /// are created only by setting a building's floor count (see
-/// `AddEditBuildingScreenUITests`). This screen is reached only by tapping
-/// an existing floor row on the Management screen's Floors segment, so
-/// these tests cover the edit flow exclusively.
+/// `AddEditBuildingScreenUITests`). Tapping a floor row on Management now
+/// opens the Floor Meters screen instead of this form directly
+/// (2026-08-28) — this form is reached from there via its Edit button,
+/// so these tests cover the edit flow exclusively, one tap further in
+/// than before.
 final class AddEditFloorScreenUITests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
     }
 
-    /// Navigates Home -> Management -> Floors segment -> first floor row,
-    /// with the fixed fixture already seeded.
+    /// Navigates Home -> Management -> Floors segment -> first floor row
+    /// -> Floor Meters screen -> its Edit button, with the fixed fixture
+    /// already seeded.
     private func openFirstFloor() throws -> XCUIApplication {
         let launcher = try UITestAppLauncher(seeded: true)
         let app = launcher.app
@@ -36,11 +39,16 @@ final class AddEditFloorScreenUITests: XCTestCase {
         try requireUITest(table.cells.firstMatch.waitForExistence(timeout: 5), "No floor rows appeared")
         table.cells.firstMatch.tap()
 
+        let floorMetersTable = app.tables["FloorMeters.tableView"]
+        try requireUITest(floorMetersTable.waitForExistence(timeout: 5), "FloorMeters.tableView never appeared")
+        app.navigationBars.buttons["FloorMeters.editFloorButton"].tap()
+
         try requireUITest(app.navigationBars["Edit Floor"].waitForExistence(timeout: 5), "Edit Floor screen never appeared")
         return app
     }
 
-    /// editing a floor's number and saving updates it in the list
+    /// editing a floor's number and saving updates it, both on the Floor
+    /// Meters screen it pops back to and on the Management list behind it
     func testEditingFloorNumberUpdatesList() throws {
         let app = try openFirstFloor()
 
@@ -51,6 +59,13 @@ final class AddEditFloorScreenUITests: XCTestCase {
 
         app.buttons["AddEditFloor.saveButton"].tap()
 
+        // Saving pops back one level, to Floor Meters — its title tracks
+        // the floor's display name, so this confirms the save landed.
+        try requireUITest(app.navigationBars["Floor 999"].waitForExistence(timeout: 5), "Floor Meters screen title didn't update to Floor 999")
+
+        // Back out to Management and confirm its Floors list picked up
+        // the change too.
+        app.navigationBars.buttons.element(boundBy: 0).tap()
         let table = app.tables["Management.tableView"]
         let updatedRow = table.staticTexts.matching(
             NSPredicate(format: "label CONTAINS[c] %@", "Floor 999")

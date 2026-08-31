@@ -10,6 +10,10 @@
 
 import UIKit
 
+/// The Add/Edit Meter form: building and floor pickers, name/description
+/// text fields, an optional photo, and (when editing) a Delete button.
+/// Owns all UI presentation; `AddEditMeterViewModel` owns validation and
+/// the save/delete calls into the repository.
 class AddEditMeterViewController: UIViewController {
     
     // MARK: - Properties
@@ -175,6 +179,9 @@ class AddEditMeterViewController: UIViewController {
     }
     
     // MARK: - Setup
+
+    /// Adds every field to the view hierarchy, including the Delete button
+    /// only when editing an existing meter.
     private func setupUI() {
         view.backgroundColor = .systemGroupedBackground
         
@@ -199,6 +206,9 @@ class AddEditMeterViewController: UIViewController {
         }
     }
     
+    /// Activates the form's Auto Layout constraints top-to-bottom, anchoring
+    /// the bottom of the content either to the Delete button (editing) or
+    /// the Save button (adding).
     private func setupConstraints() {
         let deleteButtonConstraints: [NSLayoutConstraint]
         
@@ -295,11 +305,15 @@ class AddEditMeterViewController: UIViewController {
         ] + deleteButtonConstraints)
     }
     
+    /// Dismisses the keyboard on a tap anywhere outside the active text field.
     private func setupKeyboardHandling() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
     }
-    
+
+    /// Loads the building/floor picker data, then fills every field from
+    /// `viewModel`'s current state (existing values when editing, a
+    /// placeholder icon when there's no image yet).
     private func populateData() {
         Task { @MainActor in
             await viewModel.loadBuildingsAndFloors()
@@ -323,6 +337,11 @@ class AddEditMeterViewController: UIViewController {
     }
     
     // MARK: - Actions
+
+    /// Validates and saves the form, popping back on success or showing an
+    /// alert on failure. `imageData` stays empty `Data()` unless the image
+    /// view is showing a real picked photo (its `tintColor == nil` is how
+    /// this tells that apart from the gray placeholder icon).
     @objc private func saveTapped() {
         var imageData = Data()
         if let image = meterImageImageView.image, meterImageImageView.tintColor == nil {
@@ -342,6 +361,8 @@ class AddEditMeterViewController: UIViewController {
         }
     }
     
+    /// Presents a confirmation alert before deleting the meter (and its
+    /// reading history), popping back on success.
     @objc private func deleteTapped() {
         guard let meter = viewModel.meter else {
             return
@@ -369,6 +390,7 @@ class AddEditMeterViewController: UIViewController {
         present(alert, animated: true)
     }
     
+    /// Presents the system photo picker to choose a meter photo.
     @objc private func addImageTapped() {
         guard UIImagePickerController.isSourceTypeAvailable(.photoLibrary) else {
             showAlert(title: "Not Available", message: "Photo library is not available")
@@ -385,7 +407,8 @@ class AddEditMeterViewController: UIViewController {
     @objc private func dismissKeyboard() {
         view.endEditing(true)
     }
-    
+
+    /// Presents a simple single-button ("OK") alert.
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
@@ -394,11 +417,13 @@ class AddEditMeterViewController: UIViewController {
 }
 
 // MARK: - UIPickerViewDelegate & DataSource
+// One shared delegate/data source pair handles both `buildingPickerView`
+// and `floorPickerView`, branching on which picker is asking.
 extension AddEditMeterViewController: UIPickerViewDelegate, UIPickerViewDataSource {
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
     }
-    
+
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         if pickerView == buildingPickerView {
             return viewModel.buildings.count
@@ -432,6 +457,8 @@ extension AddEditMeterViewController: UIPickerViewDelegate, UIPickerViewDataSour
 
 // MARK: - UITextFieldDelegate
 extension AddEditMeterViewController: UITextFieldDelegate {
+    /// Advances from Name to Description, or dismisses the keyboard from
+    /// any other field, on the return key.
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if textField == nameTextField {
             descriptionTextField.becomeFirstResponder()
@@ -444,6 +471,7 @@ extension AddEditMeterViewController: UITextFieldDelegate {
 
 // MARK: - UIImagePickerControllerDelegate
 extension AddEditMeterViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    /// Displays the picked (or edited) photo and clears the placeholder tint.
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         if let pickedImage = info[.editedImage] as? UIImage ?? info[.originalImage] as? UIImage {
             meterImageImageView.image = pickedImage

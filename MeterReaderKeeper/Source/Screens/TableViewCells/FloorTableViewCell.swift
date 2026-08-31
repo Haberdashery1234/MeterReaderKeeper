@@ -8,6 +8,9 @@
 
 import UIKit
 
+/// A Management "Floors" segment row: the floor's map thumbnail, display
+/// name, and meter count. Rows are grouped into sections by building, so
+/// this cell doesn't repeat the building name — see `setup(floor:)`.
 class FloorTableViewCell: UITableViewCell {
 
     // MARK: - UI Components
@@ -43,19 +46,23 @@ class FloorTableViewCell: UITableViewCell {
         return stack
     }()
 
+    /// The floor this row represents. Defaults to an empty placeholder
+    /// until `setup(floor:)` is called.
     var floor = MRKFloor(id: UUID(), number: 1, mapImageData: Data(), buildingID: UUID(), meters: [])
-    
+
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     // MARK: - Setup
+
+    /// Lays out the map thumbnail beside the name/meters text stack.
     private func setupUI() {
         contentView.addSubview(floorMapImageView)
         contentView.addSubview(textStackView)
@@ -66,15 +73,26 @@ class FloorTableViewCell: UITableViewCell {
             floorMapImageView.widthAnchor.constraint(equalToConstant: 40),
             floorMapImageView.heightAnchor.constraint(equalToConstant: 40),
             
+            // Pinned to the contentView's top AND bottom (not centered) so
+            // the cell self-sizes via UITableView.automaticDimension,
+            // matching Building/Meter cells (2026-08-28) instead of
+            // relying on a guessed fixed row height.
             textStackView.leadingAnchor.constraint(equalTo: floorMapImageView.trailingAnchor, constant: 12),
             textStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            textStackView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+            textStackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            textStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
         ])
     }
     
-    func setup(floor: MRKFloor, buildingName: String) {
+    /// Configures the cell's labels and map thumbnail from a floor.
+    ///
+    /// `buildingName` was dropped from this cell's own label (2026-08-28)
+    /// — Management's Floors segment now groups rows into one section per
+    /// building with the building name as the section header, so repeating
+    /// it on every row read as redundant clutter.
+    func setup(floor: MRKFloor) {
         self.floor = floor
-        nameLabel.text = "\(buildingName) - Floor \(floor.number)"
+        nameLabel.text = floor.displayName
         metersLabel.text = "\(floor.meters.count) Meters"
         floorMapImageView.image = UIImage(data: floor.mapImageData)
     }

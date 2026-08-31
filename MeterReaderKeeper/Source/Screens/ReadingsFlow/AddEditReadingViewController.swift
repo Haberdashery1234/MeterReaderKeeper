@@ -10,10 +10,18 @@
 
 import UIKit
 
+/// Add/edit form for a single `MRKReading` on one meter. Shows the meter's
+/// photo, its building/floor/description for context, and a single kWh
+/// entry field. Reused for both recording a new reading and editing an
+/// existing one — `viewModel.screenTitle`/`initialReadingText` reflect
+/// which. Pushed from the Readings flow (`AppCoordinator.showAddReading`/
+/// `showEditReading`).
 class AddEditReadingViewController: UIViewController {
-    
+
     // MARK: - Properties
+    /// Used to pop back to the previous screen after a successful save.
     weak var coordinator: AppCoordinator?
+    /// Supplies the meter/building/floor context, the form's initial values, and validates/persists a save.
     var viewModel: AddEditReadingViewModel!
     
     // MARK: - UI Components
@@ -107,6 +115,7 @@ class AddEditReadingViewController: UIViewController {
     }
     
     // MARK: - Setup
+    /// Adds the form's subviews.
     private func setupUI() {
         view.backgroundColor = .systemGroupedBackground
         
@@ -120,6 +129,7 @@ class AddEditReadingViewController: UIViewController {
         contentView.addSubview(saveButton)
     }
     
+    /// Lays out the form.
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             // Scroll View
@@ -166,12 +176,16 @@ class AddEditReadingViewController: UIViewController {
         ])
     }
     
+    /// Adds a tap-to-dismiss gesture so tapping outside the field closes
+    /// the keyboard, without swallowing the tap itself
+    /// (`cancelsTouchesInView = false`, so a tap still reaches whatever it landed on).
     private func setupKeyboardDismissal() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tapGesture.cancelsTouchesInView = false
         view.addGestureRecognizer(tapGesture)
     }
-    
+
+    /// Fills the meter photo/context labels and the reading field from `viewModel`.
     private func populateData() {
         buildingNameLabel.text = viewModel.building.name
         floorLabel.text = "Floor \(viewModel.floor.number)"
@@ -179,15 +193,19 @@ class AddEditReadingViewController: UIViewController {
         meterImageView.image = UIImage(data: viewModel.meter.imageData)
         readingTextField.text = viewModel.initialReadingText
         title = viewModel.screenTitle
-        
+
         print("Loaded meter: \(self.viewModel.meter.name)")
     }
-    
+
     // MARK: - Actions
     @objc private func dismissKeyboard() {
         view.endEditing(true)
     }
-    
+
+    /// Save button handler. Validates and persists the reading via
+    /// `viewModel.save(readingText:)`, then pops back on success.
+    /// Validation failures surface as an alert via the
+    /// `FormValidationError.title`/`.message`.
     @objc private func saveTapped() {
         Task { @MainActor in
             do {
@@ -201,7 +219,8 @@ class AddEditReadingViewController: UIViewController {
             }
         }
     }
-    
+
+    /// Presents a single-button ("OK") informational alert.
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))

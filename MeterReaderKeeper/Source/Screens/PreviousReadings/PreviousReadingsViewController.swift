@@ -9,12 +9,21 @@
 
 import UIKit
 
+/// Lists every meter that has at least one reading, filterable by date,
+/// building, floor, or meter (one filter field visible at a time, chosen by
+/// `segmentedControl`). Selecting a row opens that meter's full history via
+/// `AppCoordinator.showMeterHistory(for:floor:building:)`. Pushed from the
+/// Home screen's "Previous Readings" action.
 class PreviousReadingsViewController: UIViewController {
-    
+
     // MARK: - Properties
+    /// Used to navigate to a selected meter's reading history.
     weak var coordinator: AppCoordinator?
+    /// Supplies the filtered meter summaries and the filter picker data (dates, buildings, floors, meters).
     var viewModel: PreviousReadingsViewModel!
-    
+
+    /// The currently active filter segment, read from `segmentedControl`;
+    /// falls back to `.date` for a segment index it can't resolve.
     private var selectedSegment: PreviousReadingsViewModel.FilterSegment {
         PreviousReadingsViewModel.FilterSegment(rawValue: segmentedControl.selectedSegmentIndex) ?? .date
     }
@@ -124,6 +133,7 @@ class PreviousReadingsViewController: UIViewController {
     }
     
     // MARK: - Setup
+    /// Adds the form's subviews and hides every filter field except the one for the current segment.
     private func setupUI() {
         view.backgroundColor = .systemGroupedBackground
         
@@ -137,6 +147,7 @@ class PreviousReadingsViewController: UIViewController {
         updateVisibleFilters()
     }
     
+    /// Lays out the screen.
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             // Segmented Control
@@ -178,21 +189,24 @@ class PreviousReadingsViewController: UIViewController {
         ])
     }
     
+    /// Shows only the filter field matching the current segment (Date/Building/Floor/Meter); hides the other three.
     private func updateVisibleFilters() {
         let selectedIndex = segmentedControl.selectedSegmentIndex
-        
+
         dateTextField.isHidden = selectedIndex != 0
         buildingTextField.isHidden = selectedIndex != 1
         floorTextField.isHidden = selectedIndex != 2
         meterTextField.isHidden = selectedIndex != 3
     }
-    
+
+    /// Re-runs `viewModel.applyFilters(segment:)` for the current segment/selection and reloads the table.
     private func applyFilters() {
         viewModel.applyFilters(segment: selectedSegment)
         tableView.reloadData()
     }
-    
+
     // MARK: - Actions
+    /// Segmented control handler: swaps which filter field is visible and re-applies filters.
     @objc private func segmentChanged() {
         updateVisibleFilters()
         applyFilters()
@@ -204,7 +218,7 @@ extension PreviousReadingsViewController: UITableViewDataSource, UITableViewDele
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return viewModel.meterSummaries.count
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ReadingCell", for: indexPath) as! PreviousReadingTableViewCell
         cell.setup(summary: viewModel.meterSummaries[indexPath.row])
@@ -212,6 +226,7 @@ extension PreviousReadingsViewController: UITableViewDataSource, UITableViewDele
         return cell
     }
 
+    /// Navigates to the tapped meter's full reading history.
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let summary = viewModel.meterSummaries[indexPath.row]
@@ -224,7 +239,8 @@ extension PreviousReadingsViewController: UIPickerViewDataSource, UIPickerViewDe
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
     }
-    
+
+    /// Row count for whichever picker this is, plus one for the leading "All" row.
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         if pickerView == datePickerView {
             return viewModel.dates.count + 1 // +1 for "All"
@@ -237,7 +253,8 @@ extension PreviousReadingsViewController: UIPickerViewDataSource, UIPickerViewDe
         }
         return 0
     }
-    
+
+    /// Title for a row in whichever picker this is; row 0 is always "All", every other row is offset by one.
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
         if row == 0 {
             return "All"
@@ -256,7 +273,12 @@ extension PreviousReadingsViewController: UIPickerViewDataSource, UIPickerViewDe
         }
         return nil
     }
-    
+
+    /// Records the picked value on `viewModel` for whichever picker this
+    /// is, updates that filter's text field, and — for building/floor
+    /// selections — resets and reloads the dependent picker(s) below it
+    /// (building narrows floor and meter; floor narrows meter), then
+    /// re-applies filters.
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         if pickerView == datePickerView {
             viewModel.selectDate(at: row)

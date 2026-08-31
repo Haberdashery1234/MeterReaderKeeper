@@ -12,8 +12,13 @@
 
 import UIKit
 
+/// The app's landing screen: primary navigation into Take Readings,
+/// Previous Readings, and Management, plus the "At a Glance" stats row,
+/// the "Needs Attention" overdue-meters list, and (debug builds only) the
+/// seed-data button. Owns all UI presentation; `HomeViewModel` owns the
+/// business logic and repository access behind it.
 class HomeViewController: UIViewController {
-    
+
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
     var viewModel: HomeViewModel!
@@ -120,7 +125,7 @@ class HomeViewController: UIViewController {
         let row = UIStackView(arrangedSubviews: [buildingsColumn, AppStyle.makeDivider(vertical: true), metersColumn, AppStyle.makeDivider(vertical: true), lastReadingColumn])
         row.axis = .horizontal
         row.alignment = .fill
-        row.distribution = .fillEqually
+        row.distribution = .fillProportionally
         row.spacing = 0
         row.translatesAutoresizingMaskIntoConstraints = false
 
@@ -208,12 +213,16 @@ class HomeViewController: UIViewController {
         setupConstraints()
     }
 
+    /// Reloads the "At a Glance"/"Needs Attention" data every time Home
+    /// becomes visible, so it reflects readings taken elsewhere.
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         loadSummary()
     }
-    
+
     // MARK: - Setup
+
+    /// Builds the view hierarchy and adds each section to `rootStackView`.
     private func setupUI() {
         view.backgroundColor = .systemGroupedBackground
         
@@ -235,6 +244,8 @@ class HomeViewController: UIViewController {
         rootStackView.setCustomSpacing(22, after: needsAttentionSection)
     }
     
+    /// Activates the scroll view / content view / root stack Auto Layout
+    /// constraints, plus each action card's fixed height.
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             // ScrollView
@@ -308,6 +319,7 @@ class HomeViewController: UIViewController {
         return button
     }
 
+    /// A large, centered, auto-shrinking value label for one "At a Glance" stat.
     private static func makeStatValueLabel(fontSize: CGFloat = 22) -> UILabel {
         let label = UILabel()
         label.font = .systemFont(ofSize: fontSize, weight: .bold)
@@ -319,6 +331,7 @@ class HomeViewController: UIViewController {
         return label
     }
 
+    /// A value label stacked over a caption — one column of the "At a Glance" row.
     private func makeStatColumn(valueLabel: UILabel, caption: String) -> UIView {
         let captionLabel = UILabel()
         captionLabel.text = caption
@@ -395,6 +408,8 @@ class HomeViewController: UIViewController {
 
     // MARK: - Data
 
+    /// Kicks off an async fetch of `viewModel.loadSummary()` and applies
+    /// the result once it returns.
     private func loadSummary() {
         Task { @MainActor in
             let summary = await viewModel.loadSummary()
@@ -402,6 +417,8 @@ class HomeViewController: UIViewController {
         }
     }
 
+    /// Updates the "At a Glance" stat labels and rebuilds the "Needs
+    /// Attention" rows from a freshly loaded summary.
     private func apply(_ summary: HomeViewModel.HomeSummary) {
         buildingCountValueLabel.text = "\(summary.buildingCount)"
         meterCountValueLabel.text = "\(summary.meterCount)"
@@ -423,6 +440,10 @@ class HomeViewController: UIViewController {
     }
     
     // MARK: - Actions
+
+    /// Opens the readings flow directly if there's exactly one building,
+    /// prompts for a building if there's more than one, or shows an alert
+    /// if there are none yet.
     @objc private func takeReadingsTapped() {
         Task { @MainActor in
             switch await viewModel.takeReadingsOutcome() {
@@ -447,6 +468,8 @@ class HomeViewController: UIViewController {
         coordinator?.showManagement()
     }
     
+    /// Exports all data to a plist (showing a spinner alert while it runs)
+    /// and, on success, hands the result to `sendPlist(_:)`.
     @objc private func exportDataTapped() {
         let loadingAlert = UIAlertController(title: nil, message: "Exporting data...", preferredStyle: .alert)
         let spinner = UIActivityIndicatorView(style: .medium)
@@ -474,6 +497,8 @@ class HomeViewController: UIViewController {
     }
     
     #if DEBUG
+    /// Seeds the full fixture (if empty) or tops up readings (otherwise),
+    /// showing a spinner alert while it runs, then reloads the summary.
     @objc private func seedDataTapped() {
         seedDataButton.isEnabled = false
 
@@ -512,6 +537,9 @@ class HomeViewController: UIViewController {
     #endif
     
     // MARK: - Private Methods
+
+    /// Hands exported plist data to `EmailService` to present the mail
+    /// composer, surfacing an alert if sending fails.
     private func sendPlist(_ plistData: Data) {
         EmailService.shared.sendExport(from: self, plistData: plistData) { [weak self] result, error in
             if result == .failed {
@@ -519,7 +547,9 @@ class HomeViewController: UIViewController {
             }
         }
     }
-    
+
+    /// Presents an action sheet to choose which building to take readings
+    /// for, anchored to the Take Readings button on iPad.
     private func showBuildingPicker(buildings: [MRKBuilding]) {
         let alert = UIAlertController(title: "Select Building", message: nil, preferredStyle: .actionSheet)
         
@@ -539,6 +569,7 @@ class HomeViewController: UIViewController {
         present(alert, animated: true)
     }
     
+    /// Presents a simple single-button ("OK") alert.
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))

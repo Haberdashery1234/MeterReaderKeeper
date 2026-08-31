@@ -8,14 +8,20 @@
 import UIKit
 import MessageUI
 
-/// Service for handling email composition and sending
+/// Presents `MFMailComposeViewController` to send the app's plist/CSV
+/// exports as email attachments. A singleton (`shared`) since only one
+/// mail composer can be presented at a time, and it needs to retain itself
+/// as the compose controller's delegate for the duration of that presentation.
 class EmailService: NSObject {
-    
+
     static let shared = EmailService()
-    
+
+    /// The view controller the mail composer was presented from, kept only
+    /// to dismiss back to it; cleared once composition finishes.
     private weak var presentingViewController: UIViewController?
+    /// The caller's completion handler, invoked once composition finishes.
     private var completionHandler: ((MFMailComposeResult, Error?) -> Void)?
-    
+
     private override init() {
         super.init()
     }
@@ -112,6 +118,7 @@ class EmailService: NSObject {
         )
     }
     
+    /// Presents an alert explaining that Mail isn't configured on this device.
     private func showEmailUnavailableAlert(from viewController: UIViewController) {
         let alert = UIAlertController(
             title: "Email Unavailable",
@@ -125,6 +132,8 @@ class EmailService: NSObject {
 
 // MARK: - MFMailComposeViewControllerDelegate
 extension EmailService: MFMailComposeViewControllerDelegate {
+    /// Dismisses the mail composer and forwards the result to whichever
+    /// `sendEmail`/`sendExport`/`sendCSV` caller is waiting on it.
     func mailComposeController(
         _ controller: MFMailComposeViewController,
         didFinishWith result: MFMailComposeResult,
@@ -156,11 +165,18 @@ extension EmailService: MFMailComposeViewControllerDelegate {
 }
 
 // MARK: - Errors
+
+/// Errors specific to `EmailService`.
 enum EmailError: LocalizedError {
+    /// The device has no Mail account configured, so
+    /// `MFMailComposeViewController.canSendMail()` returned `false`.
     case mailUnavailable
+    /// Unused today — reserved for a future attachment-size check.
     case attachmentTooLarge
+    /// Unused today — reserved for a future attachment-validity check.
     case invalidAttachment
-    
+
+
     var errorDescription: String? {
         switch self {
         case .mailUnavailable:

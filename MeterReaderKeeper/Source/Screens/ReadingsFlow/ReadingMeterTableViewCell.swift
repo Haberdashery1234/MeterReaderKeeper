@@ -8,6 +8,8 @@
 
 import UIKit
 
+/// A Readings Main row: meter name and floor on the left, a green
+/// checkmark on the right when a reading has already been recorded today.
 class ReadingMeterTableViewCell: UITableViewCell {
 
     // MARK: - UI Components
@@ -44,20 +46,25 @@ class ReadingMeterTableViewCell: UITableViewCell {
         return stack
     }()
 
+    /// The meter this row represents. Defaults to an empty placeholder
+    /// until `setup(meter:floorNumber:)` is called.
     var meter = MRKMeter(id: UUID(), name: "", meterDescription: "", qrString: "", imageData: Data(), latestReadingDate: Date(), floorID: UUID(), readings: [])
+    /// Today's reading for `meter`, if one exists — set by `setup(meter:floorNumber:)`.
     var reading: MRKReading?
-    
+
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     // MARK: - Setup
+
+    /// Pins the name/location stack and the checkmark icon to the content view.
     private func setupUI() {
         contentView.addSubview(textStackView)
         contentView.addSubview(readingDoneCheckImageView)
@@ -76,6 +83,12 @@ class ReadingMeterTableViewCell: UITableViewCell {
         ])
     }
     
+    /// Configures the cell's labels from a meter, and shows the checkmark
+    /// if it already has a reading recorded today.
+    ///
+    /// - Parameters:
+    ///   - meter: The meter this row represents.
+    ///   - floorNumber: The meter's floor number, shown as "Floor N".
     func setup(meter: MRKMeter, floorNumber: Int16) {
         readingDoneCheckImageView.isHidden = true
         self.meter = meter
@@ -93,8 +106,8 @@ class ReadingMeterTableViewCell: UITableViewCell {
         }
     }
     
+    /// Reveals the "reading done" checkmark.
     func readingMade() {
-        // update cell for readings
         readingDoneCheckImageView.isHidden = false
     }
 }

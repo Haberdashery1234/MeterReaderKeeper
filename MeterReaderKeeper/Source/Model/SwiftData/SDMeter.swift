@@ -2,7 +2,7 @@
 //  SDMeter.swift
 //  MeterReaderKeeper
 //
-//  Created by Core Data -> SwiftData Migration on 8/26/26.
+//  Migrated to SwiftData on 8/26/26.
 //
 
 import Foundation
@@ -12,17 +12,38 @@ import SwiftData
 /// note that applies to every file in this directory.
 @Model
 final class SDMeter {
+    /// Stable, uniquely-constrained identity for this meter.
     @Attribute(.unique) var id: UUID
+    /// The meter's display name.
     var name: String
+    /// A free-form description of the meter (e.g. what it serves).
     var meterDescription: String
+    /// The string encoded in this meter's QR label.
     var qrString: String
+    /// Raw image data for a photo of the meter, or empty `Data()` if unset.
     var imageData: Data
+    /// The date of this meter's most recent reading, or `.distantPast` if
+    /// it has never been read.
     var latestReading: Date
+    /// The floor this meter is located on. Optional because SwiftData
+    /// relationships must be optional on the "to-one" side.
     var floor: SDFloor?
 
+    /// This meter's full reading history. Cascade-deleting a meter deletes
+    /// every reading that belongs to it.
     @Relationship(deleteRule: .cascade, inverse: \SDReading.meter)
     var readings: [SDReading] = []
 
+    /// Creates a new meter record.
+    ///
+    /// - Parameters:
+    ///   - id: The meter's identity. Defaults to a freshly generated UUID.
+    ///   - name: The meter's display name.
+    ///   - meterDescription: A free-form description of the meter.
+    ///   - qrString: The string encoded in this meter's QR label.
+    ///   - imageData: Raw image data for a photo of the meter, or empty `Data()`.
+    ///   - latestReading: The date of the most recent reading, or `.distantPast`.
+    ///   - floor: The floor this meter is located on.
     init(
         id: UUID = UUID(),
         name: String,
@@ -45,6 +66,11 @@ final class SDMeter {
     /// readings. Readings are explicitly sorted most-recent-first for the
     /// same reason `SDBuilding.getExportDictionary()` sorts its floors —
     /// SwiftData doesn't guarantee relationship storage order.
+    ///
+    /// - Returns: A `[String: Any]` dictionary with the meter's `"name"`,
+    ///   `"meterDescription"`, `"qrString"`, `"latestReading"`, a
+    ///   size-compressed `"image"`, and a `"readings"` array of each
+    ///   reading's own export dictionary.
     func getExportDictionary() -> [String: Any] {
         var exportDict: [String: Any] = [:]
 

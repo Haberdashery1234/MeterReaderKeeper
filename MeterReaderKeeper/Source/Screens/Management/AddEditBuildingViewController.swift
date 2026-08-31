@@ -10,10 +10,17 @@
 
 import UIKit
 
+/// Add/edit form for a single `MRKBuilding`. Reused for both creating a new
+/// building and editing an existing one — `viewModel.isEditing` (based on
+/// whether it was handed a building) decides the screen title, whether the
+/// floor-count field is still editable, and whether the delete button is
+/// shown at all. Pushed by `AppCoordinator.showBuildingDetails(_:)`.
 class AddEditBuildingViewController: UIViewController {
-    
+
     // MARK: - Properties
+    /// Used to pop back to the previous screen after a successful save or delete.
     weak var coordinator: AppCoordinator?
+    /// Supplies the form's initial values and validates/persists a save.
     var viewModel: AddEditBuildingViewModel!
     
     // MARK: - UI Components
@@ -97,8 +104,10 @@ class AddEditBuildingViewController: UIViewController {
         setupKeyboardHandling()
         populateData()
     }
-    
+
     // MARK: - Setup
+    /// Adds the form's subviews, including the delete button only when
+    /// `viewModel.isEditing` (there's nothing to delete for a new building).
     private func setupUI() {
         view.backgroundColor = .systemGroupedBackground
         
@@ -116,6 +125,9 @@ class AddEditBuildingViewController: UIViewController {
         }
     }
     
+    /// Lays out the form. The delete button's constraints (and whether the
+    /// save button instead anchors straight to the bottom) depend on
+    /// `viewModel.isEditing`, mirroring the conditional subview in `setupUI()`.
     private func setupConstraints() {
         let deleteButtonConstraints: [NSLayoutConstraint]
         
@@ -175,20 +187,45 @@ class AddEditBuildingViewController: UIViewController {
         ] + deleteButtonConstraints)
     }
     
+    /// Adds a tap-to-dismiss gesture so tapping outside a text field closes the keyboard.
     private func setupKeyboardHandling() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
     }
-    
+
+    /// Fills the form from `viewModel`'s initial values. `floorsTextField`
+    /// is disabled by `viewModel.isFloorsFieldEnabled` when editing an
+    /// existing building, since shrinking the floor count destructively
+    /// removes floors (see `saveTapped()`/`floorRemovalWarning(floorsText:)`).
     private func populateData() {
         nameTextField.text = viewModel.initialNameText
         floorsTextField.text = viewModel.initialFloorsText
         floorsTextField.isEnabled = viewModel.isFloorsFieldEnabled
         title = viewModel.screenTitle
     }
-    
+
     // MARK: - Actions
+    /// Save button handler. When reducing the floor count would delete
+    /// existing floors, confirms with the user first via
+    /// `viewModel.floorRemovalWarning(floorsText:)` before calling `performSave()`.
     @objc private func saveTapped() {
+        if let warning = viewModel.floorRemovalWarning(floorsText: floorsTextField.text) {
+            let alert = UIAlertController(title: "Remove Floors?", message: warning, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            alert.addAction(UIAlertAction(title: "Remove", style: .destructive) { [weak self] _ in
+                self?.performSave()
+            })
+            present(alert, animated: true)
+            return
+        }
+
+        performSave()
+    }
+
+    /// Validates and persists the form via `viewModel.save(nameText:floorsText:)`,
+    /// then pops back on success. Validation failures surface as an alert
+    /// via the field's `FormValidationError.title`/`.message`.
+    private func performSave() {
         Task { @MainActor in
             do {
                 _ = try await viewModel.save(nameText: nameTextField.text, floorsText: floorsTextField.text)
@@ -200,12 +237,15 @@ class AddEditBuildingViewController: UIViewController {
             }
         }
     }
-    
+
+    /// Delete button handler. Confirms with the user (the alert message
+    /// spells out that floors, meters, and readings cascade too) before
+    /// calling `viewModel.delete()`.
     @objc private func deleteTapped() {
         guard let building = viewModel.building else {
             return
         }
-        
+
         // Show confirmation alert
         let alert = UIAlertController(
             title: "Delete Building",
@@ -232,7 +272,8 @@ class AddEditBuildingViewController: UIViewController {
     @objc private func dismissKeyboard() {
         view.endEditing(true)
     }
-    
+
+    /// Presents a single-button ("OK") informational alert.
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
@@ -242,6 +283,8 @@ class AddEditBuildingViewController: UIViewController {
 
 // MARK: - UITextFieldDelegate
 extension AddEditBuildingViewController: UITextFieldDelegate {
+    /// Advances focus from the name field to the floors field on Return;
+    /// dismisses the keyboard from any other field.
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if textField == nameTextField {
             floorsTextField.becomeFirstResponder()
@@ -250,7 +293,8 @@ extension AddEditBuildingViewController: UITextFieldDelegate {
         }
         return true
     }
-    
+
+    /// Restricts `floorsTextField` to digits only; other fields are unrestricted.
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         if textField == floorsTextField {
             // Only allow numbers

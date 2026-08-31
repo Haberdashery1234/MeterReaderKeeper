@@ -11,8 +11,12 @@
 
 import UIKit
 
+/// Shared styling helpers for the app-wide "soft cards on a muted
+/// single-accent" visual design. A caseless enum used purely as a
+/// namespace — never instantiated.
 enum AppStyle {
 
+    /// Corner radius used by every card-style container and image well.
     static let cardCornerRadius: CGFloat = 14
 
     /// The single accent color for the whole app (see AccentColor.colorset).
@@ -38,6 +42,8 @@ enum AppStyle {
         view.layer.shadowOffset = CGSize(width: 0, height: 1)
     }
 
+    /// Creates an empty, auto-layout-ready view with the "soft card" style
+    /// already applied.
     static func makeCardContainer() -> UIView {
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
@@ -45,6 +51,12 @@ enum AppStyle {
         return card
     }
 
+    /// Creates a hairline separator view, sized to one point (vertical) or
+    /// one pixel (horizontal, via `1 / UIScreen.main.scale`).
+    ///
+    /// - Parameter vertical: `true` for a vertical divider (fixed width,
+    ///   stretches to fill height), `false` for a horizontal one (fixed
+    ///   height, stretches to fill width).
     static func makeDivider(vertical: Bool) -> UIView {
         let divider = UIView()
         divider.backgroundColor = .separator
@@ -57,6 +69,8 @@ enum AppStyle {
         return divider
     }
 
+    /// Creates an uppercase, small-caps-styled section header label (e.g.
+    /// "AT A GLANCE").
     static func makeSectionHeaderLabel(_ text: String) -> UILabel {
         let label = UILabel()
         label.text = text.uppercased()

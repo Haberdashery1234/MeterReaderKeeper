@@ -20,11 +20,23 @@ final class AddEditReadingViewModel {
 
     private let repository: MeterRepositoryProtocol
 
+    /// The meter this reading belongs to.
     let meter: MRKMeter
+    /// The meter's floor.
     let floor: MRKFloor
+    /// The meter's building.
     let building: MRKBuilding
+    /// The reading being edited, or `nil` when adding a new one.
     let reading: MRKReading?
 
+    /// Creates the Add/Edit Reading view model.
+    ///
+    /// - Parameters:
+    ///   - repository: The repository to save to.
+    ///   - meter: The meter this reading belongs to.
+    ///   - floor: The meter's floor.
+    ///   - building: The meter's building.
+    ///   - reading: The reading to edit, or `nil` to add a new one.
     init(repository: MeterRepositoryProtocol, meter: MRKMeter, floor: MRKFloor, building: MRKBuilding, reading: MRKReading?) {
         self.repository = repository
         self.meter = meter
@@ -33,15 +45,26 @@ final class AddEditReadingViewModel {
         self.reading = reading
     }
 
+    /// Whether this screen is editing an existing reading (vs. adding one).
     var isEditing: Bool { reading != nil }
 
+    /// The navigation title to show.
     var screenTitle: String { isEditing ? "Edit Reading" : "Add Reading" }
 
+    /// The reading field's initial text, or `nil` when adding.
     var initialReadingText: String? {
         guard let reading = reading else { return nil }
         return String(format: "%.2f", reading.kWh)
     }
 
+    /// Validates the form and creates or updates the reading. Editing an
+    /// existing reading re-dates it to today, matching this app's existing
+    /// convention (see `MeterRepositoryProtocol.updateReading(id:kWh:)`).
+    ///
+    /// - Parameter readingText: The reading field's raw text.
+    /// - Returns: The saved reading.
+    /// - Throws: `FormValidationError` if the text is empty, non-numeric,
+    ///   or negative.
     @discardableResult
     func save(readingText: String?) async throws -> MRKReading {
         guard let text = readingText?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else {

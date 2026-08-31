@@ -27,15 +27,20 @@ final class HomeViewModel {
 
     /// What should happen when "Take Readings" is tapped.
     enum TakeReadingsOutcome {
+        /// No buildings exist yet — nothing to take readings for.
         case noBuildings
+        /// Exactly one building exists, so its readings flow can open directly.
         case singleBuilding(MRKBuilding)
+        /// More than one building exists — the user must pick one first.
         case chooseBuilding([MRKBuilding])
     }
 
     /// The data behind the Home screen's "At a Glance" stats row and
     /// "Needs Attention" list.
     struct HomeSummary {
+        /// Total number of buildings.
         let buildingCount: Int
+        /// Total number of meters across every building.
         let meterCount: Int
         /// Human-readable relative time of the most recent reading across
         /// every meter (e.g. "Today", "Yesterday", "6d ago"), or "\u{2014}" if
@@ -45,9 +50,11 @@ final class HomeViewModel {
         /// days, most-overdue first, capped to the top 3.
         let overdueMeters: [OverdueMeterSummary]
 
+        /// A summary with nothing loaded yet — used as the initial/failure state.
         static let empty = HomeSummary(buildingCount: 0, meterCount: 0, lastReadingText: "\u{2014}", overdueMeters: [])
     }
 
+    /// One row in the Home screen's "Needs Attention" list.
     struct OverdueMeterSummary: Identifiable {
         let id: UUID
         /// e.g. "141 Franklin \u{B7} Floor 9 \u{B7} Meter 3"
@@ -57,21 +64,28 @@ final class HomeViewModel {
         /// Carried along so tapping this row can jump straight to adding a
         /// reading for this exact meter.
         let meter: MRKMeter
+        /// The meter's floor, carried along for the same reason as `meter`.
         let floor: MRKFloor
+        /// The meter's building, carried along for the same reason as `meter`.
         let building: MRKBuilding
     }
 
     /// Meters with no reading in at least this many days are surfaced in
     /// the "Needs Attention" list. This is the threshold from the Home
     /// redesign mockup -- a starting guess, not a value you've confirmed,
-    /// so treat it as easy to change here if it doesn't feel right.
-    static let staleMeterThresholdDays = 14
+    /// so treat it as easy to change here if it doesn't feel right. Sourced
+    /// from `MRKMeter.staleThresholdDays` (2026-08-28) so this list and the
+    /// Manage screen's meter rows can't drift apart.
+    static let staleMeterThresholdDays = MRKMeter.staleThresholdDays
 
     #if DEBUG || TESTING
     /// Which seeding operation actually ran, so the View can show the
     /// matching success message.
     enum SeedOutcome {
+        /// The store was empty, so the full seed fixture was loaded.
         case seededInitialData
+        /// The store already had buildings, so one new reading per meter
+        /// was added instead.
         case addedMoreReadings
     }
     #endif
@@ -82,6 +96,9 @@ final class HomeViewModel {
     private let dataSeeder: DataSeeder
     #endif
 
+    /// Creates the Home view model.
+    ///
+    /// - Parameter repository: The repository to load buildings/meters from.
     init(repository: MeterRepositoryProtocol) {
         self.repository = repository
         #if DEBUG || TESTING
@@ -89,6 +106,12 @@ final class HomeViewModel {
         #endif
     }
 
+    /// Decides what tapping "Take Readings" should do, based on how many
+    /// buildings currently exist.
+    ///
+    /// - Returns: `.noBuildings`, `.singleBuilding`, or `.chooseBuilding`
+    ///   depending on the current building count. A repository failure is
+    ///   treated the same as zero buildings.
     func takeReadingsOutcome() async -> TakeReadingsOutcome {
         let buildings = (try? await repository.getBuildings()) ?? []
 
@@ -172,6 +195,11 @@ final class HomeViewModel {
         )
     }
 
+    /// Formats a "most recent reading" date as a short relative string.
+    ///
+    /// - Parameter date: The most recent reading date, or `nil` if none.
+    /// - Returns: "\u{2014}" for `nil`, "Today"/"Yesterday" for the last two
+    ///   days, or "`N`d ago" otherwise.
     private static func formatLastReading(_ date: Date?) -> String {
         guard let date else { return "\u{2014}" }
         let days = Calendar.current.dateComponents([.day], from: date, to: Date()).day ?? 0
@@ -198,6 +226,9 @@ final class HomeViewModel {
     /// thousands of individual repository calls this can involve run on the
     /// repository's own actor, not here, so no manual backgrounding is
     /// needed (this used to be `seedData(completion:)`).
+    ///
+    /// - Returns: Which seeding operation actually ran.
+    /// - Throws: Whatever error the repository throws while seeding.
     func seedData() async throws -> SeedOutcome {
         let buildingCount = (try? await repository.getBuildings())?.count ?? 0
 

@@ -16,18 +16,32 @@ import Foundation
 @MainActor
 final class ReadingsMainViewModel {
 
+    /// Where tapping a meter row should navigate, decided by
+    /// `readingRoute(forMeterAt:)`.
     enum ReadingRoute {
+        /// No reading exists yet for today — open Add Reading.
         case add(meter: MRKMeter, floor: MRKFloor, building: MRKBuilding)
+        /// A reading already exists for today — open Edit Reading on it.
         case edit(reading: MRKReading, meter: MRKMeter, floor: MRKFloor, building: MRKBuilding)
     }
 
     private let repository: MeterRepositoryProtocol
 
+    /// The building readings are being taken for. Refreshed by `refreshBuilding()`.
     private(set) var building: MRKBuilding
+    /// `building`'s floors, sorted by number. Refreshed by `refreshBuilding()`.
     private(set) var floors: [MRKFloor]
+    /// The currently selected floor, if any.
     private(set) var floor: MRKFloor?
+    /// The selected floor's meters, name-sorted.
     private(set) var meters: [MRKMeter]
 
+    /// Creates the readings-entry view model, defaulting to the building's
+    /// first floor (by number) selected.
+    ///
+    /// - Parameters:
+    ///   - repository: The repository to load from.
+    ///   - building: The building to take readings for.
     init(repository: MeterRepositoryProtocol, building: MRKBuilding) {
         self.repository = repository
         self.building = building
@@ -38,6 +52,10 @@ final class ReadingsMainViewModel {
         print("Loaded \(sortedFloors.count) floors for building \(building.name)")
     }
 
+    /// Selects the floor at `row` in `floors`, reloading `meters` for it.
+    ///
+    /// - Parameter row: The picker row that was selected.
+    /// - Returns: The newly selected floor, or `nil` if `row` is out of range.
     @discardableResult
     func selectFloor(at row: Int) -> MRKFloor? {
         guard floors.indices.contains(row) else { return nil }
@@ -79,6 +97,10 @@ final class ReadingsMainViewModel {
         }
     }
 
+    /// Builds a CSV summary of today's readings for `building`.
+    ///
+    /// - Returns: The CSV file's raw UTF-8 bytes.
+    /// - Throws: Whatever error the repository throws while building it.
     func getCSVData() async throws -> Data {
         try await repository.getCSVData(forBuilding: building.id)
     }

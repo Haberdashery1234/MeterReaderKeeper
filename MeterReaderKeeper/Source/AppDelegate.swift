@@ -8,29 +8,25 @@
 
 import UIKit
 
-// RED: 238, 27, 44
-
+/// The app's `UIApplicationDelegate`. All actual UI setup happens in
+/// `SceneDelegate` — this type only implements the delegate methods UIKit
+/// requires, with no additional app-level state of its own.
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
-    
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
         return true
     }
 
     // MARK: UISceneSession Lifecycle
 
+    /// Supplies the scene configuration used when a new scene session connects.
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
-        // Called when a new scene session is being created.
-        // Use this method to select a configuration to create the new scene with.
         return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
 
+    /// Called when the user discards a scene session; there are no
+    /// scene-specific resources for this app to release here.
     func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
-        // Called when the user discards a scene session.
-        // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
-        // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
-
-
 }

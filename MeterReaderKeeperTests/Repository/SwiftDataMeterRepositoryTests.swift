@@ -68,6 +68,27 @@ struct SwiftDataMeterRepositoryTests {
         }
     }
 
+    @Test("deleting a floor removes it and cascades to its meters")
+    func deleteFloorRemovesItAndCascadesToItsMeters() async throws {
+        let buildingWithMeters = try #require(fixture.seededBuildings.first { building in
+            building.floors.contains { !$0.meters.isEmpty }
+        })
+        let floorToDelete = try #require(buildingWithMeters.floors.first { !$0.meters.isEmpty })
+        let orphanedMeterID = try #require(floorToDelete.meters.first?.id)
+
+        try await fixture.repository.deleteFloor(id: floorToDelete.id)
+
+        let refreshedBuilding = try await fixture.repository.getBuilding(id: buildingWithMeters.id)
+        #expect(!refreshedBuilding.floors.contains { $0.id == floorToDelete.id })
+        #expect(refreshedBuilding.floors.count == buildingWithMeters.floors.count - 1)
+
+        // If the cascade rule didn't actually remove the meters under the
+        // deleted floor, this meter would still be findable.
+        await #expect(throws: (any Error).self) {
+            try await fixture.repository.addReading(MRKReadingInput(kWh: 100, date: Date(), meterID: orphanedMeterID))
+        }
+    }
+
     @Test("updating a meter's floor moves it and updates both sides of the relationship")
     func updateMeterMovesItBetweenFloorsAndUpdatesBothSides() async throws {
         let building = try #require(fixture.seededBuildings.first(where: { $0.floors.count >= 2 }))
@@ -132,6 +153,7 @@ struct SwiftDataMeterRepositoryTests {
     @Test("operating on a missing ID throws not-found")
     func operatingOnAMissingIDThrowsNotFound() async {
         await #expect(throws: (any Error).self) { try await fixture.repository.deleteBuilding(id: UUID()) }
+        await #expect(throws: (any Error).self) { try await fixture.repository.deleteFloor(id: UUID()) }
         await #expect(throws: (any Error).self) { try await fixture.repository.deleteMeter(id: UUID()) }
         await #expect(throws: (any Error).self) { try await fixture.repository.updateReading(id: UUID(), kWh: 1) }
     }

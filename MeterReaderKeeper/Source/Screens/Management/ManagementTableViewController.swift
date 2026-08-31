@@ -10,12 +10,17 @@
 
 import UIKit
 
+/// The Management screen: a segmented, sectioned-by-building list of
+/// Buildings/Floors/Meters, with an Add button that adjusts to the current
+/// segment. Owns all UI presentation; `ManagementViewModel` owns the data
+/// behind it.
 class ManagementTableViewController: UIViewController {
-    
+
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
     var viewModel: ManagementViewModel!
-    
+
+    /// The currently selected segment, read from `segmentedControl`.
     private var selectedSegment: ManagementViewModel.Segment {
         ManagementViewModel.Segment(rawValue: segmentedControl.selectedSegmentIndex) ?? .buildings
     }
@@ -53,7 +58,9 @@ class ManagementTableViewController: UIViewController {
         setupConstraints()
         setupNavigationBar()
     }
-    
+
+    /// Reloads every segment's data each time this screen becomes visible,
+    /// so changes made in Add/Edit or Floor Meters are reflected.
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         Task { @MainActor in
@@ -61,15 +68,18 @@ class ManagementTableViewController: UIViewController {
             tableView.reloadData()
         }
     }
-    
+
     // MARK: - Setup
+
+    /// Adds the segmented control and table view to the view hierarchy.
     private func setupUI() {
         view.backgroundColor = .systemGroupedBackground
-        
+
         view.addSubview(segmentedControl)
         view.addSubview(tableView)
     }
-    
+
+    /// Activates the segmented control / table view Auto Layout constraints.
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             // Segmented Control
@@ -85,6 +95,7 @@ class ManagementTableViewController: UIViewController {
         ])
     }
     
+    /// Adds the nav-bar "+" button that opens `addTapped()`'s action sheet.
     private func setupNavigationBar() {
         let addButton = UIBarButtonItem(
             barButtonSystemItem: .add,
@@ -96,13 +107,16 @@ class ManagementTableViewController: UIViewController {
     }
     
     // MARK: - Actions
+
+    /// Presents an action sheet to add a Building or (if any floor exists)
+    /// a Meter — or jumps straight to Add Building if none exist yet, since
+    /// there'd be nothing else to add to.
     @objc private func addTapped() {
         if viewModel.buildings.isEmpty {
-            // No buildings exist, must create one first
             coordinator?.showBuildingDetails()
             return
         }
-        
+
         let alert = UIAlertController(
             title: "Add Item",
             message: "What would you like to add?",
@@ -130,6 +144,7 @@ class ManagementTableViewController: UIViewController {
         present(alert, animated: true)
     }
     
+    /// Reloads the table to show the newly selected segment's rows.
     @objc private func segmentChanged() {
         print("Segment changed to index: \(self.segmentedControl.selectedSegmentIndex)")
         tableView.reloadData()
@@ -147,20 +162,35 @@ extension ManagementTableViewController: UITableViewDelegate {
             coordinator?.showBuildingDetails(building: building)
             
         case .floors:
-            let item = viewModel.floorItems[indexPath.row]
-            coordinator?.showFloorDetails(floor: item.floor, building: item.building)
+            // Floor rows now open the Floor Meters screen (view/add/delete
+            // meters, see last-read date+value) rather than the floor's
+            // own edit form (2026-08-28) — that form is still reachable
+            // from there via its Edit button.
+            let item = viewModel.floorSections[indexPath.section].items[indexPath.row]
+            coordinator?.showFloorMeters(floor: item.floor, building: item.building)
             
         case .meters:
-            let item = viewModel.meterItems[indexPath.row]
+            let item = viewModel.meterSections[indexPath.section].items[indexPath.row]
             coordinator?.showMeterDetails(meter: item.meter, floor: item.floor, building: item.building)
         }
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        // All three cells self-size now (2026-08-28) — each pins its text
+        // stack to the contentView's top and bottom instead of centering
+        // it, so UITableView.automaticDimension (already set as the table's
+        // default rowHeight) can compute a real height per row instead of
+        // a guessed fixed constant clipping/overlapping content.
+        return UITableView.automaticDimension
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        // Buildings segment is already one row per building, so it doesn't
+        // need a "grouped by building" header the way Floors/Meters do.
         switch selectedSegment {
-        case .buildings: return 65
-        case .floors: return 50
-        case .meters: return 40
+        case .buildings: return nil
+        case .floors: return viewModel.floorSections[section].building.name
+        case .meters: return viewModel.meterSections[section].building.name
         }
     }
 }
@@ -168,14 +198,18 @@ extension ManagementTableViewController: UITableViewDelegate {
 // MARK: - UITableViewDataSource
 extension ManagementTableViewController: UITableViewDataSource {
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
+        switch selectedSegment {
+        case .buildings: return 1
+        case .floors: return viewModel.floorSections.count
+        case .meters: return viewModel.meterSections.count
+        }
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch selectedSegment {
         case .buildings: return viewModel.buildings.count
-        case .floors: return viewModel.floorItems.count
-        case .meters: return viewModel.meterItems.count
+        case .floors: return viewModel.floorSections[section].items.count
+        case .meters: return viewModel.meterSections[section].items.count
         }
     }
     
@@ -189,15 +223,17 @@ extension ManagementTableViewController: UITableViewDataSource {
             
         case .floors:
             let cell = tableView.dequeueReusableCell(withIdentifier: "FloorCell", for: indexPath) as! FloorTableViewCell
-            let item = viewModel.floorItems[indexPath.row]
-            cell.setup(floor: item.floor, buildingName: item.building.name)
+            let item = viewModel.floorSections[indexPath.section].items[indexPath.row]
+            cell.setup(floor: item.floor)
             cell.accessoryType = .disclosureIndicator
             return cell
             
         case .meters:
+            // Just "Floor N", not "Building - Floor N" — the section
+            // header above already names the building.
             let cell = tableView.dequeueReusableCell(withIdentifier: "MeterCell", for: indexPath) as! MeterTableViewCell
-            let item = viewModel.meterItems[indexPath.row]
-            cell.setup(meter: item.meter, locationString: "\(item.building.name) - Floor \(item.floor.number)")
+            let item = viewModel.meterSections[indexPath.section].items[indexPath.row]
+            cell.setup(meter: item.meter, locationString: item.floor.displayName)
             cell.accessoryType = .disclosureIndicator
             return cell
         }

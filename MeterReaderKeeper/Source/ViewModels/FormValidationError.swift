@@ -28,7 +28,9 @@ import Foundation
 /// }
 /// ```
 struct FormValidationError: LocalizedError {
+    /// The alert's title.
     let title: String
+    /// The alert's body message.
     let message: String
 
     var errorDescription: String? { message }

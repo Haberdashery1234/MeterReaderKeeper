@@ -2,7 +2,7 @@
 //  SwiftDataMeterRepository.swift
 //  MeterReaderKeeper
 //
-//  Created by Core Data -> SwiftData Migration on 8/26/26.
+//  Migrated to SwiftData on 8/26/26.
 //  Converted from manual queue confinement to a real ModelActor on 8/27/26
 //  (see "Proper concurrency" migration note in project history).
 //
@@ -17,8 +17,7 @@ import SwiftData
 /// `SDFloor` / `SDMeter` / `SDReading` classes directly. Everything above
 /// this layer — view models, views — works exclusively with the plain
 /// `MRKBuilding` / `MRKFloor` / `MRKMeter` / `MRKReading` domain structs in
-/// `Model/Domain`. This mirrors `CoreDataMeterRepository`, the Core Data
-/// implementation this one replaced.
+/// `Model/Domain`.
 ///
 /// ## Threading design
 ///
@@ -38,14 +37,13 @@ import SwiftData
 ///
 /// This replaces an earlier version of this type that manually confined a
 /// single `ModelContext` to a private serial `DispatchQueue` and ran every
-/// operation via `queue.sync`, to preserve a synchronous protocol contract
-/// inherited from the Core Data implementation. That queue-confinement
-/// trick worked in principle but wasn't the officially blessed approach and
-/// was never verified against a real SwiftData stack. Adopting `ModelActor`
-/// directly removes the need to guess — at the cost of every call site
-/// (every ViewModel, and through them every View) now being `async` too, a
-/// ripple the original migration deliberately avoided and this one accepts
-/// in full.
+/// operation via `queue.sync`, to preserve a synchronous protocol contract.
+/// That queue-confinement trick worked in principle but wasn't the
+/// officially blessed approach and was never verified against a real
+/// SwiftData stack. Adopting `ModelActor` directly removes the need to
+/// guess — at the cost of every call site (every ViewModel, and through
+/// them every View) now being `async` too, a ripple the original migration
+/// deliberately avoided and this one accepts in full.
 @ModelActor
 actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
 
@@ -91,8 +89,8 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         } catch {
             // A failed store load leaves the app with nowhere to persist
             // data. This still can't be recovered from in-app, so it remains
-            // fatal (as it was for the Core Data repository this replaces)
-            // — but at least the failure reason is surfaced via the crash log.
+            // fatal — but at least the failure reason is surfaced via the
+            // crash log.
             fatalError("Failed to create SwiftData ModelContainer: \(error)")
         }
 
@@ -163,6 +161,12 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
 
         try Self.save(modelContext)
         return Self.mapFloor(floor)
+    }
+
+    func deleteFloor(id: UUID) async throws {
+        let floor = try Self.findFloor(id: id, in: modelContext)
+        modelContext.delete(floor)
+        try Self.save(modelContext)
     }
 
     // MARK: - Meters
@@ -286,7 +290,11 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
     }
 
     // MARK: - Mapping: SwiftData -> Domain
+    // Each of these converts one `@Model` class into its persistence-agnostic
+    // `MRKXxx` counterpart, recursively mapping (and sorting) its children.
 
+    /// Converts a managed building into its domain struct, with its floors
+    /// mapped and sorted by number.
     private static func mapBuilding(_ managed: SDBuilding) -> MRKBuilding {
         MRKBuilding(
             id: managed.id,
@@ -295,6 +303,8 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         )
     }
 
+    /// Converts a managed floor into its domain struct, with its meters
+    /// mapped and sorted by name.
     private static func mapFloor(_ managed: SDFloor) -> MRKFloor {
         MRKFloor(
             id: managed.id,
@@ -305,6 +315,8 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         )
     }
 
+    /// Converts a managed meter into its domain struct, with its readings
+    /// mapped and sorted most-recent-first.
     private static func mapMeter(_ managed: SDMeter) -> MRKMeter {
         MRKMeter(
             id: managed.id,
@@ -318,6 +330,7 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         )
     }
 
+    /// Converts a managed reading into its domain struct.
     private static func mapReading(_ managed: SDReading) -> MRKReading {
         MRKReading(
             id: managed.id,
@@ -329,11 +342,14 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
 
     // MARK: - Lookup helpers
 
-    // Unlike the Core Data repository this replaces, these are real
-    // indexed-by-id lookups (`#Predicate` fetches) rather than a
-    // fetch-everything-and-scan — the payoff of giving each entity a real
-    // persisted `id: UUID` instead of deriving one from an object identifier.
+    // These are real indexed-by-id lookups (`#Predicate` fetches) rather
+    // than a fetch-everything-and-scan — the payoff of giving each entity a
+    // real persisted `id: UUID` instead of deriving one from an object
+    // identifier.
 
+    /// Looks up a building by id via an indexed `#Predicate` fetch.
+    ///
+    /// - Throws: `MeterKeeperError.notFound("Building")` if no match exists.
     private static func findBuilding(id: UUID, in context: ModelContext) throws -> SDBuilding {
         var descriptor = FetchDescriptor<SDBuilding>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1
@@ -343,6 +359,9 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         return match
     }
 
+    /// Looks up a floor by id via an indexed `#Predicate` fetch.
+    ///
+    /// - Throws: `MeterKeeperError.notFound("Floor")` if no match exists.
     private static func findFloor(id: UUID, in context: ModelContext) throws -> SDFloor {
         var descriptor = FetchDescriptor<SDFloor>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1
@@ -352,6 +371,9 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         return match
     }
 
+    /// Looks up a meter by id via an indexed `#Predicate` fetch.
+    ///
+    /// - Throws: `MeterKeeperError.notFound("Meter")` if no match exists.
     private static func findMeter(id: UUID, in context: ModelContext) throws -> SDMeter {
         var descriptor = FetchDescriptor<SDMeter>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1
@@ -361,6 +383,9 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         return match
     }
 
+    /// Looks up a reading by id via an indexed `#Predicate` fetch.
+    ///
+    /// - Throws: `MeterKeeperError.notFound("Reading")` if no match exists.
     private static func findReading(id: UUID, in context: ModelContext) throws -> SDReading {
         var descriptor = FetchDescriptor<SDReading>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1
@@ -372,10 +397,14 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
 
     // MARK: - Small helpers
 
+    /// Builds a meter's QR-label string from its location, in the format
+    /// consumed by the readings-flow QR scanner to look a meter back up.
     private static func qrString(buildingName: String, floorNumber: Int16, meterName: String) -> String {
         "\(buildingName)::\(floorNumber)::\(meterName)"
     }
 
+    /// Saves `context` if (and only if) it has pending changes, wrapping any
+    /// failure as `MeterKeeperError.persistenceError`.
     private static func save(_ context: ModelContext) throws {
         guard context.hasChanges else { return }
         do {
@@ -385,6 +414,10 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         }
     }
 
+    /// The on-disk URL the plist export is written to and re-read from.
+    ///
+    /// - Throws: `MeterKeeperError.fileSystemError` if the app's document
+    ///   directory can't be located.
     private static func exportPlistURL() throws -> URL {
         guard let documentDirectoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             throw MeterKeeperError.fileSystemError(

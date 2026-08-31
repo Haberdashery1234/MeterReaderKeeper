@@ -7,22 +7,40 @@
 
 import Foundation
 
-/// Custom errors for the MeterReaderKeeper app
+/// The error type surfaced by domain-model validation, the repository
+/// layer, and view models throughout the app. Conforms to
+/// `LocalizedError` so `errorDescription` can be shown directly in an
+/// alert.
 enum MeterKeeperError: LocalizedError {
+    /// A domain model or input struct failed its own `validate()` check.
     case validationError(ValidationError)
+    /// The SwiftData store threw while reading or writing.
     case persistenceError(Error)
+    /// A file-system operation (e.g. loading seed/image data) failed.
     case fileSystemError(Error)
+    /// A lookup by identifier found no matching record; the associated
+    /// string names what wasn't found (e.g. "Meter").
     case notFound(String)
+    /// A catch-all for errors that don't fit the other cases.
     case unknown(Error)
-    
+
+    /// The specific reason a `.validationError` was thrown.
     enum ValidationError {
+        /// A required field was empty; the associated string names the field.
         case missingRequiredField(String)
+        /// A numeric value that must be non-negative was negative.
         case negativeValue
+        /// A reading's date was after the current date.
         case readingInFuture
+        /// A catch-all for validation failures with a custom message.
         case invalidInput(String)
+        /// A name that must be unique already exists; the associated
+        /// string is the conflicting name.
         case duplicateName(String)
     }
-    
+
+    /// A user-facing message describing this error, suitable for display
+    /// in an alert.
     var errorDescription: String? {
         switch self {
         case .validationError(let validationError):

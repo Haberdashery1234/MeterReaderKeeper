@@ -51,6 +51,52 @@ struct MRKReadingTests {
     }
 }
 
+@Suite("MRKReading.usage")
+struct MRKReadingUsageTests {
+
+    private func reading(_ kWh: Double, daysAgo: Int) -> MRKReading {
+        let date = Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date())!
+        return MRKReading(id: UUID(), date: date, kWh: kWh, meterID: UUID())
+    }
+
+    @Test("usage is the plain difference when the reading increased")
+    func usageIsPlainDifferenceWhenIncreasing() {
+        let previous = reading(10_000, daysAgo: 1)
+        let current = reading(10_250.5, daysAgo: 0)
+        #expect(MRKReading.usage(from: previous, to: current) == 250.5)
+    }
+
+    @Test("usage is zero when the reading is unchanged")
+    func usageIsZeroWhenUnchanged() {
+        let previous = reading(10_000, daysAgo: 1)
+        let current = reading(10_000, daysAgo: 0)
+        #expect(MRKReading.usage(from: previous, to: current) == 0)
+    }
+
+    @Test("a drop from a 4-digit reading rolls over at 10,000 — Christian's example")
+    func usageHandlesFourDigitRollover() {
+        let previous = reading(9997, daysAgo: 1)
+        let current = reading(200, daysAgo: 0)
+        #expect(MRKReading.usage(from: previous, to: current) == 203)
+    }
+
+    @Test("a drop from a 7-digit reading rolls over at 10,000,000 — Christian's example")
+    func usageHandlesSevenDigitRollover() {
+        let previous = reading(9_999_997, daysAgo: 1)
+        let current = reading(200, daysAgo: 0)
+        #expect(MRKReading.usage(from: previous, to: current) == 203)
+    }
+
+    @Test("rollover math ignores the previous reading's decimal portion")
+    func usageIgnoresDecimalPortionOfPreviousReading() {
+        let previous = reading(9997.75, daysAgo: 1)
+        let current = reading(200, daysAgo: 0)
+        // Still a 4-digit whole number, so still wraps at 10,000 — the
+        // fractional .75 doesn't push it into a 5-digit cap.
+        #expect(MRKReading.usage(from: previous, to: current) == 202.25)
+    }
+}
+
 @Suite("MRKReadingInput")
 struct MRKReadingInputTests {
 

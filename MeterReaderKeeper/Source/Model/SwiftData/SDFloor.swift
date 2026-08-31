@@ -2,7 +2,7 @@
 //  SDFloor.swift
 //  MeterReaderKeeper
 //
-//  Created by Core Data -> SwiftData Migration on 8/26/26.
+//  Migrated to SwiftData on 8/26/26.
 //
 
 import Foundation
@@ -12,14 +12,28 @@ import SwiftData
 /// note that applies to every file in this directory.
 @Model
 final class SDFloor {
+    /// Stable, uniquely-constrained identity for this floor.
     @Attribute(.unique) var id: UUID
+    /// The floor's 1-based number within its building.
     var number: Int16
+    /// Raw image data for the floor's map, or empty `Data()` if unset.
     var mapImageData: Data
+    /// The building this floor belongs to. Optional because SwiftData
+    /// relationships must be optional on the "to-one" side.
     var building: SDBuilding?
 
+    /// This floor's meters. Cascade-deleting a floor deletes every meter
+    /// (and, transitively, every reading) that belongs to it.
     @Relationship(deleteRule: .cascade, inverse: \SDMeter.floor)
     var meters: [SDMeter] = []
 
+    /// Creates a new floor record.
+    ///
+    /// - Parameters:
+    ///   - id: The floor's identity. Defaults to a freshly generated UUID.
+    ///   - number: The floor's 1-based number within its building.
+    ///   - mapImageData: Raw image data for the floor's map, or empty `Data()`.
+    ///   - building: The building this floor belongs to.
     init(id: UUID = UUID(), number: Int16, mapImageData: Data, building: SDBuilding?) {
         self.id = id
         self.number = number
@@ -30,6 +44,10 @@ final class SDFloor {
     /// Exports floor data to a dictionary for serialization. Meters are
     /// explicitly sorted by name for the same reason `SDBuilding.getExportDictionary()`
     /// sorts its floors — SwiftData doesn't guarantee relationship storage order.
+    ///
+    /// - Returns: A `[String: Any]` dictionary with the floor's `"number"`,
+    ///   a size-compressed `"map"` image, and a `"meters"` array of each
+    ///   meter's own export dictionary.
     func getExportDictionary() -> [String: Any] {
         var exportDict: [String: Any] = [:]
         exportDict["number"] = number
