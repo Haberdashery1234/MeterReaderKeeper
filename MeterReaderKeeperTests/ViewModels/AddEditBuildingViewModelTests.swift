@@ -202,7 +202,8 @@ struct AddEditBuildingViewModelTests {
         let topFloor = try #require(building.floors.first { $0.number == 3 })
         _ = try await repository.addMeter(MRKMeterInput(name: "M1", description: "", imageData: Data(), floorID: topFloor.id))
         _ = try await repository.addMeter(MRKMeterInput(name: "M2", description: "", imageData: Data(), floorID: topFloor.id))
-        let viewModel = AddEditBuildingViewModel(repository: repository, building: building)
+        let refreshedBuilding = try await repository.getBuilding(id: building.id)
+        let viewModel = AddEditBuildingViewModel(repository: repository, building: refreshedBuilding)
 
         let warning = try #require(viewModel.floorRemovalWarning(floorsText: "2"))
         #expect(warning.contains("1 floor"))

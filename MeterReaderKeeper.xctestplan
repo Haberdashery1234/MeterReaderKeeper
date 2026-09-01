@@ -1,0 +1,29 @@
+{
+  "configurations" : [
+    {
+      "id" : "96D6D7F4-3788-425F-97B2-932B64350D49",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:MeterReaderKeeper.xcodeproj",
+      "identifier" : "7C4AF7F0263CD435002E65CB",
+      "name" : "MeterReaderKeeper"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:MeterReaderKeeper.xcodeproj",
+        "identifier" : "7C4AF806263CD436002E65CB",
+        "name" : "MeterReaderKeeperTests"
+      }
+    }
+  ],
+  "version" : 1
+}

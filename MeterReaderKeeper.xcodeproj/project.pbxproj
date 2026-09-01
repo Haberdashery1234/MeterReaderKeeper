@@ -28,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		03B6665B304652DC00AA124D /* MeterReaderKeeper.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = MeterReaderKeeper.xctestplan; sourceTree = "<group>"; };
 		7C4AF7F1263CD435002E65CB /* MeterReaderKeeper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeterReaderKeeper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C4AF807263CD436002E65CB /* MeterReaderKeeperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MeterReaderKeeperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C4AF812263CD436002E65CB /* MeterReaderKeeperUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MeterReaderKeeperUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -92,6 +93,7 @@
 		7C4AF7E8263CD435002E65CB = {
 			isa = PBXGroup;
 			children = (
+				03B6665B304652DC00AA124D /* MeterReaderKeeper.xctestplan */,
 				03A2ADBE303E34CE0031F869 /* MeterReaderKeeper */,
 				03A2ADE3303E34F70031F869 /* MeterReaderKeeperTests */,
 				03A2ADE6303E34F70031F869 /* MeterReaderKeeperUITests */,
