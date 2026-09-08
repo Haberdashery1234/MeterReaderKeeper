@@ -3,50 +3,85 @@
 //  MeterReaderKeeper
 //
 //  Created by Christian Grise on 4/30/21.
+//  Updated to wire up MeterRepositoryProtocol on 8/26/26.
+//  Migrated to SwiftData on 8/26/26.
 //
 
 import UIKit
 
+/// The app's single `UIWindowSceneDelegate`. Owns the app's window and
+/// repository instance, and starts the `AppCoordinator` that drives all
+/// navigation.
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
+    /// The app's single window, created when the scene connects.
     var window: UIWindow?
+    /// The root coordinator, started in `scene(_:willConnectTo:options:)`.
+    var appCoordinator: AppCoordinator?
+    
+    /// The app's single repository instance, owning the SwiftData stack.
+    ///
+    /// Backed by an in-memory store instead of the real on-disk one when
+    /// launched with `UITestAppLauncher.inMemoryStoreLaunchArgument` (see
+    /// `MeterReaderKeeperUITests/TestSupport/UITestAppLauncher.swift`) —
+    /// this is how the UI test target gets a guaranteed-empty database on
+    /// every launch instead of accumulating state in the real store run
+    /// over run. `#if DEBUG`-gated so a stray launch argument could never
+    /// affect a release build.
+    private let repository: MeterRepositoryProtocol = SceneDelegate.makeRepository()
 
+    /// Builds the app's repository — an in-memory `SwiftDataMeterRepository`
+    /// when launched with the `-UITestInMemoryStore` launch argument (see
+    /// `MeterReaderKeeperUITests/TestSupport/UITestAppLauncher.swift`), so UI
+    /// tests always start from an empty database instead of accumulating
+    /// state in the real on-disk store run over run; the real on-disk store
+    /// otherwise. The launch-argument check is `#if DEBUG`-gated so it can
+    /// never affect a release build.
+    private static func makeRepository() -> MeterRepositoryProtocol {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-UITestInMemoryStore") {
+            return SwiftDataMeterRepository(inMemory: true)
+        }
+        #endif
+        return SwiftDataMeterRepository()
+    }
 
+    /// Creates the app's window and navigation controller, then starts the
+    /// `AppCoordinator` that drives all navigation from there.
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
-        // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
-        // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-        guard let _ = (scene as? UIWindowScene) else { return }
+        guard let windowScene = (scene as? UIWindowScene) else { return }
+
+        let window = UIWindow(windowScene: windowScene)
+        self.window = window
+
+        let navigationController = UINavigationController()
+        navigationController.navigationBar.prefersLargeTitles = true
+
+        appCoordinator = AppCoordinator(navigationController: navigationController, repository: repository)
+        appCoordinator?.start()
+
+        window.rootViewController = navigationController
+        window.makeKeyAndVisible()
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
-        // Called as the scene is being released by the system.
-        // This occurs shortly after the scene enters the background, or when its session is discarded.
-        // Release any resources associated with this scene that can be re-created the next time the scene connects.
-        // The scene may re-connect later, as its session was not necessarily discarded (see `application:didDiscardSceneSessions` instead).
+        // No scene-specific resources to release.
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
-        // Called when the scene has moved from an inactive state to an active state.
-        // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
+        // No work needed on activation.
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
-        // Called when the scene will move from an active state to an inactive state.
-        // This may occur due to temporary interruptions (ex. an incoming phone call).
+        // No work needed on deactivation.
     }
 
     func sceneWillEnterForeground(_ scene: UIScene) {
-        // Called as the scene transitions from the background to the foreground.
-        // Use this method to undo the changes made on entering the background.
+        // No work needed on foregrounding.
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
-        // Called as the scene transitions from the foreground to the background.
-        // Use this method to save data, release shared resources, and store enough scene-specific state information
-        // to restore the scene back to its current state.
+        // No work needed on backgrounding — SwiftData saves happen
+        // explicitly per repository call, not on a scene-lifecycle hook.
     }
-
-
 }
-

@@ -1,75 +1,152 @@
 //
-//  ViewController.swift
+//  ManagementTableViewController.swift
 //  MeterReaderKeeper
 //
 //  Created by Christian Grise on 4/30/21.
+//  Refactored to programmatic UI on 8/25/26.
+//  Updated to use MeterRepositoryProtocol on 8/26/26.
+//  Thinned to use ManagementViewModel on 8/26/26.
 //
 
 import UIKit
 
+/// The Management screen: a segmented, sectioned-by-building list of
+/// Buildings/Floors/Meters, with an Add button that adjusts to the current
+/// segment. Owns all UI presentation; `ManagementViewModel` owns the data
+/// behind it.
 class ManagementTableViewController: UIViewController {
 
-    let buildingDetailsSegue = "MeterTableToBuildingDetailsSegue"
-    let floorDetailsSegue = "MeterTableToFloorDetailsSegue"
-    let meterDetailsSegue = "MeterTableToMeterDetailsSegue"
-    @IBOutlet weak var tableView: UITableView!
-    @IBOutlet weak var listSourceSegmentedControl: UISegmentedControl!
+    // MARK: - Properties
+    weak var coordinator: AppCoordinator?
+    var viewModel: ManagementViewModel!
+
+    /// The currently selected segment, read from `segmentedControl`.
+    private var selectedSegment: ManagementViewModel.Segment {
+        ManagementViewModel.Segment(rawValue: segmentedControl.selectedSegmentIndex) ?? .buildings
+    }
     
+    // MARK: - UI Components
+    private lazy var tableView: UITableView = {
+        let tableView = UITableView(frame: .zero, style: .insetGrouped)
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.register(BuildingTableViewCell.self, forCellReuseIdentifier: "BuildingCell")
+        tableView.register(FloorTableViewCell.self, forCellReuseIdentifier: "FloorCell")
+        tableView.register(MeterTableViewCell.self, forCellReuseIdentifier: "MeterCell")
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 60
+        tableView.backgroundColor = .clear
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.accessibilityIdentifier = "Management.tableView"
+        return tableView
+    }()
+    
+    private lazy var segmentedControl: UISegmentedControl = {
+        let items = ["Buildings", "Floors", "Meters"]
+        let control = UISegmentedControl(items: items)
+        control.selectedSegmentIndex = 0
+        control.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
+        control.translatesAutoresizingMaskIntoConstraints = false
+        control.accessibilityIdentifier = "Management.segmentedControl"
+        return control
+    }()
+    
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
-        tableView.rowHeight = UITableView.automaticDimension
+        setupUI()
+        setupConstraints()
+        setupNavigationBar()
     }
-    
+
+    /// Reloads every segment's data each time this screen becomes visible,
+    /// so changes made in Add/Edit or Floor Meters are reflected.
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        tableView.reloadData()
+        Task { @MainActor in
+            await viewModel.loadData()
+            tableView.reloadData()
+        }
+    }
+
+    // MARK: - Setup
+
+    /// Adds the segmented control and table view to the view hierarchy.
+    private func setupUI() {
+        view.backgroundColor = .systemGroupedBackground
+
+        view.addSubview(segmentedControl)
+        view.addSubview(tableView)
+    }
+
+    /// Activates the segmented control / table view Auto Layout constraints.
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            // Segmented Control
+            segmentedControl.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            segmentedControl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            segmentedControl.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            
+            // Table View
+            tableView.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: 16),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
     }
     
-    @IBAction func addTapped(_ sender: Any) {
-        
-        if MeterManager.shared.buildings.count == 0 {
-            performSegue(withIdentifier: buildingDetailsSegue, sender: nil)
+    /// Adds the nav-bar "+" button that opens `addTapped()`'s action sheet.
+    private func setupNavigationBar() {
+        let addButton = UIBarButtonItem(
+            barButtonSystemItem: .add,
+            target: self,
+            action: #selector(addTapped)
+        )
+        addButton.accessibilityIdentifier = "Management.addButton"
+        navigationItem.rightBarButtonItem = addButton
+    }
+    
+    // MARK: - Actions
+
+    /// Presents an action sheet to add a Building or (if any floor exists)
+    /// a Meter — or jumps straight to Add Building if none exist yet, since
+    /// there'd be nothing else to add to.
+    @objc private func addTapped() {
+        if viewModel.buildings.isEmpty {
+            coordinator?.showBuildingDetails()
             return
         }
+
+        let alert = UIAlertController(
+            title: "Add Item",
+            message: "What would you like to add?",
+            preferredStyle: .actionSheet
+        )
         
-        let alert = UIAlertController(title: "", message: "What would you like to add?", preferredStyle: .actionSheet)
-        let buildingAction = UIAlertAction(title: "Building", style: .default) { (_) in
-            self.performSegue(withIdentifier: self.buildingDetailsSegue, sender: nil)
+        // Always allow adding buildings
+        alert.addAction(UIAlertAction(title: "Building", style: .default) { [weak self] _ in
+            self?.coordinator?.showBuildingDetails()
+        })
+        
+        // Only allow adding meters if floors exist
+        if viewModel.hasFloors {
+            alert.addAction(UIAlertAction(title: "Meter", style: .default) { [weak self] _ in
+                self?.coordinator?.showMeterDetails()
+            })
         }
-        alert.addAction(buildingAction)
         
-        if MeterManager.shared.floors.count > 0 {
-            let meterAction = UIAlertAction(title: "Meter", style: .default) { (_) in
-                self.performSegue(withIdentifier: self.meterDetailsSegue, sender: nil)
-            }
-            alert.addAction(meterAction)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        if let popover = alert.popoverPresentationController {
+            popover.barButtonItem = navigationItem.rightBarButtonItem
         }
         
-        present(alert, animated: true, completion: nil)
-        
+        present(alert, animated: true)
     }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == buildingDetailsSegue {
-            let buildingDetailsVC = segue.destination as? AddEditBuildingViewController
-            if let building = sender as? Building {
-                buildingDetailsVC?.building = building
-            }
-        } else if segue.identifier == floorDetailsSegue {
-            let floorDetailsVC = segue.destination as? AddEditFloorViewController
-            if let floor = sender as? Floor {
-                floorDetailsVC?.floor = floor
-            }
-        } else if segue.identifier == meterDetailsSegue {
-            let meterDetailsVC = segue.destination as? AddEditMeterViewController
-            if let meter = sender as? Meter {
-                meterDetailsVC?.meter = meter
-            }
-        }
-    }
-    
-    @IBAction func listSegmentedControlChanged(_ sender: Any) {
+    /// Reloads the table to show the newly selected segment's rows.
+    @objc private func segmentChanged() {
+        print("Segment changed to index: \(self.segmentedControl.selectedSegmentIndex)")
         tableView.reloadData()
     }
 }
@@ -77,69 +154,88 @@ class ManagementTableViewController: UIViewController {
 // MARK: - UITableViewDelegate
 extension ManagementTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        switch listSourceSegmentedControl.selectedSegmentIndex {
-        case 0:
-            performSegue(withIdentifier: buildingDetailsSegue, sender: MeterManager.shared.buildings[indexPath.row])
-        case 1:
-            performSegue(withIdentifier: floorDetailsSegue, sender: MeterManager.shared.floors[indexPath.row])
-        case 2:
-            performSegue(withIdentifier: meterDetailsSegue, sender: MeterManager.shared.meters[indexPath.row])
-        default:
-            return
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        switch selectedSegment {
+        case .buildings:
+            let building = viewModel.buildings[indexPath.row]
+            coordinator?.showBuildingDetails(building: building)
+            
+        case .floors:
+            // Floor rows now open the Floor Meters screen (view/add/delete
+            // meters, see last-read date+value) rather than the floor's
+            // own edit form (2026-08-28) — that form is still reachable
+            // from there via its Edit button.
+            let item = viewModel.floorSections[indexPath.section].items[indexPath.row]
+            coordinator?.showFloorMeters(floor: item.floor, building: item.building)
+            
+        case .meters:
+            let item = viewModel.meterSections[indexPath.section].items[indexPath.row]
+            coordinator?.showMeterDetails(meter: item.meter, floor: item.floor, building: item.building)
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        // All three cells self-size now (2026-08-28) — each pins its text
+        // stack to the contentView's top and bottom instead of centering
+        // it, so UITableView.automaticDimension (already set as the table's
+        // default rowHeight) can compute a real height per row instead of
+        // a guessed fixed constant clipping/overlapping content.
+        return UITableView.automaticDimension
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        // Buildings segment is already one row per building, so it doesn't
+        // need a "grouped by building" header the way Floors/Meters do.
+        switch selectedSegment {
+        case .buildings: return nil
+        case .floors: return viewModel.floorSections[section].building.name
+        case .meters: return viewModel.meterSections[section].building.name
         }
     }
 }
 
 // MARK: - UITableViewDataSource
 extension ManagementTableViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch listSourceSegmentedControl.selectedSegmentIndex {
-        case 0:
-            return MeterManager.shared.buildings.count
-        case 1:
-            return MeterManager.shared.floors.count
-        case 2:
-            return MeterManager.shared.meters.count
-        default:
-            return 0
+    func numberOfSections(in tableView: UITableView) -> Int {
+        switch selectedSegment {
+        case .buildings: return 1
+        case .floors: return viewModel.floorSections.count
+        case .meters: return viewModel.meterSections.count
         }
     }
-
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        switch listSourceSegmentedControl.selectedSegmentIndex {
-        case 0:
-            return 65
-        case 1:
-            return 50
-        case 2:
-            return 40
-        default:
-            return 40
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        switch selectedSegment {
+        case .buildings: return viewModel.buildings.count
+        case .floors: return viewModel.floorSections[section].items.count
+        case .meters: return viewModel.meterSections[section].items.count
         }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        switch listSourceSegmentedControl.selectedSegmentIndex {
-        case 0:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "BuildingCell") as? BuildingTableViewCell ?? BuildingTableViewCell(style: .default, reuseIdentifier: "BuildingCell")
-            let building = MeterManager.shared.buildings[indexPath.row]
-            cell.setup(withBuilding: building)
+        switch selectedSegment {
+        case .buildings:
+            let cell = tableView.dequeueReusableCell(withIdentifier: "BuildingCell", for: indexPath) as! BuildingTableViewCell
+            cell.setup(withBuilding: viewModel.buildings[indexPath.row])
+            cell.accessoryType = .disclosureIndicator
             return cell
-        case 1:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "FloorCell") as? FloorTableViewCell ?? FloorTableViewCell(style: .default, reuseIdentifier: "FloorCell")
-            let floor = MeterManager.shared.floors[indexPath.row]
-            cell.setup(withFloor: floor)
+            
+        case .floors:
+            let cell = tableView.dequeueReusableCell(withIdentifier: "FloorCell", for: indexPath) as! FloorTableViewCell
+            let item = viewModel.floorSections[indexPath.section].items[indexPath.row]
+            cell.setup(floor: item.floor)
+            cell.accessoryType = .disclosureIndicator
             return cell
-        case 2:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "MeterCell") as? MeterTableViewCell ?? MeterTableViewCell(style: .default, reuseIdentifier: "MeterCell")
-            let meter = MeterManager.shared.meters[indexPath.row]
-            cell.setup(withMeter: meter)
-            return cell
-        default:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-            cell.textLabel?.text = "Nothing"
+            
+        case .meters:
+            // Just "Floor N", not "Building - Floor N" — the section
+            // header above already names the building.
+            let cell = tableView.dequeueReusableCell(withIdentifier: "MeterCell", for: indexPath) as! MeterTableViewCell
+            let item = viewModel.meterSections[indexPath.section].items[indexPath.row]
+            cell.setup(meter: item.meter, locationString: item.floor.displayName)
+            cell.accessoryType = .disclosureIndicator
             return cell
         }
-        
     }
 }

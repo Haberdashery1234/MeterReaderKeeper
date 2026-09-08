@@ -8,20 +8,36 @@
 import UIKit
 import AVFoundation
 
+/// Receives the result of a QR scan from `QrScannerViewController`.
 @objc public protocol QRScannerDelegate {
+    /// Called when a code is successfully scanned.
+    ///
+    /// - Parameters:
+    ///   - codeString: The scanned code's raw string value.
+    ///   - errorCompletion: Called back by the delegate with a non-nil
+    ///     `NSError` if `codeString` couldn't be matched to a meter, so the
+    ///     scanner can show an error and resume scanning.
     @objc func scannedCode(_ codeString: String, errorCompletion: (NSError?)->())
 }
 
+/// An `AVCaptureSession`-backed QR/barcode scanner. **Not currently wired
+/// into the app** — `ReadingsMainViewController`'s scan button shows a
+/// placeholder alert instead of presenting this screen (see its
+/// `scanQRCodeTapped()`). Expects `previewView` and `scannerDelegate` to be
+/// connected (e.g. via a storyboard) before use.
 class QrScannerViewController: UIViewController {
 
+    /// Notified when a code is scanned. Must be set before this screen is used.
     public weak var scannerDelegate: QRScannerDelegate!
-    
+
+    /// The view the camera preview layer is inserted into.
     @IBOutlet weak var previewView: UIView!
-    
+
     var captureSession: AVCaptureSession?
     var videoPreviewLayer: AVCaptureVideoPreviewLayer?
     var qrCodeFrameView: UIView?
-    
+
+    /// Builds the capture session and starts the camera preview.
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -33,6 +49,7 @@ class QrScannerViewController: UIViewController {
         }
     }
     
+    /// Starts the capture session if it isn't already running.
     func requestCaptureSessionStartRunning() {
         guard let captureSession = captureSession else {
             return
@@ -43,6 +60,7 @@ class QrScannerViewController: UIViewController {
         }
     }
     
+    /// Stops the capture session if it's currently running.
     func requestCaptureSessionStopRunning() {
         guard let captureSession = captureSession else {
             return
@@ -53,6 +71,7 @@ class QrScannerViewController: UIViewController {
         }
     }
     
+    /// Builds a preview layer sized to `view`'s bounds for `captureSession`.
     private func createPreviewLayer(withCaptureSession captureSession: AVCaptureSession, view: UIView) -> AVCaptureVideoPreviewLayer {
         let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         previewLayer.frame = view.layer.bounds
@@ -60,6 +79,11 @@ class QrScannerViewController: UIViewController {
         return previewLayer
     }
     
+    /// Builds a capture session on the default video device, outputting
+    /// scanned metadata to `self`.
+    ///
+    /// - Returns: The configured session, or `nil` if no video device is
+    ///   available or the input/output couldn't be attached.
     private func createCaptureSession() -> AVCaptureSession? {
         let captureSession = AVCaptureSession()
         
@@ -91,6 +115,7 @@ class QrScannerViewController: UIViewController {
         return captureSession
     }
     
+    /// The barcode/QR symbologies this scanner recognizes.
     private func metaObjectTypes() -> [AVMetadataObject.ObjectType] {
         return [.qr,
                 .code39,
@@ -105,6 +130,8 @@ class QrScannerViewController: UIViewController {
         ]
     }
     
+    /// Presents an alert for a scan that didn't match a meter, resuming the
+    /// capture session once dismissed.
     func showMeterScanErrorAlert(with message: String) {
         let alertController = UIAlertController(title: "", message: message, preferredStyle: .alert)
         alertController.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (_) in
@@ -115,6 +142,8 @@ class QrScannerViewController: UIViewController {
 }
 
 extension QrScannerViewController: AVCaptureMetadataOutputObjectsDelegate {
+    /// Stops scanning and forwards the first detected code's string value
+    /// to `scannerDelegate`.
     func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
         self.requestCaptureSessionStopRunning()
         
