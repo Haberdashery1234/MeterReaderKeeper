@@ -87,6 +87,15 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      # FixtureLoader (MeterReaderKeeperTests/TestSupport) locates
+      # SeedFixture.json by walking up from its own #filePath at
+      # compile time, so the source tree needs to exist at this exact
+      # path (matching where `build` checked it out) for that lookup to
+      # resolve here too — this job only downloaded build products
+      # above, not source, until this step.
+      - name: Checkout
+        uses: actions/checkout@v7
+
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -145,6 +154,12 @@ jobs:
     timeout-minutes: 60
 
     steps:
+      # See the matching comment in unit-tests above: FixtureLoader's
+      # #filePath-based lookup needs the source tree checked out here
+      # too, at the same path the build job used.
+      - name: Checkout
+        uses: actions/checkout@v7
+
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
