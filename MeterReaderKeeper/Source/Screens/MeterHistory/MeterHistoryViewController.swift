@@ -260,6 +260,12 @@ class MeterHistoryViewController: UIViewController {
 
         rootStackView.addArrangedSubview(detailsCard)
         rootStackView.addArrangedSubview(historySection)
+
+        buildingValueLabel.accessibilityIdentifier = "MeterHistory.buildingValueLabel"
+        floorValueLabel.accessibilityIdentifier = "MeterHistory.floorValueLabel"
+        latestReadingValueLabel.accessibilityIdentifier = "MeterHistory.latestReadingValueLabel"
+        chartContainerView.accessibilityIdentifier = "MeterHistory.chartContainerView"
+        noReadingsLabel.accessibilityIdentifier = "MeterHistory.noReadingsLabel"
     }
 
     /// Activates the scroll view / content view / root stack Auto Layout constraints.
