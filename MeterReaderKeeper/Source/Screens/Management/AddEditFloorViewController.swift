@@ -99,16 +99,6 @@ class AddEditFloorViewController: UIViewController {
         return button
     }()
     
-    private lazy var saveButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Save", for: .normal)
-        AppStyle.styleAsPrimaryButton(button)
-        button.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.accessibilityIdentifier = "AddEditFloor.saveButton"
-        return button
-    }()
-    
     private lazy var buildingPickerView: UIPickerView = {
         let picker = UIPickerView()
         picker.dataSource = self
@@ -122,6 +112,7 @@ class AddEditFloorViewController: UIViewController {
         setupUI()
         setupConstraints()
         setupKeyboardHandling()
+        setupNavigationBar()
         populateData()
     }
 
@@ -140,7 +131,13 @@ class AddEditFloorViewController: UIViewController {
         contentView.addSubview(mapLabel)
         contentView.addSubview(currentMapImageView)
         contentView.addSubview(addMapButton)
-        contentView.addSubview(saveButton)
+    }
+
+    /// Adds the Save action as the standard Apple paradigm: a right nav bar button, always visible above the keyboard.
+    private func setupNavigationBar() {
+        let saveItem = UIBarButtonItem(title: "Save", style: .done, target: self, action: #selector(saveTapped))
+        saveItem.accessibilityIdentifier = "AddEditFloor.saveButton"
+        navigationItem.rightBarButtonItem = saveItem
     }
     
     /// Lays out the form.
@@ -195,13 +192,7 @@ class AddEditFloorViewController: UIViewController {
             // Add Map Button
             addMapButton.topAnchor.constraint(equalTo: currentMapImageView.bottomAnchor, constant: 12),
             addMapButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            
-            // Save Button
-            saveButton.topAnchor.constraint(equalTo: addMapButton.bottomAnchor, constant: 32),
-            saveButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            saveButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            saveButton.heightAnchor.constraint(equalToConstant: 50),
-            saveButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
+            addMapButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
         ])
     }
     

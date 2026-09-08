@@ -134,16 +134,6 @@ class AddEditMeterViewController: UIViewController {
         return button
     }()
     
-    private lazy var saveButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Save", for: .normal)
-        AppStyle.styleAsPrimaryButton(button)
-        button.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.accessibilityIdentifier = "AddEditMeter.saveButton"
-        return button
-    }()
-    
     private lazy var deleteButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Delete Meter", for: .normal)
@@ -175,6 +165,7 @@ class AddEditMeterViewController: UIViewController {
         setupUI()
         setupConstraints()
         setupKeyboardHandling()
+        setupNavigationBar()
         populateData()
     }
     
@@ -199,11 +190,17 @@ class AddEditMeterViewController: UIViewController {
         contentView.addSubview(imageLabel)
         contentView.addSubview(meterImageImageView)
         contentView.addSubview(addImageButton)
-        contentView.addSubview(saveButton)
         
         if viewModel.isEditing {
             contentView.addSubview(deleteButton)
         }
+    }
+
+    /// Adds the Save action as the standard Apple paradigm: a right nav bar button, always visible above the keyboard.
+    private func setupNavigationBar() {
+        let saveItem = UIBarButtonItem(title: "Save", style: .done, target: self, action: #selector(saveTapped))
+        saveItem.accessibilityIdentifier = "AddEditMeter.saveButton"
+        navigationItem.rightBarButtonItem = saveItem
     }
     
     /// Activates the form's Auto Layout constraints top-to-bottom, anchoring
@@ -214,13 +211,13 @@ class AddEditMeterViewController: UIViewController {
         
         if viewModel.isEditing {
             deleteButtonConstraints = [
-                deleteButton.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: 20),
+                deleteButton.topAnchor.constraint(equalTo: addImageButton.bottomAnchor, constant: 32),
                 deleteButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
                 deleteButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
             ]
         } else {
             deleteButtonConstraints = [
-                saveButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
+                addImageButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
             ]
         }
         
@@ -297,11 +294,6 @@ class AddEditMeterViewController: UIViewController {
             addImageButton.topAnchor.constraint(equalTo: meterImageImageView.bottomAnchor, constant: 12),
             addImageButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             
-            // Save Button
-            saveButton.topAnchor.constraint(equalTo: addImageButton.bottomAnchor, constant: 32),
-            saveButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            saveButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            saveButton.heightAnchor.constraint(equalToConstant: 50),
         ] + deleteButtonConstraints)
     }
     

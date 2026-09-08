@@ -87,16 +87,6 @@ class AddEditReadingViewController: UIViewController {
         return textField
     }()
     
-    private lazy var saveButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Save Reading", for: .normal)
-        AppStyle.styleAsPrimaryButton(button)
-        button.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.accessibilityIdentifier = "AddEditReading.saveButton"
-        return button
-    }()
-    
     private lazy var infoStackView: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [buildingNameLabel, floorLabel, descriptionLabel])
         stack.axis = .vertical
@@ -111,6 +101,7 @@ class AddEditReadingViewController: UIViewController {
         setupUI()
         setupConstraints()
         setupKeyboardDismissal()
+        setupNavigationBar()
         populateData()
     }
     
@@ -126,7 +117,13 @@ class AddEditReadingViewController: UIViewController {
         contentView.addSubview(infoStackView)
         contentView.addSubview(readingTitleLabel)
         contentView.addSubview(readingTextField)
-        contentView.addSubview(saveButton)
+    }
+
+    /// Adds the Save action as the standard Apple paradigm: a right nav bar button, always visible above the keyboard.
+    private func setupNavigationBar() {
+        let saveItem = UIBarButtonItem(title: "Save", style: .done, target: self, action: #selector(saveTapped))
+        saveItem.accessibilityIdentifier = "AddEditReading.saveButton"
+        navigationItem.rightBarButtonItem = saveItem
     }
     
     /// Lays out the form.
@@ -167,12 +164,7 @@ class AddEditReadingViewController: UIViewController {
             readingTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             readingTextField.heightAnchor.constraint(equalToConstant: 44),
             
-            // Save Button
-            saveButton.topAnchor.constraint(equalTo: readingTextField.bottomAnchor, constant: 32),
-            saveButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            saveButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            saveButton.heightAnchor.constraint(equalToConstant: 50),
-            saveButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20)
+            readingTextField.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20)
         ])
     }
     

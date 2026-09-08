@@ -75,16 +75,6 @@ class AddEditBuildingViewController: UIViewController {
         return textField
     }()
     
-    private lazy var saveButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Save", for: .normal)
-        AppStyle.styleAsPrimaryButton(button)
-        button.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.accessibilityIdentifier = "AddEditBuilding.saveButton"
-        return button
-    }()
-    
     private lazy var deleteButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Delete Building", for: .normal)
@@ -102,6 +92,7 @@ class AddEditBuildingViewController: UIViewController {
         setupUI()
         setupConstraints()
         setupKeyboardHandling()
+        setupNavigationBar()
         populateData()
     }
 
@@ -118,11 +109,17 @@ class AddEditBuildingViewController: UIViewController {
         contentView.addSubview(nameTextField)
         contentView.addSubview(floorsLabel)
         contentView.addSubview(floorsTextField)
-        contentView.addSubview(saveButton)
         
         if viewModel.isEditing {
             contentView.addSubview(deleteButton)
         }
+    }
+
+    /// Adds the Save action as the standard Apple paradigm: a right nav bar button, always visible above the keyboard.
+    private func setupNavigationBar() {
+        let saveItem = UIBarButtonItem(title: "Save", style: .done, target: self, action: #selector(saveTapped))
+        saveItem.accessibilityIdentifier = "AddEditBuilding.saveButton"
+        navigationItem.rightBarButtonItem = saveItem
     }
     
     /// Lays out the form. The delete button's constraints (and whether the
@@ -133,13 +130,13 @@ class AddEditBuildingViewController: UIViewController {
         
         if viewModel.isEditing {
             deleteButtonConstraints = [
-                deleteButton.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: 20),
+                deleteButton.topAnchor.constraint(equalTo: floorsTextField.bottomAnchor, constant: 32),
                 deleteButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
                 deleteButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
             ]
         } else {
             deleteButtonConstraints = [
-                saveButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
+                floorsTextField.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
             ]
         }
         
@@ -179,11 +176,6 @@ class AddEditBuildingViewController: UIViewController {
             floorsTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             floorsTextField.heightAnchor.constraint(equalToConstant: 44),
             
-            // Save Button
-            saveButton.topAnchor.constraint(equalTo: floorsTextField.bottomAnchor, constant: 32),
-            saveButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            saveButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            saveButton.heightAnchor.constraint(equalToConstant: 50),
         ] + deleteButtonConstraints)
     }
     
