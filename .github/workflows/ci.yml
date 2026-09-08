@@ -14,21 +14,26 @@ env:
   PROJECT: MeterReaderKeeper.xcodeproj
   SCHEME: MeterReaderKeeper
   SPM_CACHE_PATH: .build/SourcePackages
+  DERIVED_DATA_PATH: DerivedData
+  BUILD_PRODUCTS_PATH: DerivedData/Build/Products
 
 jobs:
-  build-and-test:
-    name: Build and test
+  # Builds the app plus both test targets exactly once, then hands the
+  # built products to the two test jobs below via an artifact. Splitting
+  # unit and UI tests into separate jobs (rather than one combined
+  # `xcodebuild test`) means each gets its own pass/fail check and its
+  # own timing in the PR/commit checks list — a slow or hung UI test run
+  # no longer hides whether the fast, historically reliable unit suite
+  # passed.
+  build:
+    name: Build for testing
     runs-on: macos-15
-    timeout-minutes: 60
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # "latest-stable" avoids hardcoding an Xcode version that may not
-      # exist on this runner image by the time this runs — confirm with
-      # `xcodebuild -version` in the logs below if a build ever behaves
-      # unexpectedly.
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -38,9 +43,6 @@ jobs:
         run: |
           xcodebuild -version
           xcrun simctl list runtimes
-
-      - name: Install xcbeautify
-        run: brew install xcbeautify
 
       - name: Cache Swift Package dependencies
         uses: actions/cache@v4
@@ -57,10 +59,48 @@ jobs:
             -scheme "$SCHEME" \
             -clonedSourcePackagesDirPath "$SPM_CACHE_PATH"
 
-      # Picks whatever iPhone simulator happens to be available on this
-      # runner image instead of hardcoding a device name/OS pair, which
-      # tends to go stale as Xcode versions roll forward on GitHub's
-      # hosted runners.
+      # Builds once for a generic simulator destination — the unit/UI
+      # test jobs each pick a concrete simulator on their own runner at
+      # test time (a simulator UDID from this runner wouldn't exist on
+      # theirs anyway, since every job gets its own fresh VM).
+      - name: Build for testing
+        run: |
+          set -o pipefail
+          xcodebuild build-for-testing \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath "$DERIVED_DATA_PATH" \
+            -clonedSourcePackagesDirPath "$SPM_CACHE_PATH"
+
+      - name: Upload build products
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-products
+          path: ${{ env.BUILD_PRODUCTS_PATH }}
+          retention-days: 1
+
+  unit-tests:
+    name: Unit tests
+    needs: build
+    runs-on: macos-15
+    timeout-minutes: 15
+
+    steps:
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install xcbeautify
+        run: brew install xcbeautify
+
+      - name: Download build products
+        uses: actions/download-artifact@v4
+        with:
+          name: build-products
+          path: ${{ env.BUILD_PRODUCTS_PATH }}
+
       - name: Select an available iPhone simulator
         id: simulator
         run: |
@@ -79,27 +119,85 @@ jobs:
           echo "Using simulator $UDID"
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
-      # Runs the scheme's default test plan (MeterReaderKeeper.xctestplan),
-      # which covers both MeterReaderKeeperTests (unit) and
-      # MeterReaderKeeperUITests (UI, parallelized across simulator
-      # clones). The UI suite seeds a large fixture repeatedly, so this
-      # step is the slow part of the job — see the note in chat about
-      # runtime/cost before relying on this as a fast per-commit gate.
-      - name: Build and test
+      - name: Run MeterReaderKeeperTests
         run: |
           set -o pipefail
-          xcodebuild test \
-            -project "$PROJECT" \
-            -scheme "$SCHEME" \
+          XCTESTRUN=$(ls "$BUILD_PRODUCTS_PATH"/*.xctestrun | head -n1)
+          xcodebuild test-without-building \
+            -xctestrun "$XCTESTRUN" \
             -destination "id=${{ steps.simulator.outputs.udid }}" \
-            -clonedSourcePackagesDirPath "$SPM_CACHE_PATH" \
-            -resultBundlePath TestResults.xcresult \
+            -only-testing:MeterReaderKeeperTests \
+            -resultBundlePath UnitTestResults.xcresult \
             | xcbeautify --renderer github-actions
 
-      - name: Upload test results
+      - name: Upload unit test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
-          path: TestResults.xcresult
+          name: unit-test-results
+          path: UnitTestResults.xcresult
+          retention-days: 14
+
+  ui-tests:
+    name: UI tests
+    needs: build
+    runs-on: macos-15
+    timeout-minutes: 60
+
+    steps:
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install xcbeautify
+        run: brew install xcbeautify
+
+      - name: Download build products
+        uses: actions/download-artifact@v4
+        with:
+          name: build-products
+          path: ${{ env.BUILD_PRODUCTS_PATH }}
+
+      - name: Select an available iPhone simulator
+        id: simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | /usr/bin/python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)["devices"]
+          for runtime, devices in data.items():
+              if "iOS" not in runtime:
+                  continue
+              for d in devices:
+                  if d.get("isAvailable") and d["name"].startswith("iPhone"):
+                      print(d["udid"])
+                      sys.exit(0)
+          sys.exit(1)
+          ')
+          echo "Using simulator $UDID"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+
+      # This target seeds a large fixture repeatedly (up to 21 seeds
+      # even after the shared-launch optimization, each ~4,385
+      # sequential SwiftData calls) and is parallelized across
+      # simulator clones — it's the slow, historically flaky part of
+      # the suite. Runs concurrently with unit-tests once the build
+      # job finishes, instead of after it in one combined step.
+      - name: Run MeterReaderKeeperUITests
+        run: |
+          set -o pipefail
+          XCTESTRUN=$(ls "$BUILD_PRODUCTS_PATH"/*.xctestrun | head -n1)
+          xcodebuild test-without-building \
+            -xctestrun "$XCTESTRUN" \
+            -destination "id=${{ steps.simulator.outputs.udid }}" \
+            -only-testing:MeterReaderKeeperUITests \
+            -resultBundlePath UITestResults.xcresult \
+            | xcbeautify --renderer github-actions
+
+      - name: Upload UI test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results
+          path: UITestResults.xcresult
           retention-days: 14
