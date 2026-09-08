@@ -142,6 +142,17 @@ protocol MeterRepositoryProtocol: AnyObject {
     /// - Throws: `MeterKeeperError.notFound` if no reading has that `id`.
     func updateReading(id: UUID, kWh: Double) async throws -> MRKReading
 
+    // MARK: - Batching
+
+#if DEBUG || TESTING
+    /// Runs `body` with per-call saves suppressed, then saves once.
+    ///
+    /// - Parameter body: Work that makes one or more add/update/delete calls on this repository.
+    /// - Returns: `body`'s result.
+    /// - Throws: Whatever `body` throws.
+    func withBatchedSave<T>(_ body: () async throws -> T) async throws -> T
+#endif
+
     // MARK: - Export
 
     /// Serializes every building (with its floors/meters/readings) to the

@@ -104,6 +104,9 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         self.modelExecutor = DefaultSerialModelExecutor(modelContext: context)
     }
 
+    /// Suppresses `save()` while `true` — set by `withBatchedSave`.
+    private var isBatching = false
+
     // MARK: - Buildings
 
     func getBuildings() async throws -> [MRKBuilding] {
@@ -129,14 +132,14 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
             }
         }
 
-        try Self.save(modelContext)
+        try save()
         return Self.mapBuilding(building)
     }
 
     func deleteBuilding(id: UUID) async throws {
         let building = try Self.findBuilding(id: id, in: modelContext)
         modelContext.delete(building)
-        try Self.save(modelContext)
+        try save()
     }
 
     // MARK: - Floors
@@ -147,7 +150,7 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         let floor = SDFloor(number: input.number, mapImageData: input.mapImageData, building: building)
         modelContext.insert(floor)
 
-        try Self.save(modelContext)
+        try save()
         return Self.mapFloor(floor)
     }
 
@@ -159,14 +162,14 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         floor.number = input.number
         floor.mapImageData = input.mapImageData
 
-        try Self.save(modelContext)
+        try save()
         return Self.mapFloor(floor)
     }
 
     func deleteFloor(id: UUID) async throws {
         let floor = try Self.findFloor(id: id, in: modelContext)
         modelContext.delete(floor)
-        try Self.save(modelContext)
+        try save()
     }
 
     // MARK: - Meters
@@ -185,7 +188,7 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         )
         modelContext.insert(meter)
 
-        try Self.save(modelContext)
+        try save()
         return Self.mapMeter(meter)
     }
 
@@ -200,14 +203,14 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         meter.floor = floor
         meter.qrString = Self.qrString(buildingName: floor.building?.name ?? "", floorNumber: floor.number, meterName: input.name)
 
-        try Self.save(modelContext)
+        try save()
         return Self.mapMeter(meter)
     }
 
     func deleteMeter(id: UUID) async throws {
         let meter = try Self.findMeter(id: id, in: modelContext)
         modelContext.delete(meter)
-        try Self.save(modelContext)
+        try save()
     }
 
     // MARK: - Readings
@@ -223,7 +226,7 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         let reading = SDReading(date: input.date, kWh: input.kWh, meter: meter)
         modelContext.insert(reading)
 
-        try Self.save(modelContext)
+        try save()
         return Self.mapReading(reading)
     }
 
@@ -235,7 +238,7 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         reading.date = date
         reading.meter?.latestReading = date
 
-        try Self.save(modelContext)
+        try save()
         return Self.mapReading(reading)
     }
 
@@ -403,16 +406,35 @@ actor SwiftDataMeterRepository: @preconcurrency MeterRepositoryProtocol {
         "\(buildingName)::\(floorNumber)::\(meterName)"
     }
 
-    /// Saves `context` if (and only if) it has pending changes, wrapping any
-    /// failure as `MeterKeeperError.persistenceError`.
-    private static func save(_ context: ModelContext) throws {
-        guard context.hasChanges else { return }
+    /// Saves `modelContext` if it has pending changes and saving isn't
+    /// currently suppressed by `withBatchedSave`. Wraps any failure as
+    /// `MeterKeeperError.persistenceError`.
+    private func save() throws {
+        guard !isBatching, modelContext.hasChanges else { return }
         do {
-            try context.save()
+            try modelContext.save()
         } catch {
             throw MeterKeeperError.persistenceError(error)
         }
     }
+
+    /// Suppresses `save()` while `body` runs, then saves once. On error,
+    /// rolls back whatever `body` staged so a failed batch can't leak into
+    /// a later, unrelated save.
+    #if DEBUG || TESTING
+    func withBatchedSave<T>(_ body: () async throws -> T) async throws -> T {
+        isBatching = true
+        defer { isBatching = false }
+        do {
+            let result = try await body()
+            try save()
+            return result
+        } catch {
+            modelContext.rollback()
+            throw error
+        }
+    }
+    #endif
 
     /// The on-disk URL the plist export is written to and re-read from.
     ///

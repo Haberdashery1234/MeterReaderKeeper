@@ -13,6 +13,7 @@
 //  individual repository calls seedData() makes now genuinely happen on the
 //  repository's own actor, so the manual DispatchQueue.global backgrounding
 //  that used to live in HomeViewModel.seedData(completion:) is gone too.
+//  Batched under one SwiftData save via withBatchedSave on 9/8/26.
 //
 
 #if DEBUG || TESTING
@@ -61,34 +62,35 @@ class DataSeeder {
     /// exactly the same known values.
     ///
     /// This makes one repository call per building/floor/meter/reading —
-    /// several thousand calls for the full fixture — each of which now
-    /// genuinely suspends onto the repository's own `ModelActor`, so callers
-    /// don't need to background this themselves (see
-    /// `HomeViewModel.seedData()`).
+    /// several thousand calls for the full fixture — batched under a
+    /// single SwiftData save via `withBatchedSave` rather than one save
+    /// per call.
     func seedData() async throws {
         print("Starting data seeding...")
 
         let fixture = try Self.loadFixture()
         let today = Calendar.current.startOfDay(for: Date())
 
-        for building in fixture.buildings {
-            let newBuilding = try await repository.addBuilding(
-                MRKBuildingInput(name: building.name, numberOfFloors: Int16(building.floors.count), autoCreateFloors: false)
-            )
-
-            for floorFixture in building.floors {
-                let floor = try await repository.addFloor(
-                    MRKFloorInput(number: floorFixture.number, mapImageData: Data(), buildingID: newBuilding.id)
+        try await repository.withBatchedSave {
+            for building in fixture.buildings {
+                let newBuilding = try await repository.addBuilding(
+                    MRKBuildingInput(name: building.name, numberOfFloors: Int16(building.floors.count), autoCreateFloors: false)
                 )
 
-                for meterFixture in floorFixture.meters {
-                    let meter = try await repository.addMeter(
-                        MRKMeterInput(name: meterFixture.name, description: meterFixture.description, imageData: Data(), floorID: floor.id)
+                for floorFixture in building.floors {
+                    let floor = try await repository.addFloor(
+                        MRKFloorInput(number: floorFixture.number, mapImageData: Data(), buildingID: newBuilding.id)
                     )
 
-                    for readingFixture in meterFixture.readings {
-                        let date = Calendar.current.date(byAdding: .day, value: -readingFixture.daysAgo, to: today) ?? today
-                        _ = try await repository.addReading(MRKReadingInput(kWh: readingFixture.kWh, date: date, meterID: meter.id))
+                    for meterFixture in floorFixture.meters {
+                        let meter = try await repository.addMeter(
+                            MRKMeterInput(name: meterFixture.name, description: meterFixture.description, imageData: Data(), floorID: floor.id)
+                        )
+
+                        for readingFixture in meterFixture.readings {
+                            let date = Calendar.current.date(byAdding: .day, value: -readingFixture.daysAgo, to: today) ?? today
+                            _ = try await repository.addReading(MRKReadingInput(kWh: readingFixture.kWh, date: date, meterID: meter.id))
+                        }
                     }
                 }
             }
@@ -102,20 +104,21 @@ class DataSeeder {
     /// electric meter's cumulative total only ever goes up). Falls back to
     /// `0` as the baseline for a meter with no prior readings at all
     /// (shouldn't happen via `seedData()`, which always seeds 5 per meter,
-    /// but keeps this correct standalone too).
+    /// but keeps this correct standalone too). Batched under one SwiftData
+    /// save via `withBatchedSave`.
     func seedMoreReadings() async throws {
         let date = Calendar.current.startOfDay(for: Date())
+        let buildings = try await repository.getBuildings()
 
-        var readingCount = 0
-
-        for building in try await repository.getBuildings() {
-            for floor in building.floors {
-                for meter in floor.meters {
-                    let increment = Double.random(in: Self.additionalReadingIncrementRange, using: &rng)
-                    let baseline = meter.mostRecentReading?.kWh ?? 0
-                    let kWh = baseline + increment
-                    _ = try await repository.addReading(MRKReadingInput(kWh: kWh, date: date, meterID: meter.id))
-                    readingCount += 1
+        try await repository.withBatchedSave {
+            for building in buildings {
+                for floor in building.floors {
+                    for meter in floor.meters {
+                        let increment = Double.random(in: Self.additionalReadingIncrementRange, using: &rng)
+                        let baseline = meter.mostRecentReading?.kWh ?? 0
+                        let kWh = baseline + increment
+                        _ = try await repository.addReading(MRKReadingInput(kWh: kWh, date: date, meterID: meter.id))
+                    }
                 }
             }
         }
