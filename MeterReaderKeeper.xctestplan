@@ -9,6 +9,15 @@
     }
   ],
   "defaultOptions" : {
+    "codeCoverage" : {
+      "targets" : [
+        {
+          "containerPath" : "container:MeterReaderKeeper.xcodeproj",
+          "identifier" : "7C4AF7F0263CD435002E65CB",
+          "name" : "MeterReaderKeeper"
+        }
+      ]
+    },
     "performanceAntipatternCheckerEnabled" : true,
     "targetForVariableExpansion" : {
       "containerPath" : "container:MeterReaderKeeper.xcodeproj",
@@ -22,6 +31,14 @@
         "containerPath" : "container:MeterReaderKeeper.xcodeproj",
         "identifier" : "7C4AF806263CD436002E65CB",
         "name" : "MeterReaderKeeperTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:MeterReaderKeeper.xcodeproj",
+        "identifier" : "7C4AF811263CD436002E65CB",
+        "name" : "MeterReaderKeeperUITests"
       }
     }
   ],
