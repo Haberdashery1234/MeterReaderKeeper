@@ -128,6 +128,16 @@ jobs:
           echo "Using simulator $UDID"
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
+      # xcodebuild doesn't always reliably finish bringing up the
+      # simulator's windowserver session on its own before driving
+      # tests against it, especially test-without-building against a
+      # downloaded artifact on a fresh runner — booting explicitly and
+      # waiting for bootstatus here avoids that race.
+      - name: Boot simulator
+        run: |
+          xcrun simctl boot "${{ steps.simulator.outputs.udid }}" || true
+          xcrun simctl bootstatus "${{ steps.simulator.outputs.udid }}" -b
+
       - name: Run MeterReaderKeeperTests
         run: |
           set -o pipefail
@@ -191,6 +201,12 @@ jobs:
           ')
           echo "Using simulator $UDID"
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+
+      # See the matching comment in unit-tests above.
+      - name: Boot simulator
+        run: |
+          xcrun simctl boot "${{ steps.simulator.outputs.udid }}" || true
+          xcrun simctl bootstatus "${{ steps.simulator.outputs.udid }}" -b
 
       # This target seeds a large fixture repeatedly (up to 21 seeds
       # even after the shared-launch optimization, each ~4,385
