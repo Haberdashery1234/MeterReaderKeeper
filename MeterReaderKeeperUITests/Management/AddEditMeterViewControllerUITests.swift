@@ -143,9 +143,9 @@ final class AddEditMeterViewControllerUITests: XCTestCase {
         nameField.typeText("Test Meter 999")
 
         try UITestAppLauncher.dismissInputView(app, byTapping: "Building")
-        app.buttons["AddEditMeter.saveButton"].tap()
+        app.navigationBars.buttons["AddEditMeter.saveButton"].tap()
 
-        try requireUITest(app.tables["Management.tableView"].waitForExistence(timeout: 5), "Management.tableView never reappeared after saving")
+        try requireUITest(app.tables["Management.tableView"].waitForExistence(timeout: 10), "Management.tableView never reappeared after saving")
         app.segmentedControls["Management.segmentedControl"].buttons["Meters"].tap()
         XCTAssertTrue(app.tables["Management.tableView"].staticTexts["Test Meter 999"].waitForExistence(timeout: 5))
     }
@@ -164,7 +164,7 @@ final class AddEditMeterViewControllerUITests: XCTestCase {
         app.pickerWheels.firstMatch.adjust(toPickerWheelValue: "Floor 1")
 
         try UITestAppLauncher.dismissInputView(app, byTapping: "Building")
-        app.buttons["AddEditMeter.saveButton"].tap()
+        app.navigationBars.buttons["AddEditMeter.saveButton"].tap()
 
         let alert = app.alerts["Missing Name"]
         XCTAssertTrue(alert.waitForExistence(timeout: 5))

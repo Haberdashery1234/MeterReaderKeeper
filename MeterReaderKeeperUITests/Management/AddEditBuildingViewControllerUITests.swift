@@ -142,7 +142,7 @@ final class AddEditBuildingViewControllerUITests: XCTestCase {
         floorsField.tap()
         floorsField.typeText("5")
 
-        app.buttons["AddEditBuilding.saveButton"].tap()
+        app.navigationBars.buttons["AddEditBuilding.saveButton"].tap()
 
         let table = app.tables["Management.tableView"]
         XCTAssertTrue(table.staticTexts["999 Test Ave"].waitForExistence(timeout: 5))
@@ -157,7 +157,7 @@ final class AddEditBuildingViewControllerUITests: XCTestCase {
         floorsField.tap()
         floorsField.typeText("5")
 
-        app.buttons["AddEditBuilding.saveButton"].tap()
+        app.navigationBars.buttons["AddEditBuilding.saveButton"].tap()
 
         let alert = app.alerts["Invalid Name"]
         XCTAssertTrue(alert.waitForExistence(timeout: 5))
@@ -181,7 +181,7 @@ final class AddEditBuildingViewControllerUITests: XCTestCase {
         try requireUITest(floorsField.waitForExistence(timeout: 5), "AddEditBuilding.floorsTextField never appeared")
         XCTAssertTrue(floorsField.isEnabled, "floor count should be editable on an existing building")
 
-        app.buttons["AddEditBuilding.saveButton"].tap()
+        app.navigationBars.buttons["AddEditBuilding.saveButton"].tap()
 
         XCTAssertTrue(app.tables["Management.tableView"].waitForExistence(timeout: 5))
     }
@@ -196,7 +196,7 @@ final class AddEditBuildingViewControllerUITests: XCTestCase {
         nameField.tap()
         nameField.clearAndTypeText("121 Seaport Renamed")
 
-        app.buttons["AddEditBuilding.saveButton"].tap()
+        app.navigationBars.buttons["AddEditBuilding.saveButton"].tap()
 
         XCTAssertTrue(app.alerts["Renaming Not Supported"].waitForExistence(timeout: 5))
     }

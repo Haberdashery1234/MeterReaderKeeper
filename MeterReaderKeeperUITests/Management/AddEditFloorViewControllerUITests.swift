@@ -103,7 +103,7 @@ final class AddEditFloorViewControllerUITests: XCTestCase {
         floorField.clearAndTypeText("999")
 
         try UITestAppLauncher.dismissInputView(app, byTapping: "Building")
-        app.buttons["AddEditFloor.saveButton"].tap()
+        app.navigationBars.buttons["AddEditFloor.saveButton"].tap()
         
         // Saving pops back one level, to Floor Meters — its title tracks
         // the floor's display name, so this confirms the save landed.
@@ -129,7 +129,7 @@ final class AddEditFloorViewControllerUITests: XCTestCase {
         floorField.clearAndTypeText("")
 
         try UITestAppLauncher.dismissInputView(app, byTapping: "Building")
-        app.buttons["AddEditFloor.saveButton"].tap()
+        app.navigationBars.buttons["AddEditFloor.saveButton"].tap()
 
         let alert = app.alerts["Invalid Floor"]
         XCTAssertTrue(alert.waitForExistence(timeout: 5))

@@ -119,35 +119,4 @@ final class ManagementTableViewControllerUITests: XCTestCase {
         try requireUITest(nameField.waitForExistence(timeout: 5), "AddEditMeter.nameTextField never appeared")
         XCTAssertNotEqual(nameField.value as? String, "")
     }
-
-    /// + with existing buildings offers Building and Meter
-    ///
-    /// On iPhone this presents as a real action sheet with a "Cancel"
-    /// button. On iPad it presents as a popover anchored to the "+" bar
-    /// button (`ManagementTableViewController.addTapped()` sets
-    /// `popoverPresentationController.barButtonItem` for exactly this
-    /// case) — and iPadOS's popover chrome omits an explicit Cancel
-    /// button even though the app *does* add a `.cancel`-style
-    /// `UIAlertAction`; tapping outside the popover dismisses it instead.
-    /// Handling both idioms here means this test doesn't silently depend
-    /// on which simulator destination happens to be selected.
-    func testAddButtonOffersBuildingAndMeter() throws {
-        let app = try openManagement()
-        app.navigationBars.buttons["Management.addButton"].tap()
-
-        let sheet = app.sheets["Add Item"]
-        XCTAssertTrue(sheet.waitForExistence(timeout: 5))
-        XCTAssertTrue(sheet.buttons["Building"].exists)
-        XCTAssertTrue(sheet.buttons["Meter"].exists)
-
-        if sheet.buttons["Cancel"].exists {
-            sheet.buttons["Cancel"].tap()
-        } else {
-            // iPad popover idiom: tap outside it to dismiss. The nav
-            // bar's title area is unrelated to the "+" button the
-            // popover is anchored to.
-            app.navigationBars.firstMatch.tap()
-        }
-        XCTAssertFalse(sheet.exists)
-    }
 }

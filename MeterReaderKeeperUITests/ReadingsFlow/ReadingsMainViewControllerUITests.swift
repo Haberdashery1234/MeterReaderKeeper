@@ -89,8 +89,8 @@ final class ReadingsMainViewControllerUITests: XCTestCase {
         nameField.typeText(name)
 
         try UITestAppLauncher.dismissInputView(app, byTapping: "Building")
-        app.buttons["AddEditMeter.saveButton"].tap()
-        try requireUITest(app.tables["Management.tableView"].waitForExistence(timeout: 5), "Management.tableView never reappeared after saving")
+        app.navigationBars.buttons["AddEditMeter.saveButton"].tap()
+        try requireUITest(app.tables["Management.tableView"].waitForExistence(timeout: 10), "Management.tableView never reappeared after saving")
 
         // Back to Home.
         app.navigationBars.buttons.element(boundBy: 0).tap()

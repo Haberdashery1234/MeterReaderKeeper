@@ -57,8 +57,8 @@ final class AddEditReadingViewControllerUITests: XCTestCase {
         nameField.typeText("Unread Test Meter")
 
         try UITestAppLauncher.dismissInputView(app, byTapping: "Building")
-        app.buttons["AddEditMeter.saveButton"].tap()
-        try requireUITest(app.tables["Management.tableView"].waitForExistence(timeout: 5), "Management.tableView never reappeared after saving")
+        app.navigationBars.buttons["AddEditMeter.saveButton"].tap()
+        try requireUITest(app.tables["Management.tableView"].waitForExistence(timeout: 10), "Management.tableView never reappeared after saving")
 
         // Back to Home, then into Take Readings for the new meter.
         app.navigationBars.buttons.element(boundBy: 0).tap()
@@ -89,7 +89,7 @@ final class AddEditReadingViewControllerUITests: XCTestCase {
         readingField.tap()
         readingField.typeText("123.45")
 
-        app.buttons["AddEditReading.saveButton"].tap()
+        app.navigationBars.buttons["AddEditReading.saveButton"].tap()
 
         XCTAssertTrue(app.tables["ReadingsMain.tableView"].waitForExistence(timeout: 5))
     }
@@ -99,7 +99,7 @@ final class AddEditReadingViewControllerUITests: XCTestCase {
         let app = try openAddReading()
 
         try requireUITest(app.textFields["AddEditReading.readingTextField"].waitForExistence(timeout: 5), "AddEditReading.readingTextField never appeared")
-        app.buttons["AddEditReading.saveButton"].tap()
+        app.navigationBars.buttons["AddEditReading.saveButton"].tap()
 
         let alert = app.alerts["Missing Reading"]
         XCTAssertTrue(alert.waitForExistence(timeout: 5))

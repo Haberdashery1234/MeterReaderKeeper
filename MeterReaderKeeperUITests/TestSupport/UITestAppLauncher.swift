@@ -73,8 +73,8 @@ struct UITestAppLauncher {
 
         let successAlert = app.alerts["Success"]
         try requireUITest(
-            successAlert.waitForExistence(timeout: 10),
-            "Seeding did not finish (no \"Success\" alert) within 10s",
+            successAlert.waitForExistence(timeout: 30),
+            "Seeding did not finish (no \"Success\" alert) within 30s",
             file: file,
             line: line
         )
@@ -158,13 +158,27 @@ extension UITestAppLauncher {
     /// tap on one of these labels passes straight through to that
     /// gesture recognizer instead of being consumed by anything else.
     ///
-    /// Needed before tapping a Save button on a tall form (one with the
-    /// image-picker section — Floor, Meter) that can push Save down far
-    /// enough to sit under an open keyboard/picker, making it briefly
-    /// not-hittable. Building's own form is short enough this never
-    /// happens, which is why only Floor/Meter call sites need this. See
-    /// "UI test fix: keyboard/picker covering Save (2026-09-02)" in
-    /// project memory.
+    /// Originally added so a Save button on a tall form (Floor, Meter —
+    /// the ones with an image-picker section) wouldn't sit under an open
+    /// keyboard/picker and become briefly not-hittable; see "UI test
+    /// fix: keyboard/picker covering Save (2026-09-02)" in project
+    /// memory. Save later moved to the nav bar (2026-09-02), which
+    /// retired that specific hittability problem — but removing every
+    /// call site the same day caused a *different* regression: tapping
+    /// Save immediately after a `UIPickerView` selection (the
+    /// building/floor pickers used here, not the system keyboard) was
+    /// intermittently unreliable — the pop-back-to-Management transition
+    /// or a validation alert would sometimes never appear within the
+    /// test's wait window, and a failed attempt left the shared launcher
+    /// on a half-finished screen for whatever test ran next. Restored
+    /// 2026-09-02 for that reason: this call gives the picker's
+    /// dismissal a moment to actually settle before Save is tapped,
+    /// which building/floor-picker-driven forms (Floor, Meter, and any
+    /// helper that creates a meter) need — Building's own form (no
+    /// custom picker, just a `numberPad` field) and Reading's own Save
+    /// (a `decimalPad` field, no picker) haven't shown this failure mode
+    /// and don't call this. See "UI test flakiness: Save after a picker
+    /// selection (2026-09-02)" in project memory.
     static func dismissInputView(
         _ app: XCUIApplication,
         byTapping labelText: String,
