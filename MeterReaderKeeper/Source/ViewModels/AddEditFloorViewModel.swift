@@ -87,6 +87,17 @@ final class AddEditFloorViewModel {
         return building
     }
 
+    /// Clears the building selection — used by the building picker's
+    /// "Select Building" placeholder row (row 0). Mirrors
+    /// `AddEditMeterViewModel.clearBuildingSelection()`; added
+    /// 2026-09-08 to fix the same "picker default row never fires
+    /// didSelectRow" bug in this screen — see project memory ("UI test
+    /// flakiness, root cause: picker default row never fires
+    /// didSelectRow (2026-09-02)").
+    func clearBuildingSelection() {
+        selectedBuilding = nil
+    }
+
     // MARK: - Save
 
     /// Validates the form and creates or updates the floor.

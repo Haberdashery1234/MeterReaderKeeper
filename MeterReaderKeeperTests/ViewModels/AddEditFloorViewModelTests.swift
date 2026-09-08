@@ -110,6 +110,17 @@ struct AddEditFloorViewModelTests {
         #expect(viewModel.selectBuilding(at: 0) == nil)
     }
 
+    @Test("clearBuildingSelection clears the selected building")
+    func clearBuildingSelectionClearsSelection() async throws {
+        let building = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
+        let viewModel = AddEditFloorViewModel(repository: repository, building: building, floor: nil)
+        await viewModel.loadBuildings()
+
+        viewModel.clearBuildingSelection()
+
+        #expect(viewModel.selectedBuilding == nil)
+    }
+
     // MARK: - save validation
 
     @Test("save rejects when no building is selected")

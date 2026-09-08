@@ -212,6 +212,19 @@ class AddEditFloorViewController: UIViewController {
             await viewModel.loadBuildings()
             buildingTextField.text = viewModel.selectedBuilding?.name
 
+            // Sync the picker's highlighted row to whatever got
+            // auto-selected/pre-populated above (a single building, or
+            // — when editing — the floor's existing building) so
+            // opening the picker shows the right row highlighted
+            // instead of the "Select Building" placeholder at row 0.
+            // Mirrors AddEditMeterViewController's populateData();
+            // added 2026-09-08 — see `didSelectRow`'s doc comment below.
+            buildingPickerView.reloadAllComponents()
+            if let building = viewModel.selectedBuilding,
+               let buildingRow = viewModel.buildings.firstIndex(where: { $0.id == building.id }) {
+                buildingPickerView.selectRow(buildingRow + 1, inComponent: 0, animated: false)
+            }
+
             if viewModel.isEditing {
                 floorTextField.text = viewModel.initialFloorNumberText
             }
@@ -283,17 +296,40 @@ extension AddEditFloorViewController: UIPickerViewDelegate, UIPickerViewDataSour
         return 1
     }
 
+    // Row 0 is a "Select Building" placeholder, not a real value — see
+    // the doc comment on `didSelectRow` below for why. Every real row
+    // is offset by 1.
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return viewModel.buildings.count
+        return viewModel.buildings.count + 1
     }
 
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return viewModel.buildings[row].name
+        guard row > 0 else { return "Select Building" }
+        return viewModel.buildings[row - 1].name
     }
 
-    /// Records the picked building via `viewModel.selectBuilding(at:)` and reflects it in the text field.
+    /// Row 0 is a non-selectable "Select Building" placeholder — added
+    /// 2026-09-08, mirroring the same fix already applied to
+    /// `AddEditMeterViewController`. Without it, `UIPickerView` opens
+    /// already showing its first real row highlighted, but never
+    /// actually calls this delegate method for that row unless the
+    /// user scrolls away from it and back — so someone who wants
+    /// exactly that first building and doesn't scroll ends up with
+    /// `viewModel.selectedBuilding` still `nil` even though the field
+    /// visually shows a value, and Save then fails validation with a
+    /// "Missing Building" alert nobody asked for. The placeholder
+    /// forces every real selection to be an actual scroll, so this
+    /// method always fires. Root-caused by Christian for
+    /// `AddEditMeterViewController`; see "UI test flakiness, root
+    /// cause: picker default row never fires didSelectRow
+    /// (2026-09-02)" in project memory.
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        let building = viewModel.selectBuilding(at: row)
+        guard row > 0 else {
+            viewModel.clearBuildingSelection()
+            buildingTextField.text = nil
+            return
+        }
+        let building = viewModel.selectBuilding(at: row - 1)
         buildingTextField.text = building?.name
     }
 }
