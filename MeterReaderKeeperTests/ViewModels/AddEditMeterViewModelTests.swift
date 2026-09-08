@@ -109,6 +109,32 @@ struct AddEditMeterViewModelTests {
         #expect(viewModel.selectFloor(at: 0) == nil)
     }
 
+    @Test("clearBuildingSelection clears building, floors, and floor selection")
+    func clearBuildingSelectionClearsEverything() async throws {
+        let building = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 3, autoCreateFloors: true))
+        let viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: building.floors[0], meter: nil)
+        await viewModel.loadBuildingsAndFloors()
+
+        viewModel.clearBuildingSelection()
+
+        #expect(viewModel.selectedBuilding == nil)
+        #expect(viewModel.floors.isEmpty)
+        #expect(viewModel.selectedFloor == nil)
+    }
+
+    @Test("clearFloorSelection clears only the floor selection")
+    func clearFloorSelectionClearsOnlyFloor() async throws {
+        let building = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 3, autoCreateFloors: true))
+        let viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: building.floors[0], meter: nil)
+        await viewModel.loadBuildingsAndFloors()
+
+        viewModel.clearFloorSelection()
+
+        #expect(viewModel.selectedFloor == nil)
+        #expect(viewModel.selectedBuilding?.id == building.id)
+        #expect(viewModel.floors.count == 3)
+    }
+
     // MARK: - save validation
 
     @Test("save rejects when no building is selected")

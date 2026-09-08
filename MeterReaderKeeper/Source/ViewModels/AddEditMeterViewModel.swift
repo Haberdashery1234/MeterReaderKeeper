@@ -113,6 +113,27 @@ final class AddEditMeterViewModel {
         return floor
     }
 
+    /// Clears the building selection, and cascades to clear the floor
+    /// list/selection too (matching `selectBuilding(at:)`'s own
+    /// behavior when a *real* building is picked) — used by the
+    /// Add/Edit Meter picker's "Select Building" placeholder row.
+    /// Added 2026-09-02, see "UI test flakiness, root cause: picker
+    /// default row never fires didSelectRow (2026-09-02)" in project
+    /// memory.
+    func clearBuildingSelection() {
+        selectedBuilding = nil
+        floors = []
+        selectedFloor = nil
+    }
+
+    /// Clears the floor selection — used by the Add/Edit Meter picker's
+    /// "Select Floor" placeholder row. Added 2026-09-02, see
+    /// "UI test flakiness, root cause: picker default row never fires
+    /// didSelectRow (2026-09-02)" in project memory.
+    func clearFloorSelection() {
+        selectedFloor = nil
+    }
+
     // MARK: - Validation
 
     /// Parses and checks the form's raw text fields and current selection.

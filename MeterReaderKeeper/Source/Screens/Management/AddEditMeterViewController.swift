@@ -312,6 +312,24 @@ class AddEditMeterViewController: UIViewController {
             buildingTextField.text = viewModel.selectedBuilding?.name
             floorTextField.text = viewModel.initialFloorText
 
+            // Sync each picker's highlighted row to whatever got
+            // auto-selected/pre-populated above (a single building,
+            // or — when editing — the meter's existing building/floor)
+            // so opening the picker shows the right row highlighted
+            // instead of the "Select Building"/"Select Floor"
+            // placeholder at row 0. Added 2026-09-02 alongside that
+            // placeholder row — see `didSelectRow`'s doc comment.
+            buildingPickerView.reloadAllComponents()
+            floorPickerView.reloadAllComponents()
+            if let building = viewModel.selectedBuilding,
+               let buildingRow = viewModel.buildings.firstIndex(where: { $0.id == building.id }) {
+                buildingPickerView.selectRow(buildingRow + 1, inComponent: 0, animated: false)
+            }
+            if let floor = viewModel.selectedFloor,
+               let floorRow = viewModel.floors.firstIndex(where: { $0.id == floor.id }) {
+                floorPickerView.selectRow(floorRow + 1, inComponent: 0, animated: false)
+            }
+
             if viewModel.isEditing {
                 nameTextField.text = viewModel.initialNameText
                 descriptionTextField.text = viewModel.initialDescriptionText
@@ -416,32 +434,67 @@ extension AddEditMeterViewController: UIPickerViewDelegate, UIPickerViewDataSour
         return 1
     }
 
+    // Row 0 in both pickers is a "Select Building"/"Select Floor"
+    // placeholder, not a real value — see the doc comment on
+    // `didSelectRow` below for why. Every real row is offset by 1.
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         if pickerView == buildingPickerView {
-            return viewModel.buildings.count
+            return viewModel.buildings.count + 1
         } else if pickerView == floorPickerView {
-            return viewModel.floors.count
+            return viewModel.floors.count + 1
         }
         return 0
     }
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
         if pickerView == buildingPickerView {
-            return viewModel.buildings[row].name
+            guard row > 0 else { return "Select Building" }
+            return viewModel.buildings[row - 1].name
         } else if pickerView == floorPickerView {
-            return "Floor \(viewModel.floors[row].number)"
+            guard row > 0 else { return "Select Floor" }
+            return "Floor \(viewModel.floors[row - 1].number)"
         }
         return ""
     }
     
+    /// Row 0 of each picker is a non-selectable "Select Building"/
+    /// "Select Floor" placeholder — added 2026-09-02. Without it,
+    /// `UIPickerView` opens already showing its first real row (e.g.
+    /// "Floor 1") highlighted, but never actually calls this delegate
+    /// method for that row unless the user scrolls away from it and
+    /// back — so someone (or a UI test driving
+    /// `adjust(toPickerWheelValue:)`, which also does nothing if the
+    /// wheel is already showing the requested value) who wants exactly
+    /// that first row and doesn't scroll ends up with
+    /// `viewModel.selectedBuilding`/`.selectedFloor` still `nil` even
+    /// though the field visually shows a value, and Save then fails
+    /// validation with a "Missing Building"/"Missing Floor" alert
+    /// nobody asked for. The placeholder forces every real selection to
+    /// be an actual scroll, so this method always fires. Root-caused by
+    /// Christian; see "UI test flakiness, root cause: picker default
+    /// row never fires didSelectRow (2026-09-02)" in project memory.
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         if pickerView == buildingPickerView {
-            let building = viewModel.selectBuilding(at: row)
+            guard row > 0 else {
+                viewModel.clearBuildingSelection()
+                buildingTextField.text = nil
+                floorTextField.text = nil
+                floorPickerView.reloadAllComponents()
+                floorPickerView.selectRow(0, inComponent: 0, animated: false)
+                return
+            }
+            let building = viewModel.selectBuilding(at: row - 1)
             buildingTextField.text = building?.name
             floorTextField.text = ""
             floorPickerView.reloadAllComponents()
+            floorPickerView.selectRow(0, inComponent: 0, animated: false)
         } else if pickerView == floorPickerView {
-            let floor = viewModel.selectFloor(at: row)
+            guard row > 0 else {
+                viewModel.clearFloorSelection()
+                floorTextField.text = nil
+                return
+            }
+            let floor = viewModel.selectFloor(at: row - 1)
             floorTextField.text = floor.map { "Floor \($0.number)" } ?? ""
         }
     }
