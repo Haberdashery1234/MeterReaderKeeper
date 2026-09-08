@@ -1,26 +1,45 @@
 //
-//  PreviousReadingsScreenUITests.swift
+//  PreviousReadingsViewControllerUITests.swift
 //  MeterReaderKeeperUITests
 //
-//  Created on 8/28/26.
+//  Created on 8/28/26. Reorganized 9/1/26 into one UI test file per view
+//  controller, mirroring the app target's own folder hierarchy under this
+//  target. Converted 9/2/26 to a single shared seeded launch across the
+//  whole class — see "UI test performance: shared launches (2026-09-02)"
+//  in project memory.
 //
 
 import XCTest
 
 /// Mirrors `Source/Screens/PreviousReadings/PreviousReadingsViewController.swift`.
-final class PreviousReadingsScreenUITests: XCTestCase {
+///
+/// Every test below only navigates, filters, and reads — none of them
+/// mutate the seeded fixture — so the whole class shares one ~20s seeded
+/// launch instead of each test paying it independently.
+final class PreviousReadingsViewControllerUITests: XCTestCase {
+
+    private static var sharedLauncher: UITestAppLauncher!
+
+    override class func setUp() {
+        super.setUp()
+        sharedLauncher = try! UITestAppLauncher(seeded: true)
+    }
+
+    override class func tearDown() {
+        sharedLauncher = nil
+        super.tearDown()
+    }
 
     override func setUpWithError() throws {
         continueAfterFailure = false
+        try UITestAppLauncher.returnToHome(Self.sharedLauncher.app)
     }
 
-    /// Navigates Home -> "Previous Readings", with the fixed fixture
-    /// already seeded (its readings are all historical, so they're visible
+    /// Navigates Home -> "Previous Readings" on the class's shared seeded
+    /// launch (its readings are all historical, so they're visible
     /// immediately under the default "All" date filter).
     private func openPreviousReadings() throws -> XCUIApplication {
-        let launcher = try UITestAppLauncher(seeded: true)
-        let app = launcher.app
-
+        let app = Self.sharedLauncher.app
         let previousReadingsButton = app.buttons["Previous Readings"]
         try requireUITest(previousReadingsButton.waitForExistence(timeout: 5), "Previous Readings button never appeared")
         previousReadingsButton.tap()
@@ -56,5 +75,15 @@ final class PreviousReadingsScreenUITests: XCTestCase {
         app.pickerWheels.firstMatch.adjust(toPickerWheelValue: "121 Seaport")
 
         XCTAssertEqual(buildingField.value as? String, "121 Seaport")
+    }
+
+    /// tapping a meter row opens that meter's Meter History screen
+    func testTappingMeterRowOpensMeterHistory() throws {
+        let app = try openPreviousReadings()
+        let table = app.tables["PreviousReadings.tableView"]
+        try requireUITest(table.cells.firstMatch.waitForExistence(timeout: 5), "No reading rows appeared")
+        table.cells.firstMatch.tap()
+
+        XCTAssertTrue(app.staticTexts["MeterHistory.buildingValueLabel"].waitForExistence(timeout: 5))
     }
 }

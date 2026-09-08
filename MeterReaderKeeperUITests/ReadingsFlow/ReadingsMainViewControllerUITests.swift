@@ -1,0 +1,200 @@
+//
+//  ReadingsMainViewControllerUITests.swift
+//  MeterReaderKeeperUITests
+//
+//  Created on 8/28/26. Reorganized 9/1/26 into one UI test file per view
+//  controller, mirroring the app target's own folder hierarchy under this
+//  target. Fixed 9/2/26 — see `testTappingSeededMeterOpensEditReading`.
+//  Converted 9/2/26 to a mixed shared/isolated launch strategy — see "UI
+//  test performance: shared launches (2026-09-02)" in project memory.
+//
+
+import XCTest
+
+/// Mirrors `Source/Screens/ReadingsFlow/ReadingsMainViewController.swift`.
+///
+/// Five tests below (opens with floor/meters, tapping a seeded meter
+/// opens Edit Reading, scan-button alert, map-button alert, floor picker)
+/// never mutate the fixture, so they share one seeded launch via
+/// `openReadingsShared()`. `testTappingFreshlyAddedMeterOpensAddReading`
+/// creates a brand-new meter as part of what it's testing, so it keeps
+/// its own fresh, isolated launch, unchanged.
+final class ReadingsMainViewControllerUITests: XCTestCase {
+
+    private static var sharedLauncher: UITestAppLauncher!
+
+    override class func setUp() {
+        super.setUp()
+        sharedLauncher = try! UITestAppLauncher(seeded: true)
+    }
+
+    override class func tearDown() {
+        sharedLauncher = nil
+        super.tearDown()
+    }
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+    }
+
+    /// Navigates Home -> "Take Readings" -> "121 Seaport" on the class's
+    /// shared seeded launch, resetting to Home first so tests stay
+    /// order-independent. The seeded fixture has 4 buildings, so "Take
+    /// Readings" always presents a "Select Building" action sheet rather
+    /// than jumping straight in.
+    private func openReadingsShared() throws -> XCUIApplication {
+        let app = Self.sharedLauncher.app
+        try UITestAppLauncher.returnToHome(app)
+
+        let takeReadingsButton = app.buttons["Take Readings"]
+        try requireUITest(takeReadingsButton.waitForExistence(timeout: 5), "Take Readings button never appeared")
+        takeReadingsButton.tap()
+
+        let sheet = app.sheets["Select Building"]
+        try requireUITest(sheet.waitForExistence(timeout: 5), "Select Building sheet never appeared")
+        sheet.buttons["121 Seaport"].tap()
+
+        try requireUITest(app.tables["ReadingsMain.tableView"].waitForExistence(timeout: 5), "ReadingsMain.tableView never appeared")
+        return app
+    }
+
+    /// Creates a brand-new meter on "121 Seaport" Floor 1 via Management
+    /// (so it has zero readings, unlike every *seeded* meter — see
+    /// `testTappingFreshlyAddedMeterOpensAddReading` below), then
+    /// navigates back to Home so the caller can continue into
+    /// "Take Readings" for it.
+    private func addUnreadMeter(named name: String, on app: XCUIApplication) throws {
+        let manageButton = app.buttons["Manage Buildings & Meters"]
+        try requireUITest(manageButton.waitForExistence(timeout: 5), "Manage Buildings & Meters button never appeared")
+        manageButton.tap()
+        try requireUITest(app.tables["Management.tableView"].waitForExistence(timeout: 5), "Management.tableView never appeared")
+
+        app.navigationBars.buttons["Management.addButton"].tap()
+        let sheet = app.sheets["Add Item"]
+        try requireUITest(sheet.waitForExistence(timeout: 5), "Add Item sheet never appeared")
+        sheet.buttons["Meter"].tap()
+        try requireUITest(app.navigationBars["Add Meter"].waitForExistence(timeout: 5), "Add Meter screen never appeared")
+
+        let buildingField = app.textFields["AddEditMeter.buildingTextField"]
+        try requireUITest(buildingField.waitForExistence(timeout: 5), "AddEditMeter.buildingTextField never appeared")
+        buildingField.tap()
+        app.pickerWheels.firstMatch.adjust(toPickerWheelValue: "121 Seaport")
+
+        let floorField = app.textFields["AddEditMeter.floorTextField"]
+        floorField.tap()
+        app.pickerWheels.firstMatch.adjust(toPickerWheelValue: "Floor 1")
+
+        let nameField = app.textFields["AddEditMeter.nameTextField"]
+        nameField.tap()
+        nameField.typeText(name)
+
+        try UITestAppLauncher.dismissInputView(app, byTapping: "Building")
+        app.buttons["AddEditMeter.saveButton"].tap()
+        try requireUITest(app.tables["Management.tableView"].waitForExistence(timeout: 5), "Management.tableView never reappeared after saving")
+
+        // Back to Home.
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        try requireUITest(app.buttons["Take Readings"].waitForExistence(timeout: 5), "Home screen never reappeared")
+    }
+
+    /// opening Readings for a building shows a floor selection and its meters
+    func testOpensWithFloorAndMeters() throws {
+        let app = try openReadingsShared()
+
+        let floorField = app.textFields["ReadingsMain.floorTextField"]
+        XCTAssertTrue(floorField.waitForExistence(timeout: 5))
+        XCTAssertTrue((floorField.value as? String)?.hasPrefix("Floor ") == true)
+
+        let table = app.tables["ReadingsMain.tableView"]
+        XCTAssertTrue(table.cells.firstMatch.waitForExistence(timeout: 5))
+    }
+
+    /// tapping a seeded meter opens Edit Reading, not Add Reading.
+    ///
+    /// Every meter in `SeedFixture.json` is seeded with a reading at
+    /// `daysAgo: 0` — dated *today* — as its most recent reading (verified
+    /// directly against the fixture: all 708 meters have one). Since
+    /// `ReadingsMainViewModel.readingRoute(forMeterAt:)` routes to `.edit`
+    /// whenever a reading already exists for today, tapping *any* seeded
+    /// meter always opens Edit Reading. The original version of this test
+    /// asserted the opposite ("every seeded reading is historical, so this
+    /// always opens Add Reading") — that assumption was simply wrong for
+    /// this fixture; found 2026-09-02 when the test failed. See
+    /// `testTappingFreshlyAddedMeterOpensAddReading` below for real
+    /// Add-route coverage, and `AddEditReadingViewControllerUITests` for
+    /// the matching fix there.
+    func testTappingSeededMeterOpensEditReading() throws {
+        let app = try openReadingsShared()
+        let table = app.tables["ReadingsMain.tableView"]
+        try requireUITest(table.cells.firstMatch.waitForExistence(timeout: 5), "No meter rows appeared")
+        table.cells.firstMatch.tap()
+
+        try requireUITest(app.navigationBars["Edit Reading"].waitForExistence(timeout: 5), "Edit Reading screen never appeared")
+        // Edit Reading pre-fills the existing (today's) reading value,
+        // unlike Add Reading, which always starts blank.
+        let readingField = app.textFields["AddEditReading.readingTextField"]
+        try requireUITest(readingField.waitForExistence(timeout: 5), "AddEditReading.readingTextField never appeared")
+        XCTAssertNotEqual(readingField.value as? String, "")
+    }
+
+    /// tapping a freshly-added meter (zero readings) opens Add Reading —
+    /// the counterpart to `testTappingSeededMeterOpensEditReading` above,
+    /// covering the other branch of `readingRoute(forMeterAt:)`. Uses its
+    /// own fresh, isolated launch (not the class's shared one) since
+    /// creating a new meter is itself a mutation.
+    func testTappingFreshlyAddedMeterOpensAddReading() throws {
+        let launcher = try UITestAppLauncher(seeded: true)
+        let app = launcher.app
+        try addUnreadMeter(named: "Unread Test Meter", on: app)
+
+        app.buttons["Take Readings"].tap()
+        let sheet = app.sheets["Select Building"]
+        try requireUITest(sheet.waitForExistence(timeout: 5), "Select Building sheet never appeared")
+        sheet.buttons["121 Seaport"].tap()
+
+        let table = app.tables["ReadingsMain.tableView"]
+        try requireUITest(table.waitForExistence(timeout: 5), "ReadingsMain.tableView never appeared")
+        let newMeterRow = table.staticTexts["Unread Test Meter"]
+        try requireUITest(newMeterRow.waitForExistence(timeout: 5), "Unread Test Meter row never appeared")
+        newMeterRow.tap()
+
+        XCTAssertTrue(app.navigationBars["Add Reading"].waitForExistence(timeout: 5))
+    }
+
+    /// scan button shows the QR Scanner placeholder alert — the real
+    /// scanner (`QrScannerViewController`) isn't wired into the coordinator
+    func testScanButtonShowsPlaceholderAlert() throws {
+        let app = try openReadingsShared()
+        app.navigationBars.buttons["ReadingsMain.scanButton"].tap()
+
+        let alert = app.alerts["QR Scanner"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 5))
+        alert.buttons["OK"].tap()
+    }
+
+    /// map button with no floor map set shows the No Map alert — seed data
+    /// never includes real floor-map image bytes (see `DataSeeder`)
+    func testMapButtonWithNoMapShowsAlert() throws {
+        let app = try openReadingsShared()
+        app.navigationBars.buttons["ReadingsMain.mapButton"].tap()
+
+        let alert = app.alerts["No Map"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 5))
+        alert.buttons["OK"].tap()
+    }
+
+    /// picking a different floor in the floor picker refreshes the meter list
+    func testSelectingDifferentFloorUpdatesFloorField() throws {
+        let app = try openReadingsShared()
+
+        let floorField = app.textFields["ReadingsMain.floorTextField"]
+        try requireUITest(floorField.waitForExistence(timeout: 5), "ReadingsMain.floorTextField never appeared")
+        let initialFloor = floorField.value as? String
+
+        floorField.tap()
+        app.pickerWheels.firstMatch.adjust(toPickerWheelValue: "Floor 2")
+
+        XCTAssertNotEqual(floorField.value as? String, initialFloor)
+        XCTAssertEqual(floorField.value as? String, "Floor 2")
+    }
+}

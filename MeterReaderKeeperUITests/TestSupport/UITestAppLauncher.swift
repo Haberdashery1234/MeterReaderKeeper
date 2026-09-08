@@ -89,6 +89,100 @@ struct UITestAppLauncher {
 /// called it, so its own description is never shown to anyone.
 struct UITestPreconditionError: Error {}
 
+extension UITestAppLauncher {
+
+    /// Recovers to the Home screen from wherever the app currently is —
+    /// dismissing an open alert or sheet first, then popping navigation
+    /// bars — so a test class sharing one seeded launch across several
+    /// test methods (see "UI test performance: shared launches
+    /// (2026-09-02)" in project memory) can reliably reset to a known
+    /// starting point before each test navigates back down on its own,
+    /// regardless of which screen — or failure state — the previous test
+    /// method left the app on.
+    ///
+    /// Only used by test classes where every shared test is confirmed
+    /// non-mutating; a class with tests that save/delete data keeps those
+    /// specific tests on their own fresh, isolated launch instead (see
+    /// the mixed-file classes for examples), so this never has to reason
+    /// about restoring mutated data — only navigation position.
+    static func returnToHome(
+        _ app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        let homeButton = app.buttons["Take Readings"]
+        var attempts = 0
+        while !homeButton.waitForExistence(timeout: 1) {
+            try requireUITest(
+                attempts < 10,
+                "returnToHome: still not back at Home after \(attempts) recovery taps",
+                file: file,
+                line: line
+            )
+            if app.alerts.firstMatch.exists {
+                app.alerts.firstMatch.buttons.firstMatch.tap()
+            } else if app.sheets.firstMatch.exists {
+                let sheet = app.sheets.firstMatch
+                if sheet.buttons["Cancel"].exists {
+                    sheet.buttons["Cancel"].tap()
+                } else {
+                    sheet.buttons.firstMatch.tap()
+                }
+            } else if app.navigationBars.buttons.count > 0 {
+                app.navigationBars.buttons.element(boundBy: 0).tap()
+            } else {
+                try requireUITest(
+                    false,
+                    "returnToHome: no alert, sheet, or nav-bar back button found to recover with",
+                    file: file,
+                    line: line
+                )
+            }
+            attempts += 1
+        }
+    }
+}
+
+extension UITestAppLauncher {
+
+    /// Dismisses whatever keyboard or `UIPickerView` input view is
+    /// currently up, by tapping one of the form's own caption labels
+    /// (e.g. "Building") instead of the field itself.
+    ///
+    /// Every AddEdit screen in this app wires a tap-anywhere gesture
+    /// recognizer on its root `view` that calls `view.endEditing(true)`
+    /// (see `AddEditFloorViewController.setupKeyboardHandling()`,
+    /// `AddEditMeterViewController.setupKeyboardHandling()`,
+    /// `AddEditBuildingViewController.setupKeyboardHandling()`) — and a
+    /// `UILabel` has `isUserInteractionEnabled == false` by default, so a
+    /// tap on one of these labels passes straight through to that
+    /// gesture recognizer instead of being consumed by anything else.
+    ///
+    /// Needed before tapping a Save button on a tall form (one with the
+    /// image-picker section — Floor, Meter) that can push Save down far
+    /// enough to sit under an open keyboard/picker, making it briefly
+    /// not-hittable. Building's own form is short enough this never
+    /// happens, which is why only Floor/Meter call sites need this. See
+    /// "UI test fix: keyboard/picker covering Save (2026-09-02)" in
+    /// project memory.
+    static func dismissInputView(
+        _ app: XCUIApplication,
+        byTapping labelText: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        let label = app.staticTexts[labelText]
+        try requireUITest(
+            label.waitForExistence(timeout: 5),
+            "dismissInputView: '\(labelText)' label never appeared to tap",
+            file: file,
+            line: line
+        )
+        label.tap()
+    }
+}
+
+
 /// The XCTest analogue of Swift Testing's `#require`: records a failure
 /// via `XCTFail` — attributed to the call site via `file`/`line`, matching
 /// how `#require` attributes failures to its own call site — and then

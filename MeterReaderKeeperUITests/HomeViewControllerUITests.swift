@@ -1,14 +1,16 @@
 //
-//  HomeScreenUITests.swift
+//  HomeViewControllerUITests.swift
 //  MeterReaderKeeperUITests
 //
-//  Created on 8/28/26.
+//  Created on 8/28/26. Reorganized 9/1/26 into one UI test file per view
+//  controller, mirroring the app target's own folder hierarchy under this
+//  target (previously one flat "XxxScreenUITests" file per screen).
 //
 
 import XCTest
 
 /// Mirrors `Source/Screens/HomeViewController.swift`.
-final class HomeScreenUITests: XCTestCase {
+final class HomeViewControllerUITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Stop each test at its first failure instead of letting every
@@ -70,5 +72,14 @@ final class HomeScreenUITests: XCTestCase {
         manageButton.tap()
 
         XCTAssertTrue(app.navigationBars["Manage Buildings"].waitForExistence(timeout: 5))
+    }
+
+    /// with seeded data, the "At a Glance" stats reflect the fixed fixture
+    /// (4 buildings — see `SeedFixture.json`)
+    func testAtGlanceReflectsSeededData() throws {
+        let launcher = try UITestAppLauncher(seeded: true)
+        let app = launcher.app
+
+        XCTAssertTrue(app.staticTexts["4"].waitForExistence(timeout: 5))
     }
 }
