@@ -138,20 +138,16 @@ jobs:
           xcrun simctl boot "${{ steps.simulator.outputs.udid }}" || true
           xcrun simctl bootstatus "${{ steps.simulator.outputs.udid }}" -b
 
-      # NSUnbufferedIO=YES + `2>&1` before the pipe: xcodebuild's own
-      # recommendation (see xcbeautify's README) for parallel/concurrent
-      # destination testing — without it, output can arrive in bursts
-      # instead of streaming live, making a slow-but-fine run look stuck.
       - name: Run MeterReaderKeeperTests
         run: |
           set -o pipefail
           XCTESTRUN=$(ls "$BUILD_PRODUCTS_PATH"/*.xctestrun | head -n1)
-          NSUnbufferedIO=YES xcodebuild test-without-building \
+          xcodebuild test-without-building \
             -xctestrun "$XCTESTRUN" \
             -destination "id=${{ steps.simulator.outputs.udid }}" \
             -only-testing:MeterReaderKeeperTests \
             -resultBundlePath UnitTestResults.xcresult \
-            2>&1 | xcbeautify --renderer github-actions
+            | xcbeautify --renderer github-actions
 
       - name: Upload unit test results
         if: always()
@@ -220,21 +216,16 @@ jobs:
       # SeedFixtureName in DataSeeder.swift) instead. Runs concurrently
       # with unit-tests once the build job finishes, instead of after
       # it in one combined step.
-      # NSUnbufferedIO=YES + `2>&1` before the pipe: xcodebuild's own
-      # recommendation (see xcbeautify's README) for parallel/concurrent
-      # destination testing, which this job does (parallelized across
-      # simulator clones) — without it, output can arrive in bursts
-      # instead of streaming live, making a slow-but-fine run look stuck.
       - name: Run MeterReaderKeeperUITests
         run: |
           set -o pipefail
           XCTESTRUN=$(ls "$BUILD_PRODUCTS_PATH"/*.xctestrun | head -n1)
-          NSUnbufferedIO=YES xcodebuild test-without-building \
+          xcodebuild test-without-building \
             -xctestrun "$XCTESTRUN" \
             -destination "id=${{ steps.simulator.outputs.udid }}" \
             -only-testing:MeterReaderKeeperUITests \
             -resultBundlePath UITestResults.xcresult \
-            2>&1 | xcbeautify --renderer github-actions
+            | xcbeautify --renderer github-actions
 
       - name: Upload UI test results
         if: always()
