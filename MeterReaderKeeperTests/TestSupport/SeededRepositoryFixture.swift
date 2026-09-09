@@ -45,7 +45,7 @@ struct SeededRepositoryFixture {
     init() async throws {
         let repository = SwiftDataMeterRepository(inMemory: true)
         let dataSeeder = DataSeeder(repository: repository, rng: SeededGenerator(seed: Self.fixedSeed))
-        try await dataSeeder.seedData()
+        try await dataSeeder.seedData(fixtureName: SeedFixtureName.small)
 
         self.repository = repository
         self.dataSeeder = dataSeeder

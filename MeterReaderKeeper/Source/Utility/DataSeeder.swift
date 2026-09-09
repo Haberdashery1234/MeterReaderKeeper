@@ -14,11 +14,24 @@
 //  repository's own actor, so the manual DispatchQueue.global backgrounding
 //  that used to live in HomeViewModel.seedData(completion:) is gone too.
 //  Batched under one SwiftData save via withBatchedSave on 9/8/26.
+//  seedData() parameterized on fixture name (small/minimal test fixtures
+//  added alongside the full one) on 9/9/26.
 //
 
 #if DEBUG || TESTING
 
 import Foundation
+
+/// Bundle resource names (no extension) for the fixture files `DataSeeder`
+/// can load. `full` is what the "Seed Test Data" button seeds for manual
+/// exploration; `small`/`minimal` are smaller fixtures UI and unit tests
+/// seed instead to cut seeding cost — see
+/// `MeterReaderKeeperUITests/TestSupport/UITestAppLauncher.swift`.
+enum SeedFixtureName {
+    static let full = "SeedFixture"
+    static let small = "SeedFixtureSmall"
+    static let minimal = "SeedFixtureMinimal"
+}
 
 class DataSeeder {
 
@@ -55,20 +68,20 @@ class DataSeeder {
         self.rng = rng
     }
 
-    /// Seeds building, floor, meter, and reading data from the bundled
-    /// `SeedFixture.json` — a large, fixed dataset (buildings/floors/
-    /// meters/readings) checked into the repo and shared verbatim with the
-    /// unit test target, so both this button and the tests work from
+    /// Seeds building, floor, meter, and reading data from a bundled
+    /// fixture JSON file, checked into the repo and shared verbatim with
+    /// the unit test target so both this button and the tests work from
     /// exactly the same known values.
     ///
-    /// This makes one repository call per building/floor/meter/reading —
-    /// several thousand calls for the full fixture — batched under a
-    /// single SwiftData save via `withBatchedSave` rather than one save
-    /// per call.
-    func seedData() async throws {
+    /// - Parameter fixtureName: bundle resource name (no extension) to
+    ///   load — see `SeedFixtureName`. Defaults to the full fixture.
+    ///
+    /// Makes one repository call per building/floor/meter/reading,
+    /// batched under a single SwiftData save via `withBatchedSave`.
+    func seedData(fixtureName: String = SeedFixtureName.full) async throws {
         print("Starting data seeding...")
 
-        let fixture = try Self.loadFixture()
+        let fixture = try Self.loadFixture(named: fixtureName)
         let today = Calendar.current.startOfDay(for: Date())
 
         try await repository.withBatchedSave {
@@ -124,14 +137,14 @@ class DataSeeder {
         }
     }
 
-    /// Locates and decodes `SeedFixture.json` from this class's own bundle.
+    /// Locates and decodes `<name>.json` from this class's own bundle.
     /// `Bundle(for:)` rather than `Bundle.main` on purpose — this always
     /// resolves to the bundle `DataSeeder` itself was compiled into,
     /// regardless of how it's called.
-    private static func loadFixture() throws -> SeedFixture {
-        guard let url = Bundle(for: DataSeeder.self).url(forResource: "SeedFixture", withExtension: "json") else {
+    private static func loadFixture(named name: String) throws -> SeedFixture {
+        guard let url = Bundle(for: DataSeeder.self).url(forResource: name, withExtension: "json") else {
             throw MeterKeeperError.fileSystemError(
-                NSError(domain: "MeterReaderKeeper", code: -1, userInfo: [NSLocalizedDescriptionKey: "SeedFixture.json not found in bundle"])
+                NSError(domain: "MeterReaderKeeper", code: -1, userInfo: [NSLocalizedDescriptionKey: "\(name).json not found in bundle"])
             )
         }
         let data = try Data(contentsOf: url)

@@ -227,13 +227,22 @@ final class HomeViewModel {
     /// repository's own actor, not here, so no manual backgrounding is
     /// needed (this used to be `seedData(completion:)`).
     ///
+    /// - Parameter fixtureNameOverride: for unit tests that call this
+    ///   directly and don't want the full fixture's cost — production and
+    ///   the real "Seed Test Data" button both leave this `nil`.
     /// - Returns: Which seeding operation actually ran.
     /// - Throws: Whatever error the repository throws while seeding.
-    func seedData() async throws -> SeedOutcome {
+    func seedData(fixtureNameOverride: String? = nil) async throws -> SeedOutcome {
         let buildingCount = (try? await repository.getBuildings())?.count ?? 0
 
         if buildingCount == 0 {
-            try await dataSeeder.seedData()
+            // UITestAppLauncher sets this env var (its own matching
+            // "UITEST_FIXTURE_NAME" constant) to point UI test runs at a
+            // smaller fixture than a person exploring the app manually.
+            let fixtureName = fixtureNameOverride
+                ?? ProcessInfo.processInfo.environment["UITEST_FIXTURE_NAME"]
+                ?? SeedFixtureName.full
+            try await dataSeeder.seedData(fixtureName: fixtureName)
             print("Seeded initial test data")
             return .seededInitialData
         } else {

@@ -1,0 +1,24 @@
+{
+  "buildings": [
+    {
+      "name": "121 Seaport",
+      "floors": [
+        {
+          "number": 1,
+          "meters": [
+            {
+              "name": "min-1",
+              "description": "This is a short description for min-1",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 1000.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

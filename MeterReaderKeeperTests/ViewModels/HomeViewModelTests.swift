@@ -76,7 +76,7 @@ struct HomeViewModelTests {
 
     @Test("seedData seeds initial data when the store is empty")
     func seedDataSeedsInitialDataWhenStoreIsEmpty() async throws {
-        let outcome = try await viewModel.seedData()
+        let outcome = try await viewModel.seedData(fixtureNameOverride: SeedFixtureName.small)
 
         guard case .seededInitialData = outcome else {
             Issue.record("Expected .seededInitialData")

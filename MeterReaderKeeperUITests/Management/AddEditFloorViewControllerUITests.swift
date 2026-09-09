@@ -29,7 +29,7 @@ final class AddEditFloorViewControllerUITests: XCTestCase {
 
     override class func setUp() {
         super.setUp()
-        sharedLauncher = try! UITestAppLauncher(seeded: true)
+        sharedLauncher = try! UITestAppLauncher(seeded: true, fixtureName: UITestAppLauncher.minimalFixtureName)
     }
 
     override class func tearDown() {
@@ -71,7 +71,7 @@ final class AddEditFloorViewControllerUITests: XCTestCase {
     /// isolated seeded launch — for the test that saves a floor-number
     /// change.
     private func openFirstFloorIsolated() throws -> XCUIApplication {
-        let launcher = try UITestAppLauncher(seeded: true)
+        let launcher = try UITestAppLauncher(seeded: true, fixtureName: UITestAppLauncher.minimalFixtureName)
         let app = launcher.app
 
         let manageButton = app.buttons["Manage Buildings & Meters"]

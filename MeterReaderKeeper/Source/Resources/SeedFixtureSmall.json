@@ -1,0 +1,363 @@
+{
+  "buildings": [
+    {
+      "name": "121 Seaport",
+      "floors": [
+        {
+          "number": 1,
+          "meters": [
+            {
+              "name": "sm-b1f1m1",
+              "description": "This is a short description for sm-b1f1m1",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 7386.54
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 7264.34
+                }
+              ]
+            },
+            {
+              "name": "sm-b1f1m2",
+              "description": "This is a short description for sm-b1f1m2",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 29785.73
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 29491.46
+                }
+              ]
+            },
+            {
+              "name": "sm-b1f1m3",
+              "description": "This is a short description for sm-b1f1m3",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 16995.21
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 16814.92
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "meters": [
+            {
+              "name": "sm-b1f2m1",
+              "description": "This is a short description for sm-b1f2m1",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 22772.95
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 22615.9
+                }
+              ]
+            },
+            {
+              "name": "sm-b1f2m2",
+              "description": "This is a short description for sm-b1f2m2",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 26471.19
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 26155.74
+                }
+              ]
+            },
+            {
+              "name": "sm-b1f2m3",
+              "description": "This is a short description for sm-b1f2m3",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 24503.05
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 24249.33
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "meters": [
+            {
+              "name": "sm-b1f3m1",
+              "description": "This is a short description for sm-b1f3m1",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 10066.15
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 9887.33
+                }
+              ]
+            },
+            {
+              "name": "sm-b1f3m2",
+              "description": "This is a short description for sm-b1f3m2",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 23561.64
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 23315.98
+                }
+              ]
+            },
+            {
+              "name": "sm-b1f3m3",
+              "description": "This is a short description for sm-b1f3m3",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 5841.28
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 5390.24
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "141 Franklin",
+      "floors": [
+        {
+          "number": 1,
+          "meters": [
+            {
+              "name": "sm-b2f1m1",
+              "description": "This is a short description for sm-b2f1m1",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 16199.59
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 16043.52
+                }
+              ]
+            },
+            {
+              "name": "sm-b2f1m2",
+              "description": "This is a short description for sm-b2f1m2",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 17868.65
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 17606.16
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "meters": [
+            {
+              "name": "sm-b2f2m1",
+              "description": "This is a short description for sm-b2f2m1",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 27598.53
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 27306.9
+                }
+              ]
+            },
+            {
+              "name": "sm-b2f2m2",
+              "description": "This is a short description for sm-b2f2m2",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 10301.79
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 9958.65
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "16 Pinkham",
+      "floors": [
+        {
+          "number": 1,
+          "meters": [
+            {
+              "name": "sm-b3f1m1",
+              "description": "This is a short description for sm-b3f1m1",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 7009.97
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 6550.83
+                }
+              ]
+            },
+            {
+              "name": "sm-b3f1m2",
+              "description": "This is a short description for sm-b3f1m2",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 16690.58
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 16369.68
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "meters": [
+            {
+              "name": "sm-b3f2m1",
+              "description": "This is a short description for sm-b3f2m1",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 19353.72
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 18953.93
+                }
+              ]
+            },
+            {
+              "name": "sm-b3f2m2",
+              "description": "This is a short description for sm-b3f2m2",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 23698.29
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 23630.12
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "25 State",
+      "floors": [
+        {
+          "number": 1,
+          "meters": [
+            {
+              "name": "sm-b4f1m1",
+              "description": "This is a short description for sm-b4f1m1",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 23086.39
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 22618.02
+                }
+              ]
+            },
+            {
+              "name": "sm-b4f1m2",
+              "description": "This is a short description for sm-b4f1m2",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 26338.47
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 25939.57
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "meters": [
+            {
+              "name": "sm-b4f2m1",
+              "description": "This is a short description for sm-b4f2m1",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 9921.52
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 9473.07
+                }
+              ]
+            },
+            {
+              "name": "sm-b4f2m2",
+              "description": "This is a short description for sm-b4f2m2",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 17177.51
+                },
+                {
+                  "daysAgo": 30,
+                  "kWh": 16932.09
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

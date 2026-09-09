@@ -29,7 +29,7 @@ final class AddEditReadingViewControllerUITests: XCTestCase {
     /// navigates Home -> Take Readings -> "121 Seaport" -> that meter's
     /// row, landing on a genuine "Add Reading" screen.
     private func openAddReading() throws -> XCUIApplication {
-        let launcher = try UITestAppLauncher(seeded: true)
+        let launcher = try UITestAppLauncher(seeded: true, fixtureName: UITestAppLauncher.minimalFixtureName)
         let app = launcher.app
 
         let manageButton = app.buttons["Manage Buildings & Meters"]

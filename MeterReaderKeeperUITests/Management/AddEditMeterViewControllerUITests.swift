@@ -24,7 +24,7 @@ final class AddEditMeterViewControllerUITests: XCTestCase {
 
     override class func setUp() {
         super.setUp()
-        sharedLauncher = try! UITestAppLauncher(seeded: true)
+        sharedLauncher = try! UITestAppLauncher(seeded: true, fixtureName: UITestAppLauncher.minimalFixtureName)
     }
 
     override class func tearDown() {
@@ -85,7 +85,7 @@ final class AddEditMeterViewControllerUITests: XCTestCase {
     /// Navigates Home -> Management -> "+" -> "Meter" on a fresh, isolated
     /// seeded launch — for a test that saves a new meter.
     private func openAddMeterIsolated() throws -> XCUIApplication {
-        let launcher = try UITestAppLauncher(seeded: true)
+        let launcher = try UITestAppLauncher(seeded: true, fixtureName: UITestAppLauncher.minimalFixtureName)
         let app = launcher.app
 
         let manageButton = app.buttons["Manage Buildings & Meters"]
@@ -106,7 +106,7 @@ final class AddEditMeterViewControllerUITests: XCTestCase {
     /// on a fresh, isolated seeded launch — for a test that deletes an
     /// existing meter.
     private func openEditMeterIsolated() throws -> XCUIApplication {
-        let launcher = try UITestAppLauncher(seeded: true)
+        let launcher = try UITestAppLauncher(seeded: true, fixtureName: UITestAppLauncher.minimalFixtureName)
         let app = launcher.app
 
         let manageButton = app.buttons["Manage Buildings & Meters"]

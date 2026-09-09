@@ -30,22 +30,24 @@ enum FixtureLoader {
         let description: String
     }
 
-    static func loadSeedFixtureData() throws -> Data {
+    /// - Parameter name: bundle resource base name (no extension), e.g.
+    ///   `SeedFixtureName.full`/`.small`/`.minimal` from `DataSeeder`.
+    static func loadSeedFixtureData(named name: String = SeedFixtureName.full) throws -> Data {
         // This file lives at "<repo root>/MeterReaderKeeperTests/TestSupport/FixtureLoader.swift".
         let thisFile = URL(fileURLWithPath: #filePath)
         let repoRoot = thisFile
             .deletingLastPathComponent() // .../MeterReaderKeeperTests/TestSupport
             .deletingLastPathComponent() // .../MeterReaderKeeperTests
             .deletingLastPathComponent() // .../<repo root>
-        let fixtureURL = repoRoot.appendingPathComponent("MeterReaderKeeper/Source/Resources/SeedFixture.json")
+        let fixtureURL = repoRoot.appendingPathComponent("MeterReaderKeeper/Source/Resources/\(name).json")
 
         guard FileManager.default.fileExists(atPath: fixtureURL.path) else {
-            throw LoadError(description: "SeedFixture.json not found at expected path: \(fixtureURL.path)")
+            throw LoadError(description: "\(name).json not found at expected path: \(fixtureURL.path)")
         }
         return try Data(contentsOf: fixtureURL)
     }
 
-    static func loadSeedFixture() throws -> SeedFixture {
-        try SeedFixture.decode(from: try loadSeedFixtureData())
+    static func loadSeedFixture(named name: String = SeedFixtureName.full) throws -> SeedFixture {
+        try SeedFixture.decode(from: try loadSeedFixtureData(named: name))
     }
 }

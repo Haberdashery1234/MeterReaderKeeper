@@ -37,7 +37,7 @@ struct DataSeederTests {
         // `init()` fails every test in this suite clearly — no need for
         // the XCTest version's manual `XCTFail` + empty-fixture fallback
         // dance that swallowed the underlying error.
-        expectedFixture = try FixtureLoader.loadSeedFixture()
+        expectedFixture = try FixtureLoader.loadSeedFixture(named: SeedFixtureName.small)
     }
 
     @Test("seedData matches the fixture's building and floor shape")
@@ -119,7 +119,7 @@ struct DataSeederTests {
     /// checking building count first. This documents that assumption.
     @Test("seedData is not idempotent")
     func seedDataIsNotIdempotent() async throws {
-        try await fixture.dataSeeder.seedData()
+        try await fixture.dataSeeder.seedData(fixtureName: SeedFixtureName.small)
         let buildingsAfterSecondSeed = try await fixture.repository.getBuildings()
         #expect(buildingsAfterSecondSeed.count == expectedFixture.buildings.count * 2)
     }

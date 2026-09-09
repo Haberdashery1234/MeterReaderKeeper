@@ -87,8 +87,8 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      # FixtureLoader (MeterReaderKeeperTests/TestSupport) locates
-      # SeedFixture.json by walking up from its own #filePath at
+      # FixtureLoader (MeterReaderKeeperTests/TestSupport) locates the
+      # SeedFixture*.json files by walking up from its own #filePath at
       # compile time, so the source tree needs to exist at this exact
       # path (matching where `build` checked it out) for that lookup to
       # resolve here too — this job only downloaded build products
@@ -208,12 +208,14 @@ jobs:
           xcrun simctl boot "${{ steps.simulator.outputs.udid }}" || true
           xcrun simctl bootstatus "${{ steps.simulator.outputs.udid }}" -b
 
-      # This target seeds a large fixture repeatedly (up to 21 seeds
-      # even after the shared-launch optimization, each ~4,385
-      # sequential SwiftData calls) and is parallelized across
-      # simulator clones — it's the slow, historically flaky part of
-      # the suite. Runs concurrently with unit-tests once the build
-      # job finishes, instead of after it in one combined step.
+      # This target seeds a fixture repeatedly (up to 21 seeds even
+      # after the shared-launch optimization) and is parallelized across
+      # simulator clones. Historically the slow, flaky part of the
+      # suite when every seed pulled in the full ~4,385-call fixture;
+      # UI tests now seed much smaller per-screen fixtures (see
+      # SeedFixtureName in DataSeeder.swift) instead. Runs concurrently
+      # with unit-tests once the build job finishes, instead of after
+      # it in one combined step.
       - name: Run MeterReaderKeeperUITests
         run: |
           set -o pipefail

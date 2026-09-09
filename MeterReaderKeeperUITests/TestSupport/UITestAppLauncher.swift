@@ -41,23 +41,49 @@ import XCTest
 /// guard, and UI tests run against a DEBUG build of the app. So rather
 /// than inventing a second, UI-test-only seeding mechanism, `init(seeded:
 /// true)` just drives the same "Seed Test Data" button a person would
-/// tap, giving tests the identical fixed fixture the unit tests already
-/// rely on (4 buildings: "121 Seaport", "25 State", "141 Franklin", "16
-/// Pinkham" — see `SeedFixture.json`).
+/// tap — `fixtureName:` picks which of the bundled fixtures it seeds
+/// (`smallFixtureName`/`minimalFixtureName` below), not a synthetic
+/// seeding path of its own. `smallFixtureName`, the default, is the same
+/// 4-building fixture the unit tests seed (see `SeedFixtureName.small`
+/// in `DataSeeder.swift`).
 struct UITestAppLauncher {
 
     /// Checked by `SceneDelegate.makeRepository()`, `#if DEBUG` only.
     static let inMemoryStoreLaunchArgument = "-UITestInMemoryStore"
 
+    /// Checked by `HomeViewModel.seedData()` (`#if DEBUG || TESTING`) to
+    /// pick which bundled fixture `DataSeeder` seeds. Must match that
+    /// file's own literal for this key exactly — this target can't import
+    /// the app module's `SeedFixtureName` directly.
+    static let fixtureNameEnvironmentKey = "UITEST_FIXTURE_NAME"
+
+    /// Fixture tiers a test can request via `fixtureName:` below — bundle
+    /// resource names, matching `SeedFixtureName` on the app side. See
+    /// `MeterReaderKeeper/Source/Resources/SeedFixture*.json`.
+    static let smallFixtureName = "SeedFixtureSmall"
+    static let minimalFixtureName = "SeedFixtureMinimal"
+
     let app: XCUIApplication
 
-    /// - Parameter seeded: if `true`, taps the DEBUG-only "Seed Test Data"
-    ///   button on the Home screen immediately after launch and waits for
-    ///   the resulting "Success" alert before returning, so the caller's
-    ///   test starts from the known fixture data already populated.
-    init(seeded: Bool = false, file: StaticString = #filePath, line: UInt = #line) throws {
+    /// - Parameters:
+    ///   - seeded: if `true`, taps the DEBUG-only "Seed Test Data" button
+    ///     on the Home screen immediately after launch and waits for the
+    ///     resulting "Success" alert before returning, so the caller's
+    ///     test starts from the known fixture data already populated.
+    ///   - fixtureName: which bundled fixture to seed when `seeded` is
+    ///     `true`. Defaults to `smallFixtureName` (4 named buildings, the
+    ///     shape most screens need). Pass `minimalFixtureName` for a test
+    ///     that only needs a single building — see
+    ///     `AddEditBuildingViewControllerUITests` and friends.
+    init(
+        seeded: Bool = false,
+        fixtureName: String = UITestAppLauncher.smallFixtureName,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
         app = XCUIApplication()
         app.launchArguments = [Self.inMemoryStoreLaunchArgument]
+        app.launchEnvironment[Self.fixtureNameEnvironmentKey] = fixtureName
         app.launch()
 
         guard seeded else { return }
