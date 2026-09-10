@@ -19,6 +19,26 @@
           ]
         }
       ]
+    },
+    {
+      "name": "50 Annex St",
+      "floors": [
+        {
+          "number": 1,
+          "meters": [
+            {
+              "name": "min-2",
+              "description": "This is a short description for min-2",
+              "readings": [
+                {
+                  "daysAgo": 0,
+                  "kWh": 500.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
