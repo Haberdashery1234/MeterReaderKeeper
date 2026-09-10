@@ -131,11 +131,17 @@ extension UITestAppLauncher {
     /// specific tests on their own fresh, isolated launch instead (see
     /// the mixed-file classes for examples), so this never has to reason
     /// about restoring mutated data — only navigation position.
+    ///
+    /// Calls `app.activate()` first: an isolated launch elsewhere in the
+    /// same test run (its own `XCUIApplication`, same simulator) can leave
+    /// itself frontmost when its test ends without backgrounding it, so
+    /// the shared app isn't guaranteed to already be in front here.
     static func returnToHome(
         _ app: XCUIApplication,
         file: StaticString = #filePath,
         line: UInt = #line
     ) throws {
+        app.activate()
         let homeButton = app.buttons["Take Readings"]
         var attempts = 0
         while !homeButton.waitForExistence(timeout: 1) {
