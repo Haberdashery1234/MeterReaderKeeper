@@ -18,6 +18,14 @@ class ReadingsMainViewController: UIViewController {
     // MARK: - Properties
     weak var coordinator: AppCoordinator?
     var viewModel: ReadingsMainViewModel!
+
+    /// Whether `viewWillAppear` has already run once. The first appearance
+    /// renders straight from the ViewModel's own just-loaded init data, so
+    /// the refetch below is redundant there — and, since it's unawaited,
+    /// racing it against that first render risks a `reloadData()` landing
+    /// under a not-yet-registered tap. Only appearances after this one
+    /// (returning from Add/Edit Reading, say) need the refetch.
+    private var hasAppearedBefore = false
     
     // MARK: - UI Components
     private lazy var tableView: UITableView = {
@@ -103,10 +111,15 @@ class ReadingsMainViewController: UIViewController {
         refreshFloorDisplay()
     }
     
-    /// Re-fetches the building each time this screen becomes visible, so a
-    /// reading or meter changed elsewhere is reflected.
+    /// Re-fetches the building on every appearance after the first, so a
+    /// reading or meter changed elsewhere is reflected. Skipped on the
+    /// first appearance — see `hasAppearedBefore`.
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        guard hasAppearedBefore else {
+            hasAppearedBefore = true
+            return
+        }
         Task { @MainActor in
             await viewModel.refreshBuilding()
             refreshFloorDisplay()

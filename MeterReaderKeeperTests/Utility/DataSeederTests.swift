@@ -2,12 +2,6 @@
 //  DataSeederTests.swift
 //  MeterReaderKeeperTests
 //
-//  Created on 8/27/26.
-//  Converted from XCTest to Swift Testing on 8/27/26.
-//  Converted to async throws on 8/27/26 when DataSeeder.seedData()/
-//  seedMoreReadings() became async (see "Proper concurrency" migration
-//  note).
-//
 
 import Testing
 import Foundation
@@ -15,15 +9,8 @@ import Foundation
 
 /// Verifies `DataSeeder.seedData()` reproduces `SeedFixture.json` exactly
 /// — building/floor/meter shape, meter names and descriptions, and every
-/// reading's date and kWh value. Because the fixture is now fixed data
-/// rather than a random draw, these are real exact-value assertions
-/// (unlike the earlier range-based checks this file used to have), loaded
-/// from the same JSON file `DataSeeder` itself reads — see `FixtureLoader`.
-///
-/// Uses the same `SeededRepositoryFixture` composition established in the
-/// `SwiftDataMeterRepositoryTests` pilot instead of subclassing
-/// `SeededRepositoryTestCase` (that XCTest base class is now unused and
-/// has been removed — this was its last consumer).
+/// reading's date and kWh value — loaded from the same JSON file
+/// `DataSeeder` itself reads (see `FixtureLoader`).
 @Suite("DataSeeder")
 struct DataSeederTests {
 
@@ -32,11 +19,9 @@ struct DataSeederTests {
 
     init() async throws {
         fixture = try await SeededRepositoryFixture()
-        // Loading this can throw for real (a missing/malformed
-        // SeedFixture.json), and letting that propagate straight out of
-        // `init()` fails every test in this suite clearly — no need for
-        // the XCTest version's manual `XCTFail` + empty-fixture fallback
-        // dance that swallowed the underlying error.
+        // Letting a load failure (missing/malformed SeedFixture.json)
+        // propagate straight out of init() fails every test in this suite
+        // clearly.
         expectedFixture = try FixtureLoader.loadSeedFixture(named: SeedFixtureName.small)
     }
 
@@ -105,9 +90,8 @@ struct DataSeederTests {
                     Issue.record("'\(expectedMeter.name)' missing a reading dated \(expectedDate)")
                     continue
                 }
-                // Swift Testing has no built-in `accuracy:`-style tolerance
-                // assertion (unlike XCTAssertEqual), so the tolerance check
-                // is spelled out directly here.
+                // No built-in tolerance assertion, so the comparison is
+                // done manually within a small margin.
                 #expect(abs(actualKWh - expectedReading.kWh) <= 0.001)
             }
         }

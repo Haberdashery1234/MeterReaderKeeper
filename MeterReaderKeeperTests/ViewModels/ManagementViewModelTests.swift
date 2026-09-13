@@ -2,11 +2,6 @@
 //  ManagementViewModelTests.swift
 //  MeterReaderKeeperTests
 //
-//  Created on 8/27/26.
-//  Converted from XCTest to Swift Testing on 8/27/26.
-//  Converted to async on 8/27/26 when ManagementViewModel.loadData()
-//  became async (see "Proper concurrency" migration note).
-//
 
 import Testing
 import Foundation
@@ -65,10 +60,8 @@ struct ManagementViewModelTests {
 
     @Test("floorSections/meterSections group rows by building, in building order")
     func sectionsGroupRowsByBuilding() async throws {
-        // "Building A" sorts after "Building B" alphabetically... no —
-        // pick names that are NOT already in building order by insertion,
-        // so this actually exercises the "sections follow `buildings`'
-        // sorted order" behavior rather than passing by coincidence.
+        // Insert buildings out of alphabetical order so the assertion
+        // actually exercises sorting rather than passing by coincidence.
         let buildingB = try await repository.addBuilding(MRKBuildingInput(name: "Building B", numberOfFloors: 1, autoCreateFloors: true))
         let buildingA = try await repository.addBuilding(MRKBuildingInput(name: "Building A", numberOfFloors: 2, autoCreateFloors: true))
         _ = try await repository.addMeter(MRKMeterInput(name: "M1", description: "", imageData: Data(), floorID: buildingA.floors[0].id))

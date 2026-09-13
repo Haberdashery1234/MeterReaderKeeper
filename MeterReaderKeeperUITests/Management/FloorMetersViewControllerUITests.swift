@@ -2,22 +2,16 @@
 //  FloorMetersViewControllerUITests.swift
 //  MeterReaderKeeperUITests
 //
-//  Created 9/1/26 — this screen (added 8/28/26) had no UI test coverage
-//  yet. One file per view controller, mirroring the app target's own
-//  folder hierarchy under this target. Converted 9/2/26 to a mixed
-//  shared/isolated launch strategy — see "UI test performance: shared
-//  launches (2026-09-02)" in project memory.
-//
 
 import XCTest
 
 /// Mirrors `Source/Screens/Management/FloorMetersViewController.swift`.
 ///
-/// Four tests below (table shows, add button pre-selects floor, edit
-/// button opens Edit Floor, tapping a meter row opens Edit Meter) never
-/// mutate the fixture, so they share one seeded launch.
-/// `testSwipeToDeleteMeterRemovesItFromList` deletes a meter, so it keeps
-/// its own fresh, isolated launch exactly as before.
+/// The tests that check the table shows, the add button pre-selects the
+/// floor, the edit button opens Edit Floor, and tapping a meter row opens
+/// Edit Meter don't mutate the fixture, so they share one seeded launch.
+/// `testSwipeToDeleteMeterRemovesItFromList` deletes a meter, so it uses
+/// its own fresh, isolated launch.
 final class FloorMetersViewControllerUITests: XCTestCase {
 
     private static var sharedLauncher: UITestAppLauncher!

@@ -2,8 +2,6 @@
 //  XCUIElement+ClearText.swift
 //  MeterReaderKeeperUITests
 //
-//  Created on 8/28/26.
-//
 
 import XCTest
 

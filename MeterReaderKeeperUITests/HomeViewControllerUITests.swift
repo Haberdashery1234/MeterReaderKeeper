@@ -2,10 +2,6 @@
 //  HomeViewControllerUITests.swift
 //  MeterReaderKeeperUITests
 //
-//  Created on 8/28/26. Reorganized 9/1/26 into one UI test file per view
-//  controller, mirroring the app target's own folder hierarchy under this
-//  target (previously one flat "XxxScreenUITests" file per screen).
-//
 
 import XCTest
 

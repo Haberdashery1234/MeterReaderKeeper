@@ -2,10 +2,6 @@
 //  UITestAppLauncher.swift
 //  MeterReaderKeeperUITests
 //
-//  Created on 8/28/26 (UI test target initial build-out).
-//  Converted from Swift Testing to XCTest on 8/28/26, per Christian's
-//  request that the UI test target use only XCTest.
-//
 
 import XCTest
 
@@ -120,17 +116,16 @@ extension UITestAppLauncher {
     /// Recovers to the Home screen from wherever the app currently is —
     /// dismissing an open alert or sheet first, then popping navigation
     /// bars — so a test class sharing one seeded launch across several
-    /// test methods (see "UI test performance: shared launches
-    /// (2026-09-02)" in project memory) can reliably reset to a known
-    /// starting point before each test navigates back down on its own,
-    /// regardless of which screen — or failure state — the previous test
-    /// method left the app on.
+    /// test methods can reliably reset to a known starting point before
+    /// each test navigates back down on its own, regardless of which
+    /// screen — or failure state — the previous test method left the app
+    /// on.
     ///
     /// Only used by test classes where every shared test is confirmed
     /// non-mutating; a class with tests that save/delete data keeps those
-    /// specific tests on their own fresh, isolated launch instead (see
-    /// the mixed-file classes for examples), so this never has to reason
-    /// about restoring mutated data — only navigation position.
+    /// specific tests on their own fresh, isolated launch instead, so
+    /// this never has to reason about restoring mutated data — only
+    /// navigation position.
     ///
     /// Calls `app.activate()` first: an isolated launch elsewhere in the
     /// same test run (its own `XCUIApplication`, same simulator) can leave
@@ -190,27 +185,13 @@ extension UITestAppLauncher {
     /// tap on one of these labels passes straight through to that
     /// gesture recognizer instead of being consumed by anything else.
     ///
-    /// Originally added so a Save button on a tall form (Floor, Meter —
-    /// the ones with an image-picker section) wouldn't sit under an open
-    /// keyboard/picker and become briefly not-hittable; see "UI test
-    /// fix: keyboard/picker covering Save (2026-09-02)" in project
-    /// memory. Save later moved to the nav bar (2026-09-02), which
-    /// retired that specific hittability problem — but removing every
-    /// call site the same day caused a *different* regression: tapping
-    /// Save immediately after a `UIPickerView` selection (the
-    /// building/floor pickers used here, not the system keyboard) was
-    /// intermittently unreliable — the pop-back-to-Management transition
-    /// or a validation alert would sometimes never appear within the
-    /// test's wait window, and a failed attempt left the shared launcher
-    /// on a half-finished screen for whatever test ran next. Restored
-    /// 2026-09-02 for that reason: this call gives the picker's
-    /// dismissal a moment to actually settle before Save is tapped,
-    /// which building/floor-picker-driven forms (Floor, Meter, and any
-    /// helper that creates a meter) need — Building's own form (no
-    /// custom picker, just a `numberPad` field) and Reading's own Save
-    /// (a `decimalPad` field, no picker) haven't shown this failure mode
-    /// and don't call this. See "UI test flakiness: Save after a picker
-    /// selection (2026-09-02)" in project memory.
+    /// Gives a `UIPickerView` selection (the building/floor pickers used
+    /// here, not the system keyboard) a moment to settle before Save is
+    /// tapped — without it, tapping Save immediately after a picker
+    /// selection is intermittently unreliable. Needed by forms with a
+    /// custom picker (Floor, Meter, and any helper that creates a meter);
+    /// Building's form (a `numberPad` field) and Reading's Save (a
+    /// `decimalPad` field) don't use a picker and don't call this.
     static func dismissInputView(
         _ app: XCUIApplication,
         byTapping labelText: String,

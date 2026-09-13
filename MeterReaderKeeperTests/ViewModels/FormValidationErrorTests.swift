@@ -2,9 +2,6 @@
 //  FormValidationErrorTests.swift
 //  MeterReaderKeeperTests
 //
-//  Created on 8/27/26.
-//  Converted from XCTest to Swift Testing on 8/27/26.
-//
 
 import Testing
 @testable import MeterReaderKeeper

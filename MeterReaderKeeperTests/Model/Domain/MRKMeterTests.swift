@@ -2,9 +2,6 @@
 //  MRKMeterTests.swift
 //  MeterReaderKeeperTests
 //
-//  Created on 8/27/26.
-//  Converted from XCTest to Swift Testing on 8/27/26.
-//
 
 import Testing
 import Foundation
@@ -128,11 +125,9 @@ struct MRKMeterTests {
         #expect(meter.lastReadingSummary == "Never read")
     }
 
-    /// Unlike `makeMeter(latestReadingDate:)` above (used by the
-    /// isStale/daysSinceLastReading tests, which don't touch `readings`),
-    /// `lastReadingSummary` also needs `mostRecentReading` to be non-nil
-    /// (2026-08-28: it now includes the reading's value), so this helper
-    /// keeps `readings` and `latestReadingDate` consistent.
+    /// Unlike `makeMeter(latestReadingDate:)` above, `lastReadingSummary`
+    /// also needs `mostRecentReading` to be non-nil, so this helper keeps
+    /// `readings` and `latestReadingDate` consistent.
     private func makeMeterWithReading(date: Date, kWh: Double) -> MRKMeter {
         MRKMeter(
             id: UUID(), name: "M1", meterDescription: "", qrString: "",

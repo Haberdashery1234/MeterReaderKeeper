@@ -2,26 +2,17 @@
 //  AddEditBuildingViewControllerUITests.swift
 //  MeterReaderKeeperUITests
 //
-//  Created on 8/28/26. Reorganized 9/1/26 into one UI test file per view
-//  controller, mirroring the app target's own folder hierarchy under this
-//  target. Converted 9/2/26 to a mixed shared/isolated launch strategy —
-//  see "UI test performance: shared launches (2026-09-02)" in project
-//  memory.
-//
 
 import XCTest
 
 /// Mirrors `Source/Screens/Management/AddEditBuildingViewController.swift`.
 ///
-/// Three tests below (blank-name alert, no-delete-button-on-add,
-/// renaming-unsupported alert) never save or delete anything, so they
-/// share one seeded launch. The other three
-/// (`testSavingNewBuildingAddsItToList`, `testEditingFloorCountOnlySaves`,
-/// `testDeletingBuildingRemovesItFromList`) do mutate the fixture — in
-/// particular, `testDeletingBuildingRemovesItFromList` deletes "121
-/// Seaport", which several *other* files' tests also depend on existing
-/// — so each of those three keeps its own fresh, isolated launch exactly
-/// as before.
+/// The blank-name alert, no-delete-button-on-add, and renaming-unsupported
+/// tests don't save or delete anything, so they share one seeded launch.
+/// The tests that save a new building, edit the floor count, or delete a
+/// building mutate the fixture — deleting removes "121 Seaport", which
+/// other test files depend on existing — so each of those uses its own
+/// fresh, isolated launch.
 final class AddEditBuildingViewControllerUITests: XCTestCase {
 
     private static var sharedLauncher: UITestAppLauncher!

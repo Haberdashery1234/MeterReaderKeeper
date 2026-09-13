@@ -2,8 +2,6 @@
 //  FloorMetersViewModelTests.swift
 //  MeterReaderKeeperTests
 //
-//  Created on 8/28/26.
-//
 
 import Testing
 import Foundation

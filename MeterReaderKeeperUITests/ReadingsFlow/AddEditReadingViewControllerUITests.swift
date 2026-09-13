@@ -2,17 +2,6 @@
 //  AddEditReadingViewControllerUITests.swift
 //  MeterReaderKeeperUITests
 //
-//  Created on 8/28/26. Reorganized 9/1/26 into one UI test file per view
-//  controller, mirroring the app target's own folder hierarchy under this
-//  target. Fixed 9/2/26 — `openAddReading()` used to tap the first seeded
-//  meter and assume it opened "Add Reading". Every seeded meter actually
-//  already has a reading dated today (`SeedFixture.json`'s `daysAgo: 0`
-//  entry on all 708 meters), so that tap always opened "Edit Reading"
-//  instead — this whole suite was failing as a result (confirmed by
-//  Christian running it). Fixed by routing through a freshly-added meter
-//  (zero readings) instead, which genuinely reaches "Add Reading"; see the
-//  matching writeup in `ReadingsMainViewControllerUITests`.
-//
 
 import XCTest
 

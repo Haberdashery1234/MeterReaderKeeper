@@ -2,11 +2,6 @@
 //  AddEditBuildingViewModelTests.swift
 //  MeterReaderKeeperTests
 //
-//  Created on 8/27/26.
-//  Converted from XCTest to Swift Testing on 8/27/26.
-//  Converted to async throws on 8/27/26 when AddEditBuildingViewModel's
-//  save()/delete() became async (see "Proper concurrency" migration note).
-//
 
 import Testing
 import Foundation
@@ -46,9 +41,8 @@ struct AddEditBuildingViewModelTests {
         #expect(viewModel.screenTitle == "Edit Building")
         #expect(viewModel.initialNameText == "121 Seaport")
         #expect(viewModel.initialFloorsText == "5")
-        // Floor count is now editable on an existing building too — see
-        // "save increases floor count..."/"save decreases floor count..."
-        // below.
+        // Floor count is editable on an existing building — see the
+        // save-floor-count tests below.
         #expect(viewModel.isFloorsFieldEnabled)
     }
 

@@ -2,22 +2,15 @@
 //  AddEditMeterViewControllerUITests.swift
 //  MeterReaderKeeperUITests
 //
-//  Created on 8/28/26. Reorganized 9/1/26 into one UI test file per view
-//  controller, mirroring the app target's own folder hierarchy under this
-//  target. Converted 9/2/26 to a mixed shared/isolated launch strategy —
-//  see "UI test performance: shared launches (2026-09-02)" in project
-//  memory.
-//
 
 import XCTest
 
 /// Mirrors `Source/Screens/Management/AddEditMeterViewController.swift`.
 ///
-/// Three tests below (blank-name alert, no-delete-button-on-add, edit
-/// form pre-populates name) never save or delete anything, so they share
-/// one seeded launch. The other two (`testSavingNewMeterAddsItToList`,
-/// `testDeletingMeterPopsBackToManagement`) do mutate the fixture, so
-/// each keeps its own fresh, isolated launch exactly as before.
+/// The blank-name alert, no-delete-button-on-add, and edit-form
+/// pre-population tests don't save or delete anything, so they share one
+/// seeded launch. Saving a new meter and deleting a meter both mutate the
+/// fixture, so each of those uses its own fresh, isolated launch.
 final class AddEditMeterViewControllerUITests: XCTestCase {
 
     private static var sharedLauncher: UITestAppLauncher!

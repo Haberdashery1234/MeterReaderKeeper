@@ -2,27 +2,19 @@
 //  AddEditFloorViewControllerUITests.swift
 //  MeterReaderKeeperUITests
 //
-//  Created on 8/28/26. Reorganized 9/1/26 into one UI test file per view
-//  controller, mirroring the app target's own folder hierarchy under this
-//  target. Converted 9/2/26 to a mixed shared/isolated launch strategy —
-//  see "UI test performance: shared launches (2026-09-02)" in project
-//  memory.
-//
-//  There is no "Add Floor" entry point anywhere in the app's UI — floors
-//  are created only by setting a building's floor count (see
-//  `AddEditBuildingViewControllerUITests`). Tapping a floor row on
-//  Management opens the Floor Meters screen instead of this form directly
-//  (2026-08-28) — this form is reached from there via its Edit button, so
-//  these tests cover the edit flow exclusively, one tap further in than
-//  before.
-//
 
 import XCTest
 
+/// Mirrors `Source/Screens/Management/AddEditFloorViewController.swift`.
+///
+/// There is no "Add Floor" entry point in the app — floors are created by
+/// setting a building's floor count. This form is reached only via a
+/// floor's Edit button, so these tests cover editing only.
+///
 /// `testClearingFloorNumberShowsAlert` and `testEditFormPrePopulatesBuilding`
-/// never save anything, so they share one seeded launch.
-/// `testEditingFloorNumberUpdatesList` does save a floor-number change, so
-/// it keeps its own fresh, isolated launch exactly as before.
+/// don't save anything, so they share one seeded launch.
+/// `testEditingFloorNumberUpdatesList` saves a floor-number change, so it
+/// uses its own fresh, isolated launch.
 final class AddEditFloorViewControllerUITests: XCTestCase {
 
     private static var sharedLauncher: UITestAppLauncher!

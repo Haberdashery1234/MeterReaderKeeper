@@ -2,14 +2,6 @@
 //  HomeViewModelTests.swift
 //  MeterReaderKeeperTests
 //
-//  Created on 8/27/26.
-//  Converted from XCTest to Swift Testing on 8/27/26.
-//  Simplified on 8/27/26 when HomeViewModel's exportData/seedData dropped
-//  their completion-handler signatures for plain async throws (see
-//  "Proper concurrency" migration note) — the withCheckedThrowingContinuation
-//  bridging helpers this file used are gone; tests just `try await` the
-//  methods directly now.
-//
 
 import Testing
 import Foundation

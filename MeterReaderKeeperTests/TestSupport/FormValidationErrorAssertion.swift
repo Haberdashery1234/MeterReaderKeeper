@@ -2,12 +2,6 @@
 //  FormValidationErrorAssertion.swift
 //  MeterReaderKeeperTests
 //
-//  Created on 8/27/26.
-//  Replaces XCTestCase+FormValidationError.swift (deleted) as part of the
-//  XCTest -> Swift Testing migration, 8/27/26.
-//  Became async on 8/27/26 when every ViewModel's save()/delete() became
-//  async throws (see "Proper concurrency" migration note).
-//
 
 import Testing
 @testable import MeterReaderKeeper

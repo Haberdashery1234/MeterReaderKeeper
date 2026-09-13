@@ -2,11 +2,6 @@
 //  PreviousReadingsViewModelTests.swift
 //  MeterReaderKeeperTests
 //
-//  Created on 8/27/26.
-//  Converted from XCTest to Swift Testing on 8/27/26.
-//  Converted to async throws on 8/27/26 when PreviousReadingsViewModel.loadData()
-//  became async (see "Proper concurrency" migration note).
-//
 
 import Testing
 import Foundation

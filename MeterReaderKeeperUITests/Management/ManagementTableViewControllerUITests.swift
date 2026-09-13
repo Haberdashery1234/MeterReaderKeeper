@@ -2,12 +2,6 @@
 //  ManagementTableViewControllerUITests.swift
 //  MeterReaderKeeperUITests
 //
-//  Created on 8/28/26. Reorganized 9/1/26 into one UI test file per view
-//  controller, mirroring the app target's own folder hierarchy under this
-//  target. Converted 9/2/26 to a single shared seeded launch across the
-//  whole class — see "UI test performance: shared launches (2026-09-02)"
-//  in project memory.
-//
 
 import XCTest
 
@@ -93,7 +87,7 @@ final class ManagementTableViewControllerUITests: XCTestCase {
     }
 
     /// tapping a floor row opens the Floor Meters screen, not the floor's
-    /// own edit form (2026-08-28 change — see `FloorMetersViewControllerUITests`)
+    /// own edit form — see `FloorMetersViewControllerUITests`
     func testTappingFloorRowOpensFloorMeters() throws {
         let app = try openManagement()
         app.segmentedControls["Management.segmentedControl"].buttons["Floors"].tap()

@@ -2,40 +2,22 @@
 //  SeededRepositoryFixture.swift
 //  MeterReaderKeeperTests
 //
-//  Created on 8/27/26 (Swift Testing migration pilot; became the
-//  permanent replacement for SeededRepositoryTestCase once the XCTest ->
-//  Swift Testing migration finished the same day).
-//  init() became async throws on 8/27/26 when SwiftDataMeterRepository
-//  was converted to a ModelActor (see "Proper concurrency" migration note).
-//
 
 import Foundation
 @testable import MeterReaderKeeper
 
-/// Swift-Testing-idiomatic replacement for the now-deleted
-/// `SeededRepositoryTestCase` (an XCTest base class that both
-/// `SwiftDataMeterRepositoryTests` and `DataSeederTests` used to
-/// subclass).
+/// Seeds an in-memory repository with fixture data for use by a test
+/// suite.
 ///
-/// Swift Testing suites don't use XCTest's `setUp()`/`tearDown()`-via-
-/// subclassing convention — a suite type's own `init()` runs before each
-/// `@Test` in it (Swift Testing creates a fresh instance per test, the
-/// same per-test isolation `XCTestCase` gives via a fresh instance per
-/// test method), so shared "seed a store and hand back its contents"
-/// logic is expressed as a plain composed value instead of something to
-/// inherit from.
-///
-/// Usage: a suite type holds `let fixture: SeededRepositoryFixture`,
-/// created in its own `init() async throws { fixture = try await SeededRepositoryFixture() }`,
-/// and reads `fixture.repository` / `fixture.dataSeeder` / `fixture.seededBuildings`.
-/// Every suite that does this still gets its own fully independent
-/// in-memory store — nothing here is shared across tests, same as the
-/// XCTest version.
+/// A suite type holds `let fixture: SeededRepositoryFixture`, created in
+/// its own `init() async throws { fixture = try await SeededRepositoryFixture() }`,
+/// and reads `fixture.repository` / `fixture.dataSeeder` /
+/// `fixture.seededBuildings`. Each suite instance gets its own fully
+/// independent in-memory store.
 struct SeededRepositoryFixture {
 
-    /// Arbitrary but fixed — mirrors the old `SeededRepositoryTestCase.fixedSeed`
-    /// exactly; what matters is that it never changes, so the fixture data
-    /// it produces stays stable across test runs.
+    /// Arbitrary but fixed — what matters is that it never changes, so
+    /// the fixture data it produces stays stable across test runs.
     static let fixedSeed: UInt64 = 42
 
     let repository: SwiftDataMeterRepository

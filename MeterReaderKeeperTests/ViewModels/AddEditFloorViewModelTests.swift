@@ -2,12 +2,6 @@
 //  AddEditFloorViewModelTests.swift
 //  MeterReaderKeeperTests
 //
-//  Created on 8/27/26.
-//  Converted from XCTest to Swift Testing on 8/27/26.
-//  Converted to async throws on 8/27/26 when AddEditFloorViewModel's
-//  loadBuildings()/save() became async (see "Proper concurrency"
-//  migration note).
-//
 
 import Testing
 import Foundation

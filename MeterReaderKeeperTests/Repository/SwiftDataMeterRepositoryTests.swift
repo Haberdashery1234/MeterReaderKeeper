@@ -2,30 +2,14 @@
 //  SwiftDataMeterRepositoryTests.swift
 //  MeterReaderKeeperTests
 //
-//  Created on 8/27/26.
-//  Converted from XCTest to Swift Testing on 8/27/26 (migration pilot) —
-//  this was deliberately chosen as one of the two pilot files because it's
-//  the trickiest case: it used to inherit shared seeded-store setup from
-//  `SeededRepositoryTestCase`, an XCTestCase base class. Swift Testing
-//  doesn't have that inheritance convention, so this now *composes* a
-//  `SeededRepositoryFixture` (see TestSupport) instead of subclassing
-//  anything. See that type's doc comment for why.
-//  Converted to async throws on 8/27/26 when SwiftDataMeterRepository
-//  became a ModelActor (see "Proper concurrency" migration note) — this is
-//  the first real check (compiler included, once Christian builds this) of
-//  whether that actor conversion actually behaves the way it's assumed to.
-//
 
 import Testing
 import Foundation
 @testable import MeterReaderKeeper
 
 /// Exercises `SwiftDataMeterRepository` against `DataSeeder`'s fixture
-/// data. This was the first real check (compiler included) of whether the
-/// Core Data -> SwiftData migration's `@Relationship(inverse:)` cascade
-/// deletes, the `#Predicate` id lookups, and (now) the `@ModelActor`
-/// conversion actually behave the way the migration assumed they would —
-/// none of it had ever been built or run before these existed.
+/// data — cascade deletes, id lookups, and basic CRUD through the
+/// `@ModelActor`-backed repository.
 @Suite("SwiftDataMeterRepository")
 struct SwiftDataMeterRepositoryTests {
 
@@ -37,14 +21,9 @@ struct SwiftDataMeterRepositoryTests {
 
     @Test("getBuildings sorts by name")
     func getBuildingsSortsByName() {
-        // `getBuildings()` sorts via a SwiftData `SortDescriptor(\.name)`,
-        // which performs a natural/standard string comparison (embedded
-        // digit runs compare numerically, the same behavior as Finder
-        // filename sorting), not Swift's plain lexicographic `String.<`.
-        // For names like "16 Pinkham" / "121 Seaport" those two orderings
-        // disagree, so the expected order here must use
-        // `localizedStandardCompare` too, or this assertion is just wrong
-        // for any fixture with double- and triple-digit leading numbers.
+        // `getBuildings()` sorts using a natural/standard string comparison
+        // (`SortDescriptor(\.name)`), not plain lexicographic ordering, so
+        // the expected order here must also use `localizedStandardCompare`.
         let names = fixture.seededBuildings.map { $0.name }
         let naturallySorted = names.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
         #expect(names == naturallySorted)
@@ -158,11 +137,8 @@ struct SwiftDataMeterRepositoryTests {
         await #expect(throws: (any Error).self) { try await fixture.repository.updateReading(id: UUID(), kWh: 1) }
     }
 
-    /// Unlike every other test here, this one deliberately ignores
-    /// `fixture` and builds its own fresh, unseeded repository — merged in
-    /// from the old `Meter_Reader_KeeperTests.swift` boilerplate-turned-
-    /// smoke-test, which tested exactly this and had no home of its own
-    /// once the "one file per tested class" convention was adopted.
+    /// Unlike every other test here, this one builds its own fresh,
+    /// unseeded repository instead of using `fixture`.
     @Test("a fresh in-memory repository starts empty")
     func freshInMemoryRepositoryStartsEmpty() async throws {
         let freshRepository = SwiftDataMeterRepository(inMemory: true)

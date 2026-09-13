@@ -2,14 +2,6 @@
 //  MeterHistoryViewControllerUITests.swift
 //  MeterReaderKeeperUITests
 //
-//  Created 9/1/26 — this screen (added 8/28/26) had no UI test coverage
-//  yet, and no accessibility identifiers either; both were added together
-//  (see `MeterHistoryViewController.setupUI()`). One file per view
-//  controller, mirroring the app target's own folder hierarchy under this
-//  target. Converted 9/2/26 to a single shared seeded launch across the
-//  whole class — see "UI test performance: shared launches (2026-09-02)"
-//  in project memory.
-//
 
 import XCTest
 

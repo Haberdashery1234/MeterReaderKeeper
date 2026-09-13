@@ -2,23 +2,25 @@
 //  ReadingsMainViewControllerUITests.swift
 //  MeterReaderKeeperUITests
 //
-//  Created on 8/28/26. Reorganized 9/1/26 into one UI test file per view
-//  controller, mirroring the app target's own folder hierarchy under this
-//  target. Fixed 9/2/26 — see `testTappingSeededMeterOpensEditReading`.
-//  Converted 9/2/26 to a mixed shared/isolated launch strategy — see "UI
-//  test performance: shared launches (2026-09-02)" in project memory.
-//
 
 import XCTest
 
 /// Mirrors `Source/Screens/ReadingsFlow/ReadingsMainViewController.swift`.
 ///
-/// Five tests below (opens with floor/meters, tapping a seeded meter
-/// opens Edit Reading, scan-button alert, map-button alert, floor picker)
-/// never mutate the fixture, so they share one seeded launch via
-/// `openReadingsShared()`. `testTappingFreshlyAddedMeterOpensAddReading`
-/// creates a brand-new meter as part of what it's testing, so it keeps
-/// its own fresh, isolated launch, unchanged.
+/// The tests that check opening with a floor and meters, tapping a
+/// seeded meter, the scan-button alert, the map-button alert, and the
+/// floor picker don't mutate the fixture, so they share one seeded launch
+/// via `openReadingsShared()`. `testTappingFreshlyAddedMeterOpensAddReading`
+/// creates a brand-new meter as part of what it's testing, so it uses its
+/// own fresh, isolated launch.
+///
+/// `XCUIApplication.launch()` restarts whatever process currently backs
+/// its bundle ID rather than starting an independent one, so the
+/// isolated launch above replaces the process the shared launcher's
+/// `app` refers to. Any meter it adds to "121 Seaport" Floor 1 is
+/// therefore visible in the shared tests' table as well, which is why
+/// tests reading that table select a meter by name rather than by row
+/// position.
 final class ReadingsMainViewControllerUITests: XCTestCase {
 
     private static var sharedLauncher: UITestAppLauncher!
@@ -111,23 +113,18 @@ final class ReadingsMainViewControllerUITests: XCTestCase {
 
     /// tapping a seeded meter opens Edit Reading, not Add Reading.
     ///
-    /// Every meter in `SeedFixture.json` is seeded with a reading at
-    /// `daysAgo: 0` — dated *today* — as its most recent reading (verified
-    /// directly against the fixture: all 708 meters have one). Since
-    /// `ReadingsMainViewModel.readingRoute(forMeterAt:)` routes to `.edit`
-    /// whenever a reading already exists for today, tapping *any* seeded
-    /// meter always opens Edit Reading. The original version of this test
-    /// asserted the opposite ("every seeded reading is historical, so this
-    /// always opens Add Reading") — that assumption was simply wrong for
-    /// this fixture; found 2026-09-02 when the test failed. See
-    /// `testTappingFreshlyAddedMeterOpensAddReading` below for real
-    /// Add-route coverage, and `AddEditReadingViewControllerUITests` for
-    /// the matching fix there.
+    /// Every meter in `SeedFixture.json` is seeded with a reading dated
+    /// today, so `ReadingsMainViewModel.readingRoute(forMeterAt:)` always
+    /// routes an existing meter to `.edit`. See
+    /// `testTappingFreshlyAddedMeterOpensAddReading` below for the
+    /// `.add`-route coverage. Selects "sm-b1f1m1" by name rather than row
+    /// position — see the class doc comment above.
     func testTappingSeededMeterOpensEditReading() throws {
         let app = try openReadingsShared()
         let table = app.tables["ReadingsMain.tableView"]
-        try requireUITest(table.cells.firstMatch.waitForExistence(timeout: 5), "No meter rows appeared")
-        table.cells.firstMatch.tap()
+        let meterRow = table.staticTexts["sm-b1f1m1"]
+        try requireUITest(meterRow.waitForExistence(timeout: 5), "sm-b1f1m1 row never appeared")
+        meterRow.tap()
 
         try requireUITest(app.navigationBars["Edit Reading"].waitForExistence(timeout: 5), "Edit Reading screen never appeared")
         // Edit Reading pre-fills the existing (today's) reading value,
@@ -141,11 +138,13 @@ final class ReadingsMainViewControllerUITests: XCTestCase {
     /// the counterpart to `testTappingSeededMeterOpensEditReading` above,
     /// covering the other branch of `readingRoute(forMeterAt:)`. Uses its
     /// own fresh, isolated launch (not the class's shared one) since
-    /// creating a new meter is itself a mutation.
+    /// creating a new meter is itself a mutation. Named `"zz-..."` so it
+    /// sorts after every `"sm-b1f1mN"` fixture meter — see the class doc
+    /// comment above.
     func testTappingFreshlyAddedMeterOpensAddReading() throws {
         let launcher = try UITestAppLauncher(seeded: true)
         let app = launcher.app
-        try addUnreadMeter(named: "Unread Test Meter", on: app)
+        try addUnreadMeter(named: "zz-Unread Test Meter", on: app)
 
         app.buttons["Take Readings"].tap()
         let sheet = app.sheets["Select Building"]
@@ -154,8 +153,8 @@ final class ReadingsMainViewControllerUITests: XCTestCase {
 
         let table = app.tables["ReadingsMain.tableView"]
         try requireUITest(table.waitForExistence(timeout: 5), "ReadingsMain.tableView never appeared")
-        let newMeterRow = table.staticTexts["Unread Test Meter"]
-        try requireUITest(newMeterRow.waitForExistence(timeout: 5), "Unread Test Meter row never appeared")
+        let newMeterRow = table.staticTexts["zz-Unread Test Meter"]
+        try requireUITest(newMeterRow.waitForExistence(timeout: 5), "zz-Unread Test Meter row never appeared")
         newMeterRow.tap()
 
         XCTAssertTrue(app.navigationBars["Add Reading"].waitForExistence(timeout: 5))

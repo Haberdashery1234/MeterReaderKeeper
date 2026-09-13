@@ -2,9 +2,6 @@
 //  MRKReadingTests.swift
 //  MeterReaderKeeperTests
 //
-//  Created on 8/27/26.
-//  Converted from XCTest to Swift Testing on 8/27/26 (migration pilot).
-//
 
 import Testing
 import Foundation
@@ -12,12 +9,6 @@ import Foundation
 
 /// Mirrors `Source/Model/Domain/MRKReading.swift`, which declares both
 /// `MRKReading` and `MRKReadingInput` — this file tests both.
-///
-/// Swift Testing pilot note: unlike the `XCTAssertNoThrow` cases in the
-/// original XCTest version, a "should not throw" assertion here is just a
-/// plain `try` call inside a `throws` `@Test` function — any error
-/// propagating out of the test body fails it automatically, so there's no
-/// separate no-throw assertion macro needed.
 @Suite("MRKReading")
 struct MRKReadingTests {
 
@@ -73,14 +64,14 @@ struct MRKReadingUsageTests {
         #expect(MRKReading.usage(from: previous, to: current) == 0)
     }
 
-    @Test("a drop from a 4-digit reading rolls over at 10,000 — Christian's example")
+    @Test("a drop from a 4-digit reading rolls over at 10,000")
     func usageHandlesFourDigitRollover() {
         let previous = reading(9997, daysAgo: 1)
         let current = reading(200, daysAgo: 0)
         #expect(MRKReading.usage(from: previous, to: current) == 203)
     }
 
-    @Test("a drop from a 7-digit reading rolls over at 10,000,000 — Christian's example")
+    @Test("a drop from a 7-digit reading rolls over at 10,000,000")
     func usageHandlesSevenDigitRollover() {
         let previous = reading(9_999_997, daysAgo: 1)
         let current = reading(200, daysAgo: 0)
