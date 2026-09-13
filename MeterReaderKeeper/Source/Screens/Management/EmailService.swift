@@ -7,6 +7,7 @@
 
 import UIKit
 import MessageUI
+import os
 
 /// Presents `MFMailComposeViewController` to send the app's plist/CSV
 /// exports as email attachments. A singleton (`shared`) since only one
@@ -49,7 +50,7 @@ class EmailService: NSObject {
         completion: ((MFMailComposeResult, Error?) -> Void)? = nil
     ) {
         guard MFMailComposeViewController.canSendMail() else {
-            print("Mail services not available")
+            AppLogger.email.error("Mail services not available")
             showEmailUnavailableAlert(from: viewController)
             completion?(.failed, EmailError.mailUnavailable)
             return
@@ -68,11 +69,11 @@ class EmailService: NSObject {
            let mimeType = mimeType,
            let fileName = fileName {
             mail.addAttachmentData(attachment, mimeType: mimeType, fileName: fileName)
-            print("Email prepared with attachment: \(fileName) (\(attachment.count) bytes)")
+            AppLogger.email.debug("Email prepared with attachment: \(fileName, privacy: .public) (\(attachment.count) bytes)")
         }
         
         viewController.present(mail, animated: true)
-        print("Presented email composer")
+        AppLogger.email.debug("Presented email composer")
     }
     
     /// Convenience method for sending export plist via email
@@ -140,20 +141,20 @@ extension EmailService: MFMailComposeViewControllerDelegate {
         error: Error?
     ) {
         if let error = error {
-            print("Mail compose error: \(error.localizedDescription)")
+            AppLogger.email.error("Mail compose error: \(error.localizedDescription, privacy: .public)")
         }
         
         switch result {
         case .sent:
-            print("Email sent successfully")
+            AppLogger.email.info("Email sent successfully")
         case .saved:
-            print("Email saved as draft")
+            AppLogger.email.info("Email saved as draft")
         case .cancelled:
-            print("Email cancelled by user")
+            AppLogger.email.info("Email cancelled by user")
         case .failed:
-            print("Email send failed")
+            AppLogger.email.error("Email send failed")
         @unknown default:
-            print("Unknown mail compose result")
+            AppLogger.email.warning("Unknown mail compose result")
         }
         
         controller.dismiss(animated: true) { [weak self] in

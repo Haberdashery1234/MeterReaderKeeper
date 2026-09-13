@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os
 
 /// Business logic and repository access for the Add/Edit Floor screen.
 ///
@@ -139,7 +140,7 @@ final class AddEditFloorViewModel {
             saved = try await repository.addFloor(input)
         }
 
-        print("Saved floor \(floorNumber) for building \(building.name)")
+        AppLogger.viewModel.debug("Saved floor \(floorNumber) for building \(building.name, privacy: .public)")
         return saved
     }
 

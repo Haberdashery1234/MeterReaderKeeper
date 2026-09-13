@@ -21,6 +21,7 @@
 #if DEBUG || TESTING
 
 import Foundation
+import os
 
 /// Bundle resource names (no extension) for the fixture files `DataSeeder`
 /// can load. `full` is what the "Seed Test Data" button seeds for manual
@@ -79,7 +80,7 @@ class DataSeeder {
     /// Makes one repository call per building/floor/meter/reading,
     /// batched under a single SwiftData save via `withBatchedSave`.
     func seedData(fixtureName: String = SeedFixtureName.full) async throws {
-        print("Starting data seeding...")
+        AppLogger.dataSeeding.info("Starting data seeding...")
 
         let fixture = try Self.loadFixture(named: fixtureName)
         let today = Calendar.current.startOfDay(for: Date())
@@ -109,7 +110,7 @@ class DataSeeder {
             }
         }
 
-        print("Data seeding complete.")
+        AppLogger.dataSeeding.info("Data seeding complete.")
     }
 
     /// Adds one additional reading, dated today, to every existing meter —

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os
 
 /// Business logic and repository access for the Previous Readings screen:
 /// loading every reading across all buildings, the four cascading filter
@@ -135,7 +136,7 @@ final class PreviousReadingsViewModel {
         meterContext = context
         dates = allReadingDates.sorted(by: >)
 
-        print("Loaded \(self.buildings.count) buildings and \(self.dates.count) dates")
+        AppLogger.viewModel.debug("Loaded \(self.buildings.count) buildings and \(self.dates.count) dates")
     }
 
     /// Every reading across every building, unfiltered and unsorted.
@@ -213,7 +214,7 @@ final class PreviousReadingsViewModel {
         readings.sort { $0.date > $1.date }
         meterSummaries = Self.summarize(readings, displayInfo: meterDisplayInfo, context: meterContext)
 
-        print("Applied filters, showing \(self.readings.count) readings across \(self.meterSummaries.count) meters")
+        AppLogger.viewModel.debug("Applied filters, showing \(self.readings.count) readings across \(self.meterSummaries.count) meters")
     }
 
     /// Groups `readings` by meter, keeping each meter's most recent reading

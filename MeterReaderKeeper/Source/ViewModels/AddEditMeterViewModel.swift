@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os
 
 /// Business logic and repository access for the Add/Edit Meter screen.
 ///
@@ -96,7 +97,7 @@ final class AddEditMeterViewModel {
         selectedBuilding = building
         floors = building.sortedFloors
         selectedFloor = nil
-        print("Building selected: \(building.name)")
+        AppLogger.viewModel.debug("Building selected: \(building.name, privacy: .public)")
         return building
     }
 
@@ -109,7 +110,7 @@ final class AddEditMeterViewModel {
         guard floors.indices.contains(row) else { return nil }
         let floor = floors[row]
         selectedFloor = floor
-        print("Floor selected: \(floor.number)")
+        AppLogger.viewModel.debug("Floor selected: \(floor.number)")
         return floor
     }
 
@@ -187,10 +188,10 @@ final class AddEditMeterViewModel {
         let saved: MRKMeter
         if let existingMeter = meter {
             saved = try await repository.updateMeter(id: existingMeter.id, input: input)
-            print("Updated meter: \(name)")
+            AppLogger.viewModel.debug("Updated meter: \(name, privacy: .public)")
         } else {
             saved = try await repository.addMeter(input)
-            print("Created meter: \(name)")
+            AppLogger.viewModel.debug("Created meter: \(name, privacy: .public)")
         }
         return saved
     }
@@ -211,10 +212,10 @@ final class AddEditMeterViewModel {
     /// no-op when adding a new meter (`meter == nil`).
     func delete() async throws {
         guard let meter = meter else {
-            print("Delete requested but no meter to delete")
+            AppLogger.viewModel.warning("Delete requested but no meter to delete")
             return
         }
         try await repository.deleteMeter(id: meter.id)
-        print("Deleted meter: \(meter.name)")
+        AppLogger.viewModel.debug("Deleted meter: \(meter.name, privacy: .public)")
     }
 }

@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import os
 
 /// Business logic and repository access for the Home screen.
 ///
@@ -243,11 +244,11 @@ final class HomeViewModel {
                 ?? ProcessInfo.processInfo.environment["UITEST_FIXTURE_NAME"]
                 ?? SeedFixtureName.full
             try await dataSeeder.seedData(fixtureName: fixtureName)
-            print("Seeded initial test data")
+            AppLogger.viewModel.info("Seeded initial test data")
             return .seededInitialData
         } else {
             try await dataSeeder.seedMoreReadings()
-            print("Seeded additional readings")
+            AppLogger.viewModel.info("Seeded additional readings")
             return .addedMoreReadings
         }
     }

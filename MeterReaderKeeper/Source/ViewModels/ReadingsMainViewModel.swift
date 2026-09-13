@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os
 
 /// Business logic and repository access for the "take readings" screen for
 /// one building: the floor picker's data, the meter list for the selected
@@ -50,7 +51,7 @@ final class ReadingsMainViewModel {
         self.floors = sortedFloors
         self.floor = sortedFloors.first
         self.meters = sortedFloors.first?.sortedMeters ?? []
-        print("Loaded \(sortedFloors.count) floors for building \(building.name)")
+        AppLogger.viewModel.debug("Loaded \(sortedFloors.count) floors for building \(building.name, privacy: .public)")
     }
 
     /// Selects the floor at `row` in `floors`, reloading `meters` for it.
@@ -63,7 +64,7 @@ final class ReadingsMainViewModel {
         let selected = floors[row]
         floor = selected
         meters = selected.sortedMeters
-        print("Selected floor: \(selected.number)")
+        AppLogger.viewModel.debug("Selected floor: \(selected.number)")
         return selected
     }
 

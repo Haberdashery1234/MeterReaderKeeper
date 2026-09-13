@@ -8,6 +8,7 @@
 
 import Foundation
 import Combine
+import os
 
 /// Business logic and repository access for the Management screen (the
 /// segmented Buildings/Floors/Meters list).
@@ -112,6 +113,6 @@ final class ManagementViewModel {
             }
         }
 
-        print("Loaded \(self.buildings.count) buildings, \(self.floorItems.count) floors, \(self.meterItems.count) meters")
+        AppLogger.viewModel.debug("Loaded \(self.buildings.count) buildings, \(self.floorItems.count) floors, \(self.meterItems.count) meters")
     }
 }

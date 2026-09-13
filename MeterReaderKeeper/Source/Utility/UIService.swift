@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import os
 
 /// Image-compression helpers used when building the app's data export
 /// (building/floor/meter photos are size-capped before being embedded in
@@ -22,7 +23,7 @@ class UIService {
     /// - Returns: Compressed image data, or nil if compression fails
     func getExportSizeImageData(from imageData: Data, ofMaxSizeMB maxSize: Float) -> Data? {
         guard let image = UIImage(data: imageData) else {
-            print("Failed to create UIImage from data")
+            AppLogger.imageProcessing.error("Failed to create UIImage from data")
             return Data()
         }
         return getExportSizeImage(from: image, ofMaxSizeMB: maxSize)
@@ -38,7 +39,7 @@ class UIService {
     /// or the best achievable JPEG is still larger than the limit.
     func getExportSizeImage(from image: UIImage, ofMaxSizeMB: Float) -> Data? {
         guard let pngData = image.pngData() else {
-            print("Failed to generate PNG data from image")
+            AppLogger.imageProcessing.error("Failed to generate PNG data from image")
             return Data()
         }
         
@@ -46,7 +47,7 @@ class UIService {
         
         // If image is already small enough, return PNG data
         if pngData.count <= maxSizeBytes {
-            print("Image already within size limit (\(pngData.count) bytes)")
+            AppLogger.imageProcessing.debug("Image already within size limit (\(pngData.count) bytes)")
             return pngData
         }
         
@@ -55,7 +56,7 @@ class UIService {
         var compressedData: Data?
         var currentSize = pngData.count
         
-        print("Starting compression from \(pngData.count) bytes to target \(maxSizeBytes) bytes")
+        AppLogger.imageProcessing.debug("Starting compression from \(pngData.count) bytes to target \(maxSizeBytes) bytes")
         
         // Binary search for optimal compression quality
         var minQuality: CGFloat = 0.0
@@ -65,12 +66,12 @@ class UIService {
             compressionQuality = (minQuality + maxQuality) / 2
             
             guard let data = image.jpegData(compressionQuality: compressionQuality) else {
-                print("Failed to generate JPEG data at quality \(compressionQuality)")
+                AppLogger.imageProcessing.error("Failed to generate JPEG data at quality \(compressionQuality)")
                 return compressedData ?? pngData
             }
             
             currentSize = data.count
-            print("Quality: \(compressionQuality), Size: \(currentSize) bytes")
+            AppLogger.imageProcessing.debug("Quality: \(compressionQuality), Size: \(currentSize) bytes")
             
             if currentSize <= maxSizeBytes {
                 compressedData = data
@@ -81,16 +82,16 @@ class UIService {
             
             // Safety check: if we can't compress further
             if compressionQuality < 0.05 {
-                print("Minimum compression reached, image may exceed size limit")
+                AppLogger.imageProcessing.warning("Minimum compression reached, image may exceed size limit")
                 break
             }
         }
         
         if let finalData = compressedData {
-            print("Compression complete: \(pngData.count) → \(finalData.count) bytes")
+            AppLogger.imageProcessing.debug("Compression complete: \(pngData.count) → \(finalData.count) bytes")
             return finalData
         } else {
-            print("Could not compress image below size limit, returning original")
+            AppLogger.imageProcessing.warning("Could not compress image below size limit, returning original")
             return pngData
         }
     }

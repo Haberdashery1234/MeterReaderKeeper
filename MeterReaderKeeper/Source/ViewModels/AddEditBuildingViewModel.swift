@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os
 
 /// Business logic and repository access for the Add/Edit Building screen.
 /// Validation, duplicate-name checking, and the save/delete calls into the
@@ -199,10 +200,10 @@ final class AddEditBuildingViewModel {
     /// A no-op when adding a new building (`building == nil`).
     func delete() async throws {
         guard let building = building else {
-            print("Delete requested but no building to delete")
+            AppLogger.viewModel.warning("Delete requested but no building to delete")
             return
         }
         try await repository.deleteBuilding(id: building.id)
-        print("Deleted building: \(building.name)")
+        AppLogger.viewModel.debug("Deleted building: \(building.name, privacy: .public)")
     }
 }
