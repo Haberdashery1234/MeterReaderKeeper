@@ -47,14 +47,14 @@ class AddEditReadingViewController: UIViewController {
     
     private let buildingNameLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 20, weight: .bold)
+        AppStyle.applyScaledFont(to: label, size: 20, weight: .bold, relativeTo: .title3)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
     private let floorLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 16, weight: .medium)
+        AppStyle.applyScaledFont(to: label, size: 16, weight: .medium, relativeTo: .callout)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -62,7 +62,7 @@ class AddEditReadingViewController: UIViewController {
     
     private let descriptionLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 15)
+        AppStyle.applyScaledFont(to: label, size: 15, relativeTo: .subheadline)
         label.textColor = .label
         label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -72,7 +72,7 @@ class AddEditReadingViewController: UIViewController {
     private let readingTitleLabel: UILabel = {
         let label = UILabel()
         label.text = "Reading (kWh)"
-        label.font = .systemFont(ofSize: 16, weight: .medium)
+        AppStyle.applyScaledFont(to: label, size: 16, weight: .medium, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()

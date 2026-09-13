@@ -53,7 +53,7 @@ class HomeViewController: UIViewController {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Meter Reader Keeper"
-        label.font = .systemFont(ofSize: 34, weight: .heavy)
+        AppStyle.applyScaledFont(to: label, size: 34, weight: .heavy, relativeTo: .largeTitle)
         label.textColor = .label
         label.numberOfLines = 0
         return label
@@ -62,7 +62,7 @@ class HomeViewController: UIViewController {
     private let subtitleLabel: UILabel = {
         let label = UILabel()
         label.text = "Manage building meters and readings"
-        label.font = .systemFont(ofSize: 15, weight: .regular)
+        AppStyle.applyScaledFont(to: label, size: 15, weight: .regular, relativeTo: .subheadline)
         label.textColor = .secondaryLabel
         label.numberOfLines = 0
         return label
@@ -187,7 +187,7 @@ class HomeViewController: UIViewController {
     private lazy var seedDataButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Seed Test Data", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 13, weight: .regular)
+        AppStyle.applyScaledFont(to: button, size: 13, weight: .regular, relativeTo: .footnote)
         button.setTitleColor(.tertiaryLabel, for: .normal)
         button.addTarget(self, action: #selector(seedDataTapped), for: .touchUpInside)
         return button
@@ -296,7 +296,7 @@ class HomeViewController: UIViewController {
 
         let label = UILabel()
         label.text = title
-        label.font = .systemFont(ofSize: 17, weight: .semibold)
+        AppStyle.applyScaledFont(to: label, size: 17, weight: .semibold, relativeTo: .headline)
         label.textColor = .label
         label.isUserInteractionEnabled = false
         label.isAccessibilityElement = false
@@ -322,7 +322,7 @@ class HomeViewController: UIViewController {
     /// A large, centered, auto-shrinking value label for one "At a Glance" stat.
     private static func makeStatValueLabel(fontSize: CGFloat = 22) -> UILabel {
         let label = UILabel()
-        label.font = .systemFont(ofSize: fontSize, weight: .bold)
+        AppStyle.applyScaledFont(to: label, size: fontSize, weight: .bold, relativeTo: .title2)
         label.textColor = .label
         label.textAlignment = .center
         label.adjustsFontSizeToFitWidth = true
@@ -335,7 +335,7 @@ class HomeViewController: UIViewController {
     private func makeStatColumn(valueLabel: UILabel, caption: String) -> UIView {
         let captionLabel = UILabel()
         captionLabel.text = caption
-        captionLabel.font = .systemFont(ofSize: 12, weight: .regular)
+        AppStyle.applyScaledFont(to: captionLabel, size: 12, weight: .regular, relativeTo: .caption1)
         captionLabel.textColor = .secondaryLabel
         captionLabel.textAlignment = .center
 
@@ -352,7 +352,7 @@ class HomeViewController: UIViewController {
     private func makeOverdueRow(_ item: HomeViewModel.OverdueMeterSummary) -> UIView {
         let locationLabel = UILabel()
         locationLabel.text = item.label
-        locationLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        AppStyle.applyScaledFont(to: locationLabel, size: 14, weight: .medium, relativeTo: .footnote)
         locationLabel.textColor = .label
         locationLabel.lineBreakMode = .byTruncatingTail
         locationLabel.isAccessibilityElement = false
@@ -360,7 +360,7 @@ class HomeViewController: UIViewController {
         let daysDescription = item.daysSinceReading.map { "\($0) days since last reading" } ?? "Never read"
         let daysLabel = UILabel()
         daysLabel.text = item.daysSinceReading.map { "\($0)d" } ?? "Never"
-        daysLabel.font = .systemFont(ofSize: 13, weight: .semibold)
+        AppStyle.applyScaledFont(to: daysLabel, size: 13, weight: .semibold, relativeTo: .footnote)
         daysLabel.textColor = .systemOrange
         daysLabel.isAccessibilityElement = false
 

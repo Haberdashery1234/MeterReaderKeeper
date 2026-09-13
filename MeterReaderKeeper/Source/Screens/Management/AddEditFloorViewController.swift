@@ -40,7 +40,7 @@ class AddEditFloorViewController: UIViewController {
     private let buildingLabel: UILabel = {
         let label = UILabel()
         label.text = "Building"
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        AppStyle.applyScaledFont(to: label, size: 16, weight: .semibold, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -58,7 +58,7 @@ class AddEditFloorViewController: UIViewController {
     private let floorLabel: UILabel = {
         let label = UILabel()
         label.text = "Floor Number"
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        AppStyle.applyScaledFont(to: label, size: 16, weight: .semibold, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -76,7 +76,7 @@ class AddEditFloorViewController: UIViewController {
     private let mapLabel: UILabel = {
         let label = UILabel()
         label.text = "Floor Map (Optional)"
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        AppStyle.applyScaledFont(to: label, size: 16, weight: .semibold, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -92,7 +92,7 @@ class AddEditFloorViewController: UIViewController {
     private lazy var addMapButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Choose Map Image", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        AppStyle.applyScaledFont(to: button, size: 16, weight: .medium, relativeTo: .callout)
         button.setImage(UIImage(systemName: "photo"), for: .normal)
         button.addTarget(self, action: #selector(addMapTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false

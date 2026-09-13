@@ -15,14 +15,14 @@ class ReadingMeterTableViewCell: UITableViewCell {
     // MARK: - UI Components
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 16, weight: .medium)
+        AppStyle.applyScaledFont(to: label, size: 16, weight: .medium, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
     private lazy var locationLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 14)
+        AppStyle.applyScaledFont(to: label, size: 14, relativeTo: .footnote)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         return label

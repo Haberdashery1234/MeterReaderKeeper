@@ -27,6 +27,34 @@ enum AppStyle {
         UIColor(named: "AccentColor") ?? .systemBlue
     }
 
+    /// Returns a system font that scales with the user's preferred text
+    /// size (Dynamic Type): wraps a fixed-size/weight system font in
+    /// `UIFontMetrics` relative to `textStyle`, so it grows or shrinks the
+    /// same way built-in Apple text of that style would. Pair with
+    /// `applyScaledFont(to:...)` below when setting a label/button's font
+    /// directly also needs `adjustsFontForContentSizeCategory` turned on.
+    static func scaledFont(size: CGFloat, weight: UIFont.Weight = .regular, relativeTo textStyle: UIFont.TextStyle = .body) -> UIFont {
+        let baseFont = UIFont.systemFont(ofSize: size, weight: weight)
+        return UIFontMetrics(forTextStyle: textStyle).scaledFont(for: baseFont)
+    }
+
+    /// Sets `label`'s font to a Dynamic-Type-scaling font (see
+    /// `scaledFont(size:weight:relativeTo:)`) and turns on
+    /// `adjustsFontForContentSizeCategory`, so it keeps scaling if the
+    /// setting changes while the label is on screen.
+    static func applyScaledFont(to label: UILabel, size: CGFloat, weight: UIFont.Weight = .regular, relativeTo textStyle: UIFont.TextStyle = .body) {
+        label.font = scaledFont(size: size, weight: weight, relativeTo: textStyle)
+        label.adjustsFontForContentSizeCategory = true
+    }
+
+    /// Sets `button`'s title label font to a Dynamic-Type-scaling font and
+    /// turns on `adjustsFontForContentSizeCategory`, mirroring
+    /// `applyScaledFont(to: UILabel...)` above.
+    static func applyScaledFont(to button: UIButton, size: CGFloat, weight: UIFont.Weight = .regular, relativeTo textStyle: UIFont.TextStyle = .body) {
+        button.titleLabel?.font = scaledFont(size: size, weight: weight, relativeTo: textStyle)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
+    }
+
     /// Applies the "soft card" look (used throughout the Home redesign) to
     /// an existing view: adaptive white background, hairline border,
     /// subtle shadow, rounded corners. Deliberately does not set
@@ -74,7 +102,7 @@ enum AppStyle {
     static func makeSectionHeaderLabel(_ text: String) -> UILabel {
         let label = UILabel()
         label.text = text.uppercased()
-        label.font = .systemFont(ofSize: 13, weight: .semibold)
+        applyScaledFont(to: label, size: 13, weight: .semibold, relativeTo: .footnote)
         label.textColor = .secondaryLabel
         return label
     }
@@ -84,7 +112,7 @@ enum AppStyle {
     static func styleAsPrimaryButton(_ button: UIButton) {
         button.backgroundColor = accent
         button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
+        applyScaledFont(to: button, size: 18, weight: .semibold, relativeTo: .headline)
         button.layer.cornerRadius = 12
     }
 

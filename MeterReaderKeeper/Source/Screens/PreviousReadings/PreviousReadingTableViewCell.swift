@@ -17,14 +17,14 @@ class PreviousReadingTableViewCell: UITableViewCell {
     // MARK: - UI Components
     private lazy var readingMeterLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        AppStyle.applyScaledFont(to: label, size: 16, weight: .semibold, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
     private lazy var readingLocationLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 14)
+        AppStyle.applyScaledFont(to: label, size: 14, relativeTo: .footnote)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -32,7 +32,7 @@ class PreviousReadingTableViewCell: UITableViewCell {
     
     private lazy var readingValueLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 15, weight: .medium)
+        AppStyle.applyScaledFont(to: label, size: 15, weight: .medium, relativeTo: .subheadline)
         label.textAlignment = .right
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -40,7 +40,7 @@ class PreviousReadingTableViewCell: UITableViewCell {
     
     private lazy var readingDateLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 13)
+        AppStyle.applyScaledFont(to: label, size: 13, relativeTo: .footnote)
         label.textColor = .secondaryLabel
         label.textAlignment = .right
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -49,7 +49,7 @@ class PreviousReadingTableViewCell: UITableViewCell {
     
     private lazy var readingCountLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 12)
+        AppStyle.applyScaledFont(to: label, size: 12, relativeTo: .caption1)
         label.textColor = .tertiaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         return label

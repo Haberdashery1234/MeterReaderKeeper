@@ -36,7 +36,7 @@ class AddEditMeterViewController: UIViewController {
     private let buildingLabel: UILabel = {
         let label = UILabel()
         label.text = "Building"
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        AppStyle.applyScaledFont(to: label, size: 16, weight: .semibold, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -54,7 +54,7 @@ class AddEditMeterViewController: UIViewController {
     private let floorLabel: UILabel = {
         let label = UILabel()
         label.text = "Floor"
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        AppStyle.applyScaledFont(to: label, size: 16, weight: .semibold, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -72,7 +72,7 @@ class AddEditMeterViewController: UIViewController {
     private let nameLabel: UILabel = {
         let label = UILabel()
         label.text = "Meter Name"
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        AppStyle.applyScaledFont(to: label, size: 16, weight: .semibold, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -92,7 +92,7 @@ class AddEditMeterViewController: UIViewController {
     private let descriptionLabel: UILabel = {
         let label = UILabel()
         label.text = "Description"
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        AppStyle.applyScaledFont(to: label, size: 16, weight: .semibold, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -111,7 +111,7 @@ class AddEditMeterViewController: UIViewController {
     private let imageLabel: UILabel = {
         let label = UILabel()
         label.text = "Meter Image (Optional)"
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        AppStyle.applyScaledFont(to: label, size: 16, weight: .semibold, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -127,7 +127,7 @@ class AddEditMeterViewController: UIViewController {
     private lazy var addImageButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Choose Image", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        AppStyle.applyScaledFont(to: button, size: 16, weight: .medium, relativeTo: .callout)
         button.setImage(UIImage(systemName: "photo"), for: .normal)
         button.addTarget(self, action: #selector(addImageTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -137,7 +137,7 @@ class AddEditMeterViewController: UIViewController {
     private lazy var deleteButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Delete Meter", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        AppStyle.applyScaledFont(to: button, size: 16, weight: .medium, relativeTo: .callout)
         button.setTitleColor(.systemRed, for: .normal)
         button.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false

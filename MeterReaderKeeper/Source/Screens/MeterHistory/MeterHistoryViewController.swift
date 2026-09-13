@@ -83,7 +83,7 @@ class MeterHistoryViewController: UIViewController {
 
     private let latestReadingValueLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 28, weight: .bold)
+        AppStyle.applyScaledFont(to: label, size: 28, weight: .bold, relativeTo: .title1)
         label.textColor = .label
         label.textAlignment = .center
         label.adjustsFontSizeToFitWidth = true
@@ -95,7 +95,7 @@ class MeterHistoryViewController: UIViewController {
     private let latestReadingCaptionLabel: UILabel = {
         let label = UILabel()
         label.text = "Latest Reading"
-        label.font = .systemFont(ofSize: 12, weight: .regular)
+        AppStyle.applyScaledFont(to: label, size: 12, weight: .regular, relativeTo: .caption1)
         label.textColor = .secondaryLabel
         label.textAlignment = .center
         return label
@@ -103,7 +103,7 @@ class MeterHistoryViewController: UIViewController {
 
     private let latestReadingDateLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 12, weight: .regular)
+        AppStyle.applyScaledFont(to: label, size: 12, weight: .regular, relativeTo: .caption1)
         label.textColor = .tertiaryLabel
         label.textAlignment = .center
         return label
@@ -149,7 +149,7 @@ class MeterHistoryViewController: UIViewController {
     private let noReadingsLabel: UILabel = {
         let label = UILabel()
         label.text = "No readings recorded yet."
-        label.font = .systemFont(ofSize: 14)
+        AppStyle.applyScaledFont(to: label, size: 14, relativeTo: .footnote)
         label.textColor = .secondaryLabel
         label.textAlignment = .center
         label.numberOfLines = 0
@@ -375,7 +375,7 @@ class MeterHistoryViewController: UIViewController {
     /// A large, centered, auto-shrinking value label for the details card.
     private static func makeStatValueLabel(fontSize: CGFloat) -> UILabel {
         let label = UILabel()
-        label.font = .systemFont(ofSize: fontSize, weight: .bold)
+        AppStyle.applyScaledFont(to: label, size: fontSize, weight: .bold, relativeTo: .callout)
         label.textColor = .label
         label.textAlignment = .center
         label.numberOfLines = 2
@@ -389,7 +389,7 @@ class MeterHistoryViewController: UIViewController {
     private func makeStatColumn(valueLabel: UILabel, caption: String) -> UIView {
         let captionLabel = UILabel()
         captionLabel.text = caption
-        captionLabel.font = .systemFont(ofSize: 12, weight: .regular)
+        AppStyle.applyScaledFont(to: captionLabel, size: 12, weight: .regular, relativeTo: .caption1)
         captionLabel.textColor = .secondaryLabel
         captionLabel.textAlignment = .center
 

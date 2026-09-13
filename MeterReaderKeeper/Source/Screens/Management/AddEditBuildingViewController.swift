@@ -39,7 +39,7 @@ class AddEditBuildingViewController: UIViewController {
     private let nameLabel: UILabel = {
         let label = UILabel()
         label.text = "Building Name"
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        AppStyle.applyScaledFont(to: label, size: 16, weight: .semibold, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -59,7 +59,7 @@ class AddEditBuildingViewController: UIViewController {
     private let floorsLabel: UILabel = {
         let label = UILabel()
         label.text = "Number of Floors"
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        AppStyle.applyScaledFont(to: label, size: 16, weight: .semibold, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -78,7 +78,7 @@ class AddEditBuildingViewController: UIViewController {
     private lazy var deleteButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Delete Building", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        AppStyle.applyScaledFont(to: button, size: 16, weight: .medium, relativeTo: .callout)
         button.setTitleColor(.systemRed, for: .normal)
         button.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false

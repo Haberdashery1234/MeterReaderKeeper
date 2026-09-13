@@ -15,14 +15,14 @@ class BuildingTableViewCell: UITableViewCell {
     // MARK: - UI Components
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 17, weight: .semibold)
+        AppStyle.applyScaledFont(to: label, size: 17, weight: .semibold, relativeTo: .headline)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
     private lazy var floorsLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 14)
+        AppStyle.applyScaledFont(to: label, size: 14, relativeTo: .footnote)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -30,7 +30,7 @@ class BuildingTableViewCell: UITableViewCell {
     
     private lazy var metersLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 14)
+        AppStyle.applyScaledFont(to: label, size: 14, relativeTo: .footnote)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         return label

@@ -44,7 +44,7 @@ class ReadingsMainViewController: UIViewController {
     private let floorLabel: UILabel = {
         let label = UILabel()
         label.text = "Floor:"
-        label.font = .systemFont(ofSize: 14, weight: .medium)
+        AppStyle.applyScaledFont(to: label, size: 14, weight: .medium, relativeTo: .footnote)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()

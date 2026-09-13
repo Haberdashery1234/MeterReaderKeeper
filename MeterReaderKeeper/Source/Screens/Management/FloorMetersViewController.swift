@@ -37,7 +37,7 @@ class FloorMetersViewController: UIViewController {
     private lazy var emptyStateLabel: UILabel = {
         let label = UILabel()
         label.text = "No meters on this floor yet. Tap + to add one."
-        label.font = .systemFont(ofSize: 15)
+        AppStyle.applyScaledFont(to: label, size: 15, relativeTo: .subheadline)
         label.textColor = .secondaryLabel
         label.textAlignment = .center
         label.numberOfLines = 0

@@ -25,14 +25,14 @@ class FloorTableViewCell: UITableViewCell {
     
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 15, weight: .medium)
+        AppStyle.applyScaledFont(to: label, size: 15, weight: .medium, relativeTo: .subheadline)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
     private lazy var metersLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 13)
+        AppStyle.applyScaledFont(to: label, size: 13, relativeTo: .footnote)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
