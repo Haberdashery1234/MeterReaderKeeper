@@ -19,6 +19,7 @@ class PreviousReadingTableViewCell: UITableViewCell {
         let label = UILabel()
         AppStyle.applyScaledFont(to: label, size: 16, weight: .semibold, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -27,6 +28,7 @@ class PreviousReadingTableViewCell: UITableViewCell {
         AppStyle.applyScaledFont(to: label, size: 14, relativeTo: .footnote)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -35,6 +37,7 @@ class PreviousReadingTableViewCell: UITableViewCell {
         AppStyle.applyScaledFont(to: label, size: 15, weight: .medium, relativeTo: .subheadline)
         label.textAlignment = .right
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -44,6 +47,7 @@ class PreviousReadingTableViewCell: UITableViewCell {
         label.textColor = .secondaryLabel
         label.textAlignment = .right
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -52,6 +56,7 @@ class PreviousReadingTableViewCell: UITableViewCell {
         AppStyle.applyScaledFont(to: label, size: 12, relativeTo: .caption1)
         label.textColor = .tertiaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -116,5 +121,12 @@ class PreviousReadingTableViewCell: UITableViewCell {
         readingCountLabel.text = summary.readingCountText
         readingValueLabel.text = summary.formattedLastReadingValue
         readingDateLabel.text = summary.formattedLastReadingDate
+
+        // Combine the row's separate labels into one VoiceOver
+        // announcement (every label subview above is
+        // `isAccessibilityElement = false`).
+        isAccessibilityElement = true
+        accessibilityLabel = "\(summary.meterName), \(summary.location)"
+        accessibilityValue = "\(summary.readingCountText). Last reading \(summary.formattedLastReadingValue) on \(summary.formattedLastReadingDate)"
     }
 }

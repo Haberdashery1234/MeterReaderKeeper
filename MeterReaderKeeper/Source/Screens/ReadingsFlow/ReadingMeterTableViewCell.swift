@@ -17,6 +17,7 @@ class ReadingMeterTableViewCell: UITableViewCell {
         let label = UILabel()
         AppStyle.applyScaledFont(to: label, size: 16, weight: .medium, relativeTo: .callout)
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -25,6 +26,7 @@ class ReadingMeterTableViewCell: UITableViewCell {
         AppStyle.applyScaledFont(to: label, size: 14, relativeTo: .footnote)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -35,6 +37,7 @@ class ReadingMeterTableViewCell: UITableViewCell {
         imageView.contentMode = .scaleAspectFit
         imageView.isHidden = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.isAccessibilityElement = false
         return imageView
     }()
     
@@ -104,6 +107,13 @@ class ReadingMeterTableViewCell: UITableViewCell {
         } else {
             reading = nil
         }
+
+        // Combine the row's separate labels (and the checkmark, which is
+        // `isAccessibilityElement = false` above) into one VoiceOver
+        // announcement.
+        isAccessibilityElement = true
+        accessibilityLabel = meter.name
+        accessibilityValue = "Floor \(floorNumber). \(reading != nil ? "Reading already recorded today." : "No reading recorded today.")"
     }
     
     /// Reveals the "reading done" checkmark.

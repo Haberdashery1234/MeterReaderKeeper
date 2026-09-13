@@ -20,6 +20,7 @@ class FloorTableViewCell: UITableViewCell {
         imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 4
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.isAccessibilityElement = false
         return imageView
     }()
     
@@ -27,6 +28,7 @@ class FloorTableViewCell: UITableViewCell {
         let label = UILabel()
         AppStyle.applyScaledFont(to: label, size: 15, weight: .medium, relativeTo: .subheadline)
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -35,6 +37,7 @@ class FloorTableViewCell: UITableViewCell {
         AppStyle.applyScaledFont(to: label, size: 13, relativeTo: .footnote)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -95,5 +98,12 @@ class FloorTableViewCell: UITableViewCell {
         nameLabel.text = floor.displayName
         metersLabel.text = "\(floor.meters.count) Meters"
         floorMapImageView.image = UIImage(data: floor.mapImageData)
+
+        // Combine the row's separate labels into one VoiceOver
+        // announcement (name/meters subviews are both
+        // `isAccessibilityElement = false` above).
+        isAccessibilityElement = true
+        accessibilityLabel = floor.displayName
+        accessibilityValue = "\(floor.meters.count) meters"
     }
 }

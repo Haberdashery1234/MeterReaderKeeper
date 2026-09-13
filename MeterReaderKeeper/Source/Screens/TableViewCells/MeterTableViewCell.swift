@@ -21,6 +21,7 @@ class MeterTableViewCell: UITableViewCell {
         imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 4
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.isAccessibilityElement = false
         return imageView
     }()
     
@@ -28,6 +29,7 @@ class MeterTableViewCell: UITableViewCell {
         let label = UILabel()
         AppStyle.applyScaledFont(to: label, size: 15, weight: .medium, relativeTo: .subheadline)
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -36,6 +38,7 @@ class MeterTableViewCell: UITableViewCell {
         AppStyle.applyScaledFont(to: label, size: 13, relativeTo: .footnote)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -48,6 +51,7 @@ class MeterTableViewCell: UITableViewCell {
         let label = UILabel()
         AppStyle.applyScaledFont(to: label, size: 12, relativeTo: .caption1)
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -112,5 +116,12 @@ class MeterTableViewCell: UITableViewCell {
         meterImageView.image = UIImage(data: meter.imageData)
         lastReadingLabel.text = meter.lastReadingSummary
         lastReadingLabel.textColor = meter.isStale() ? .systemOrange : .secondaryLabel
+
+        // Combine the row's separate labels into one VoiceOver
+        // announcement instead of three (name, location, last-reading
+        // subviews are all `isAccessibilityElement = false` above).
+        isAccessibilityElement = true
+        accessibilityLabel = meter.name
+        accessibilityValue = "\(locationString). \(meter.lastReadingSummary)"
     }
 }

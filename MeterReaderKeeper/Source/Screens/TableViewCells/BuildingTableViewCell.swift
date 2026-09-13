@@ -17,6 +17,7 @@ class BuildingTableViewCell: UITableViewCell {
         let label = UILabel()
         AppStyle.applyScaledFont(to: label, size: 17, weight: .semibold, relativeTo: .headline)
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -25,6 +26,7 @@ class BuildingTableViewCell: UITableViewCell {
         AppStyle.applyScaledFont(to: label, size: 14, relativeTo: .footnote)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -33,6 +35,7 @@ class BuildingTableViewCell: UITableViewCell {
         AppStyle.applyScaledFont(to: label, size: 14, relativeTo: .footnote)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.isAccessibilityElement = false
         return label
     }()
     
@@ -80,5 +83,12 @@ class BuildingTableViewCell: UITableViewCell {
         nameLabel.text = building.name
         floorsLabel.text = "\(building.floors.count) Floors"
         metersLabel.text = "\(building.totalMeterCount) Meters"
+
+        // Combine the row's separate labels into one VoiceOver
+        // announcement (name/floors/meters subviews are all
+        // `isAccessibilityElement = false` above).
+        isAccessibilityElement = true
+        accessibilityLabel = building.name
+        accessibilityValue = "\(building.floors.count) floors, \(building.totalMeterCount) meters"
     }
 }
