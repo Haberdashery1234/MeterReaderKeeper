@@ -17,7 +17,7 @@ import AVFoundation
     ///   - errorCompletion: Called back by the delegate with a non-nil
     ///     `NSError` if `codeString` couldn't be matched to a meter, so the
     ///     scanner can show an error and resume scanning.
-    @objc func scannedCode(_ codeString: String, errorCompletion: (NSError?)->())
+    @objc func scannedCode(_ codeString: String, errorCompletion: @escaping (NSError?)->())
 }
 
 /// An `AVCaptureSession`-backed QR/barcode scanner, pushed by
@@ -177,9 +177,9 @@ extension QrScannerViewController: AVCaptureMetadataOutputObjectsDelegate {
                 let stringValue = readableObject.stringValue else {
                 return
             }
-            scannerDelegate.scannedCode(stringValue) { (error) in
+            scannerDelegate.scannedCode(stringValue) { [weak self] (error) in
                 if let error = error {
-                    showMeterScanErrorAlert(with: error.localizedDescription)
+                    self?.showMeterScanErrorAlert(with: error.localizedDescription)
                 }
             }
         }

@@ -28,10 +28,6 @@ private final class MeterDiffableDataSource: UITableViewDiffableDataSource<Floor
         guard editingStyle == .delete, let meter = itemIdentifier(for: indexPath) else { return }
         onCommitDelete?(meter)
     }
-
-    override func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? {
-        "Delete"
-    }
 }
 
 /// Lists one floor's meters. Supports adding a meter to this floor
@@ -223,5 +219,9 @@ extension FloorMetersViewController: UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
         guard let meter = dataSource.itemIdentifier(for: indexPath) else { return }
         coordinator?.showMeterDetails(meter: meter, floor: viewModel.floor, building: viewModel.building)
+    }
+
+    func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? {
+        "Delete"
     }
 }

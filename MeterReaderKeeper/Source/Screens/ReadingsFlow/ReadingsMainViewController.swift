@@ -333,7 +333,7 @@ extension ReadingsMainViewController: QRScannerDelegate {
     /// for it, updating the floor selector to match. On no match (or an
     /// ambiguous one), reports back through `errorCompletion` so the
     /// scanner can show an alert and keep scanning.
-    func scannedCode(_ codeString: String, errorCompletion: @escaping (NSError?) -> Void) {
+    func scannedCode(_ codeString: String, errorCompletion: @escaping (NSError?) -> ()) {
         switch viewModel.resolveScannedCode(codeString) {
         case .matched(let route, let floor):
             errorCompletion(nil)
