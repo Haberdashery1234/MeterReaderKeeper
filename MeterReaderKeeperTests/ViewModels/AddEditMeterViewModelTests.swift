@@ -164,6 +164,73 @@ struct AddEditMeterViewModelTests {
         #expect(saved.meterDescription == "")
     }
 
+    // MARK: - duplicate name validation
+
+    @Test("save rejects a name already used by another meter on the same floor")
+    func saveRejectsDuplicateName() async throws {
+        let building = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
+        let floor = building.floors[0]
+        _ = try await repository.addMeter(MRKMeterInput(name: "Main Meter", description: "", imageData: Data(), floorID: floor.id))
+        let viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: floor, meter: nil)
+
+        await assertThrowsFormValidationError(
+            try await viewModel.save(nameText: "Main Meter", descriptionText: nil, imageData: Data()),
+            title: "Duplicate Name"
+        )
+    }
+
+    @Test("save rejects a duplicate name case-insensitively")
+    func saveRejectsDuplicateNameCaseInsensitively() async throws {
+        let building = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
+        let floor = building.floors[0]
+        _ = try await repository.addMeter(MRKMeterInput(name: "Main Meter", description: "", imageData: Data(), floorID: floor.id))
+        let viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: floor, meter: nil)
+
+        await assertThrowsFormValidationError(
+            try await viewModel.save(nameText: "MAIN METER", descriptionText: nil, imageData: Data()),
+            title: "Duplicate Name"
+        )
+    }
+
+    @Test("save allows keeping a meter's own existing name when editing")
+    func saveAllowsUnchangedNameWhenEditing() async throws {
+        let building = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
+        let floor = building.floors[0]
+        let existingMeter = try await repository.addMeter(MRKMeterInput(name: "Main Meter", description: "", imageData: Data(), floorID: floor.id))
+        let viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: floor, meter: existingMeter)
+
+        let saved = try await viewModel.save(nameText: "Main Meter", descriptionText: "Updated", imageData: Data())
+
+        #expect(saved.meterDescription == "Updated")
+    }
+
+    @Test("save rejects renaming a meter to a name another meter on the same floor already uses")
+    func saveRejectsRenamingMeterToDuplicateName() async throws {
+        let building = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 1, autoCreateFloors: true))
+        let floor = building.floors[0]
+        _ = try await repository.addMeter(MRKMeterInput(name: "Main Meter", description: "", imageData: Data(), floorID: floor.id))
+        let meterToRename = try await repository.addMeter(MRKMeterInput(name: "Sub Meter", description: "", imageData: Data(), floorID: floor.id))
+        let viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: floor, meter: meterToRename)
+
+        await assertThrowsFormValidationError(
+            try await viewModel.save(nameText: "Main Meter", descriptionText: nil, imageData: Data()),
+            title: "Duplicate Name"
+        )
+    }
+
+    @Test("save allows the same meter name on a different floor")
+    func saveAllowsSameNameOnDifferentFloor() async throws {
+        let building = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 2, autoCreateFloors: true))
+        let floor1 = try #require(building.floors.first { $0.number == 1 })
+        let floor2 = try #require(building.floors.first { $0.number == 2 })
+        _ = try await repository.addMeter(MRKMeterInput(name: "Main Meter", description: "", imageData: Data(), floorID: floor1.id))
+        let viewModel = AddEditMeterViewModel(repository: repository, building: building, floor: floor2, meter: nil)
+
+        let saved = try await viewModel.save(nameText: "Main Meter", descriptionText: nil, imageData: Data())
+
+        #expect(saved.floorID == floor2.id)
+    }
+
     // MARK: - save behavior
 
     @Test("save adds a new meter when not editing")

@@ -175,6 +175,13 @@ final class AddEditMeterViewModel {
     func save(nameText: String?, descriptionText: String?, imageData: Data) async throws -> MRKMeter {
         let (floor, name, description) = try validate(nameText: nameText, descriptionText: descriptionText)
 
+        if await isDuplicateName(name, on: floor) {
+            throw FormValidationError(
+                title: "Duplicate Name",
+                message: "A meter named '\(name)' already exists on this floor. Please choose a different name."
+            )
+        }
+
         let input = MRKMeterInput(name: name, description: description, imageData: imageData, floorID: floor.id)
 
         let saved: MRKMeter
@@ -186,6 +193,18 @@ final class AddEditMeterViewModel {
             print("Created meter: \(name)")
         }
         return saved
+    }
+
+    /// Whether another meter on `floor` already has `name`
+    /// (case-insensitive). Excludes the meter being edited (if any).
+    /// Re-fetches the floor's meters from the repository rather than
+    /// trusting the (possibly stale) `floor` instance handed to `save`,
+    /// matching `AddEditBuildingViewModel.isDuplicateName`'s freshness
+    /// approach.
+    private func isDuplicateName(_ name: String, on floor: MRKFloor) async -> Bool {
+        let currentMeters = (try? await repository.getBuilding(id: floor.buildingID))?
+            .floors.first { $0.id == floor.id }?.meters ?? floor.meters
+        return currentMeters.contains { $0.name.lowercased() == name.lowercased() && $0.id != meter?.id }
     }
 
     /// Deletes `meter` (and its reading history) via the repository. A
