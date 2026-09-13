@@ -160,15 +160,12 @@ final class ReadingsMainViewControllerUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Add Reading"].waitForExistence(timeout: 5))
     }
 
-    /// scan button shows the QR Scanner placeholder alert — the real
-    /// scanner (`QrScannerViewController`) isn't wired into the coordinator
-    func testScanButtonShowsPlaceholderAlert() throws {
+    /// scan button opens the QR scanner screen
+    func testScanButtonOpensQrScanner() throws {
         let app = try openReadingsShared()
         app.navigationBars.buttons["ReadingsMain.scanButton"].tap()
 
-        let alert = app.alerts["QR Scanner"]
-        XCTAssertTrue(alert.waitForExistence(timeout: 5))
-        alert.buttons["OK"].tap()
+        XCTAssertTrue(app.navigationBars["Scan QR Code"].waitForExistence(timeout: 5))
     }
 
     /// map button with no floor map set shows the No Map alert — seed data

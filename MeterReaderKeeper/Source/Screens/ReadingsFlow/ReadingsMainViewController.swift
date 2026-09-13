@@ -243,16 +243,11 @@ class ReadingsMainViewController: UIViewController {
         }
     }
     
-    /// Placeholder for the QR scanner entry point — `QrScannerViewController`
-    /// exists but isn't wired into the coordinator yet, so this shows an
-    /// alert directing the user to pick a meter from the list instead.
-    ///
-    /// - TODO: Implement QR scanner with coordinator.
+    /// Pushes the QR scanner, with this view controller as its delegate —
+    /// see the `QRScannerDelegate` conformance below for what happens with
+    /// a scanned code.
     @objc private func scanQRCodeTapped() {
-        showAlert(
-            title: "QR Scanner",
-            message: "QR scanner will be available in a future update. Please select meters from the list below."
-        )
+        coordinator?.showQrScanner(delegate: self)
     }
 
     /// Shows the selected floor's map image as a full-screen overlay, if one
@@ -324,6 +319,39 @@ extension ReadingsMainViewController: UITableViewDelegate {
             coordinator?.showAddReading(for: meter, floor: floor, building: building)
         case .edit(let reading, let meter, let floor, let building):
             coordinator?.showEditReading(reading, for: meter, floor: floor, building: building)
+        }
+    }
+}
+
+// MARK: - QRScannerDelegate
+extension ReadingsMainViewController: QRScannerDelegate {
+    /// Resolves the scanned code against `viewModel`'s meters. On a single
+    /// match, pops the scanner and navigates straight to Add/Edit Reading
+    /// for it, updating the floor selector to match. On no match (or an
+    /// ambiguous one), reports back through `errorCompletion` so the
+    /// scanner can show an alert and keep scanning.
+    func scannedCode(_ codeString: String, errorCompletion: @escaping (NSError?) -> Void) {
+        switch viewModel.resolveScannedCode(codeString) {
+        case .matched(let route, let floor):
+            errorCompletion(nil)
+            viewModel.selectFloor(matching: floor)
+            refreshFloorDisplay()
+            navigationController?.popViewController(animated: false)
+            switch route {
+            case .add(let meter, let floor, let building):
+                coordinator?.showAddReading(for: meter, floor: floor, building: building)
+            case .edit(let reading, let meter, let floor, let building):
+                coordinator?.showEditReading(reading, for: meter, floor: floor, building: building)
+            }
+        case .unmatched(let count):
+            let message = count == 0
+                ? "No meter in this building matches that code."
+                : "Multiple meters in this building match that code. Please select one from the list instead."
+            errorCompletion(NSError(
+                domain: "MeterReaderKeeper.QRScan",
+                code: count,
+                userInfo: [NSLocalizedDescriptionKey: message]
+            ))
         }
     }
 }

@@ -11,8 +11,9 @@ import Foundation
 /// Business logic and repository access for the "take readings" screen for
 /// one building: the floor picker's data, the meter list for the selected
 /// floor, deciding whether tapping a meter should add or edit today's
-/// reading, and the CSV export call. Map-overlay presentation and the QR
-/// scanner stub stay in the view controller since they're pure UI.
+/// reading, resolving a scanned QR code to a meter, and the CSV export
+/// call. Map-overlay presentation and the QR scanner screen itself stay in
+/// the view controller since they're pure UI.
 @MainActor
 final class ReadingsMainViewModel {
 
@@ -66,6 +67,18 @@ final class ReadingsMainViewModel {
         return selected
     }
 
+    /// Selects `floor` if it's one of `floors`, reloading `meters` for it —
+    /// like `selectFloor(at:)`, but by floor identity rather than picker
+    /// row. Used after a QR scan resolves to a meter on a floor other than
+    /// the one currently selected.
+    ///
+    /// - Returns: `floor` if it was found and selected, otherwise `nil`.
+    @discardableResult
+    func selectFloor(matching floor: MRKFloor) -> MRKFloor? {
+        guard let row = floors.firstIndex(where: { $0.id == floor.id }) else { return nil }
+        return selectFloor(at: row)
+    }
+
     /// Re-fetches the current building from the repository so readings
     /// taken elsewhere (or on a previous visit to this screen) are
     /// reflected, preserving the selected floor if it still exists.
@@ -85,8 +98,14 @@ final class ReadingsMainViewModel {
     /// whether a reading already exists for today.
     func readingRoute(forMeterAt row: Int) -> ReadingRoute? {
         guard let floor = floor, meters.indices.contains(row) else { return nil }
-        let meter = meters[row]
+        return readingRoute(for: meters[row], floor: floor)
+    }
 
+    /// Whether `meter` (on `floor`) should open Add or Edit Reading, based
+    /// on whether a reading already exists for today. Shared by
+    /// `readingRoute(forMeterAt:)` and `resolveScannedCode(_:)`, which may
+    /// resolve a meter on a floor other than the one currently selected.
+    private func readingRoute(for meter: MRKMeter, floor: MRKFloor) -> ReadingRoute {
         let date = Calendar.current.startOfDay(for: Date())
         let todaysReadings = meter.readings.filter { $0.date == date }
 
@@ -95,6 +114,31 @@ final class ReadingsMainViewModel {
         } else {
             return .add(meter: meter, floor: floor, building: building)
         }
+    }
+
+    /// The outcome of resolving a scanned QR code against this building's
+    /// meters, keyed by `MRKMeter.qrString`.
+    enum QRScanResult {
+        /// Exactly one meter matched. `floor` is that meter's floor,
+        /// which may differ from the currently selected `floor`.
+        case matched(route: ReadingRoute, floor: MRKFloor)
+        /// Zero (or, if two meters ended up with the same name on the
+        /// same floor, more than one) meters matched. `count` is how many.
+        case unmatched(count: Int)
+    }
+
+    /// Resolves a scanned QR code to a meter within `building`, searching
+    /// every floor (not just the currently selected one).
+    func resolveScannedCode(_ codeString: String) -> QRScanResult {
+        let matches = floors.flatMap { floor in
+            floor.sortedMeters
+                .filter { $0.qrString == codeString }
+                .map { (meter: $0, floor: floor) }
+        }
+        guard matches.count == 1, let match = matches.first else {
+            return .unmatched(count: matches.count)
+        }
+        return .matched(route: readingRoute(for: match.meter, floor: match.floor), floor: match.floor)
     }
 
     /// Builds a CSV summary of today's readings for `building`.

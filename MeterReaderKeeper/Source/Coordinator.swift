@@ -209,4 +209,15 @@ class AppCoordinator: Coordinator {
         meterHistoryVC.title = meter.name
         navigationController.pushViewController(meterHistoryVC, animated: true)
     }
+
+    /// Pushes the QR scanner screen. `delegate` (typically the screen that
+    /// triggered the scan) is handed the scanned code and resolves it to a
+    /// meter — this coordinator only knows how to present the screen, not
+    /// what to do with a scan result.
+    func showQrScanner(delegate: QRScannerDelegate) {
+        let scannerVC = QrScannerViewController()
+        scannerVC.scannerDelegate = delegate
+        scannerVC.title = "Scan QR Code"
+        navigationController.pushViewController(scannerVC, animated: true)
+    }
 }

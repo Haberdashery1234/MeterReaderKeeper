@@ -7,16 +7,15 @@ import XCTest
 
 /// Mirrors `Source/Screens/ReadingsFlow/QrScannerViewController.swift`.
 ///
-/// `QrScannerViewController` isn't wired into the app — there's no path
-/// through the UI that presents it (the scan button shows a placeholder
-/// alert instead, covered by
-/// `ReadingsMainViewControllerUITests.testScanButtonShowsPlaceholderAlert()`).
-/// It's also `AVCaptureSession`-backed, which needs real camera hardware
-/// the simulator doesn't have. There's nothing to drive a UI test through,
-/// so this file just documents that.
+/// `QrScannerViewController` is wired into the app (see
+/// `ReadingsMainViewControllerUITests.testScanButtonOpensQrScanner()` for
+/// the navigation coverage), but it's `AVCaptureSession`-backed, which
+/// needs real camera hardware the simulator doesn't have — there's no way
+/// to drive an actual scan through XCUITest, so that part stays untested
+/// here.
 final class QrScannerViewControllerUITests: XCTestCase {
 
-    func testNoEntryPointExistsYet() throws {
-        throw XCTSkip("QrScannerViewController isn't reachable from the app's UI — nothing to drive a UI test through.")
+    func testNoCameraHardwareInSimulator() throws {
+        throw XCTSkip("QrScannerViewController needs real camera hardware, which the simulator doesn't have — nothing to drive a scan through.")
     }
 }

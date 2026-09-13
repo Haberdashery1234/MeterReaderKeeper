@@ -20,26 +20,41 @@ import AVFoundation
     @objc func scannedCode(_ codeString: String, errorCompletion: (NSError?)->())
 }
 
-/// An `AVCaptureSession`-backed QR/barcode scanner. **Not currently wired
-/// into the app** — `ReadingsMainViewController`'s scan button shows a
-/// placeholder alert instead of presenting this screen (see its
-/// `scanQRCodeTapped()`). Expects `previewView` and `scannerDelegate` to be
-/// connected (e.g. via a storyboard) before use.
+/// An `AVCaptureSession`-backed QR/barcode scanner, pushed by
+/// `AppCoordinator.showQrScanner(delegate:)` — currently only from
+/// `ReadingsMainViewController`'s scan button. `scannerDelegate` resolves
+/// a scanned code to a meter and decides where to navigate; this screen
+/// only owns the camera preview and capture session.
 class QrScannerViewController: UIViewController {
 
     /// Notified when a code is scanned. Must be set before this screen is used.
     public weak var scannerDelegate: QRScannerDelegate!
 
     /// The view the camera preview layer is inserted into.
-    @IBOutlet weak var previewView: UIView!
+    private let previewView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .black
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
 
     var captureSession: AVCaptureSession?
     var videoPreviewLayer: AVCaptureVideoPreviewLayer?
     var qrCodeFrameView: UIView?
 
-    /// Builds the capture session and starts the camera preview.
+    /// Adds `previewView`, builds the capture session, and starts the
+    /// camera preview.
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        view.backgroundColor = .black
+        view.addSubview(previewView)
+        NSLayoutConstraint.activate([
+            previewView.topAnchor.constraint(equalTo: view.topAnchor),
+            previewView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            previewView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            previewView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
 
         if let captureSession = self.createCaptureSession() {
             self.captureSession = captureSession
@@ -47,6 +62,14 @@ class QrScannerViewController: UIViewController {
             previewView.layer.addSublayer(previewLayer)
             requestCaptureSessionStartRunning()
         }
+    }
+
+    /// Keeps the preview layer's frame in sync with `previewView`'s bounds
+    /// across rotation/layout changes — it's a plain `CALayer`, not Auto
+    /// Layout-managed, so this has to be done manually.
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        videoPreviewLayer?.frame = previewView.layer.bounds
     }
     
     /// Starts the capture session if it isn't already running.
@@ -76,6 +99,7 @@ class QrScannerViewController: UIViewController {
         let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         previewLayer.frame = view.layer.bounds
         previewLayer.videoGravity = .resizeAspectFill
+        videoPreviewLayer = previewLayer
         return previewLayer
     }
     
@@ -155,8 +179,7 @@ extension QrScannerViewController: AVCaptureMetadataOutputObjectsDelegate {
             }
             scannerDelegate.scannedCode(stringValue) { (error) in
                 if let error = error {
-                    let errorString = "\(error.domain): Found \(error.code) meters"
-                    showMeterScanErrorAlert(with: errorString)
+                    showMeterScanErrorAlert(with: error.localizedDescription)
                 }
             }
         }
