@@ -83,7 +83,7 @@ final class ReadingsMainViewModel {
     /// taken elsewhere (or on a previous visit to this screen) are
     /// reflected, preserving the selected floor if it still exists.
     func refreshBuilding() async {
-        guard let refreshedBuilding = (try? await repository.getBuildings())?.first(where: { $0.id == building.id }) else {
+        guard let refreshedBuilding = try? await repository.getBuilding(id: building.id) else {
             return
         }
 
