@@ -140,6 +140,41 @@ struct AddEditFloorViewModelTests {
         await assertThrowsFormValidationError(try await viewModel.save(floorNumberText: "0", mapImageData: Data()), title: "Invalid Floor")
     }
 
+    @Test("save rejects a floor number already used by another floor in the same building")
+    func saveRejectsDuplicateFloorNumber() async throws {
+        let building = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 3, autoCreateFloors: true))
+        let thirdFloor = try #require(building.floors.first { $0.number == 3 })
+        let viewModel = AddEditFloorViewModel(repository: repository, building: building, floor: nil)
+
+        await assertThrowsFormValidationError(
+            try await viewModel.save(floorNumberText: "\(thirdFloor.number)", mapImageData: Data()),
+            title: "Duplicate Floor Number"
+        )
+    }
+
+    @Test("save allows keeping a floor's own existing number when editing")
+    func saveAllowsUnchangedFloorNumberWhenEditing() async throws {
+        let building = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 3, autoCreateFloors: true))
+        let secondFloor = try #require(building.floors.first { $0.number == 2 })
+        let viewModel = AddEditFloorViewModel(repository: repository, building: building, floor: secondFloor)
+
+        let saved = try await viewModel.save(floorNumberText: "2", mapImageData: Data())
+
+        #expect(saved.number == 2)
+    }
+
+    @Test("save rejects renaming a floor to a number another floor already uses")
+    func saveRejectsRenamingFloorToDuplicateNumber() async throws {
+        let building = try await repository.addBuilding(MRKBuildingInput(name: "121 Seaport", numberOfFloors: 3, autoCreateFloors: true))
+        let secondFloor = try #require(building.floors.first { $0.number == 2 })
+        let viewModel = AddEditFloorViewModel(repository: repository, building: building, floor: secondFloor)
+
+        await assertThrowsFormValidationError(
+            try await viewModel.save(floorNumberText: "3", mapImageData: Data()),
+            title: "Duplicate Floor Number"
+        )
+    }
+
     // MARK: - save behavior
 
     @Test("save adds a new floor when not editing")

@@ -123,6 +123,13 @@ final class AddEditFloorViewModel {
             throw FormValidationError(title: "Invalid Floor", message: "Floor number must be greater than 0")
         }
 
+        if await isDuplicateFloorNumber(floorNumber, in: building) {
+            throw FormValidationError(
+                title: "Duplicate Floor Number",
+                message: "Floor \(floorNumber) already exists in this building. Please choose a different number."
+            )
+        }
+
         let input = MRKFloorInput(number: floorNumber, mapImageData: mapImageData, buildingID: building.id)
 
         let saved: MRKFloor
@@ -134,5 +141,16 @@ final class AddEditFloorViewModel {
 
         print("Saved floor \(floorNumber) for building \(building.name)")
         return saved
+    }
+
+    /// Whether another floor in `building` already uses `floorNumber`.
+    /// Excludes the floor being edited (if any), so saving a floor without
+    /// changing its own number doesn't trip this. Re-fetches `building`
+    /// from the repository rather than trusting the (possibly stale)
+    /// instance handed to `save`, matching
+    /// `AddEditBuildingViewModel.isDuplicateName`'s freshness approach.
+    private func isDuplicateFloorNumber(_ floorNumber: Int16, in building: MRKBuilding) async -> Bool {
+        let currentFloors = (try? await repository.getBuilding(id: building.id))?.floors ?? building.floors
+        return currentFloors.contains { $0.number == floorNumber && $0.id != floor?.id }
     }
 }
