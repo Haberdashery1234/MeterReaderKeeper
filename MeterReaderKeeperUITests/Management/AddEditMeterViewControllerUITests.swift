@@ -9,8 +9,9 @@ import XCTest
 ///
 /// The blank-name alert, no-delete-button-on-add, and edit-form
 /// pre-population tests don't save or delete anything, so they share one
-/// seeded launch. Saving a new meter and deleting a meter both mutate the
-/// fixture, so each of those uses its own fresh, isolated launch.
+/// seeded launch. Saving a new meter (including the picker-regression
+/// test below) and deleting a meter all mutate the fixture, so each of
+/// those uses its own fresh, isolated launch.
 final class AddEditMeterViewControllerUITests: XCTestCase {
 
     private static var sharedLauncher: UITestAppLauncher!
@@ -116,7 +117,67 @@ final class AddEditMeterViewControllerUITests: XCTestCase {
         return app
     }
 
+    /// Navigates Home -> Management -> Floors segment -> first floor row
+    /// -> Floor Meters screen -> its Add button, on a fresh, isolated
+    /// seeded launch. Unlike `openAddMeterIsolated()`'s Management "+"
+    /// entry point (which supplies neither), this entry point pre-supplies
+    /// both building and floor —
+    /// `FloorMetersViewController.addMeterTapped()` calls
+    /// `showMeterDetails(meter: nil, floor: viewModel.floor, building:
+    /// viewModel.building)` — so it's the one that exercises the picker's
+    /// pre-populated-selection path rather than a fresh manual pick.
+    private func openAddMeterFromFloorMetersIsolated() throws -> XCUIApplication {
+        let launcher = try UITestAppLauncher(seeded: true, fixtureName: UITestAppLauncher.minimalFixtureName)
+        let app = launcher.app
+
+        let manageButton = app.buttons["Manage Buildings & Meters"]
+        try requireUITest(manageButton.waitForExistence(timeout: 5), "Manage Buildings & Meters button never appeared")
+        manageButton.tap()
+        let table = app.tables["Management.tableView"]
+        try requireUITest(table.waitForExistence(timeout: 5), "Management.tableView never appeared")
+
+        app.segmentedControls["Management.segmentedControl"].buttons["Floors"].tap()
+        try requireUITest(table.cells.firstMatch.waitForExistence(timeout: 5), "No floor rows appeared")
+        table.cells.firstMatch.tap()
+
+        let floorMetersTable = app.tables["FloorMeters.tableView"]
+        try requireUITest(floorMetersTable.waitForExistence(timeout: 5), "FloorMeters.tableView never appeared")
+        app.navigationBars.buttons["FloorMeters.addButton"].tap()
+
+        try requireUITest(app.navigationBars["Add Meter"].waitForExistence(timeout: 5), "Add Meter screen never appeared")
+        return app
+    }
+
     // MARK: - Tests
+
+    /// Regression test for the "picker default row never fires
+    /// didSelectRow" bug (see `AddEditMeterViewController`'s
+    /// `pickerView(_:didSelectRow:)` doc comment): reached via
+    /// `FloorMetersViewController`'s Add button, both the building and
+    /// floor pickers already show a correct selection without any user
+    /// interaction, because `selectedBuilding`/`selectedFloor` are set at
+    /// construction and synced to each picker's highlighted row in
+    /// `populateData()`. Saving with only a name typed in — never tapping
+    /// either picker — must still succeed.
+    func testSavingWithoutTouchingPickersSucceeds() throws {
+        let app = try openAddMeterFromFloorMetersIsolated()
+
+        let nameField = app.textFields["AddEditMeter.nameTextField"]
+        try requireUITest(nameField.waitForExistence(timeout: 5), "AddEditMeter.nameTextField never appeared")
+        nameField.tap()
+        nameField.typeText("Sub Meter From Floor Meters")
+
+        // Deliberately never taps buildingTextField, floorTextField, or
+        // either picker.
+        try UITestAppLauncher.dismissInputView(app, byTapping: "Building")
+        app.navigationBars.buttons["AddEditMeter.saveButton"].tap()
+
+        try requireUITest(
+            app.tables["FloorMeters.tableView"].waitForExistence(timeout: 10),
+            "Save failed without touching the pickers — selectedBuilding/selectedFloor was likely lost"
+        )
+        XCTAssertTrue(app.tables["FloorMeters.tableView"].staticTexts["Sub Meter From Floor Meters"].waitForExistence(timeout: 5))
+    }
 
     /// saving a new meter with a building, floor, and name adds it to the list
     func testSavingNewMeterAddsItToList() throws {

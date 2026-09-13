@@ -13,8 +13,9 @@ import XCTest
 ///
 /// `testClearingFloorNumberShowsAlert` and `testEditFormPrePopulatesBuilding`
 /// don't save anything, so they share one seeded launch.
-/// `testEditingFloorNumberUpdatesList` saves a floor-number change, so it
-/// uses its own fresh, isolated launch.
+/// `testEditingFloorNumberUpdatesList` and
+/// `testSavingWithoutTouchingBuildingPickerSucceeds` each save a
+/// floor-number change, so both use their own fresh, isolated launch.
 final class AddEditFloorViewControllerUITests: XCTestCase {
 
     private static var sharedLauncher: UITestAppLauncher!
@@ -82,6 +83,34 @@ final class AddEditFloorViewControllerUITests: XCTestCase {
 
         try requireUITest(app.navigationBars["Edit Floor"].waitForExistence(timeout: 5), "Edit Floor screen never appeared")
         return app
+    }
+
+    /// Regression test for the "picker default row never fires
+    /// didSelectRow" bug fixed in `AddEditFloorViewController` (see the
+    /// doc comment on its `pickerView(_:didSelectRow:)`): this screen is
+    /// reached only via editing an existing floor, so `selectedBuilding`
+    /// is always populated at construction from the floor's own building
+    /// and synced to the picker's highlighted row in `populateData()` —
+    /// not by the user scrolling and triggering `didSelectRow`. Saving
+    /// without ever touching the building picker must still succeed;
+    /// before the fix, an equivalent scenario in `AddEditMeterViewController`
+    /// left the model's selection out of sync with what the picker showed.
+    func testSavingWithoutTouchingBuildingPickerSucceeds() throws {
+        let app = try openFirstFloorIsolated()
+
+        let floorField = app.textFields["AddEditFloor.floorTextField"]
+        try requireUITest(floorField.waitForExistence(timeout: 5), "AddEditFloor.floorTextField never appeared")
+        floorField.tap()
+        floorField.clearAndTypeText("888")
+
+        // Deliberately never taps buildingTextField or its picker.
+        try UITestAppLauncher.dismissInputView(app, byTapping: "Building")
+        app.navigationBars.buttons["AddEditFloor.saveButton"].tap()
+
+        try requireUITest(
+            app.navigationBars["Floor 888"].waitForExistence(timeout: 5),
+            "Save failed without touching the building picker — selectedBuilding was likely lost"
+        )
     }
 
     /// editing a floor's number and saving updates it, both on the Floor
