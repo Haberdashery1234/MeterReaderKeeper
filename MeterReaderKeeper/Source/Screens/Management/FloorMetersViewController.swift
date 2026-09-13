@@ -8,6 +8,32 @@
 
 import UIKit
 
+private enum FloorMetersSection {
+    case main
+}
+
+/// A `UITableViewDiffableDataSource` for `FloorMetersViewController` that
+/// also implements the editing (swipe-to-delete) `UITableViewDataSource`
+/// methods — diffable data sources assign themselves as `tableView.dataSource`
+/// in their initializer, so those methods have to live on this subclass
+/// rather than back on the view controller.
+private final class MeterDiffableDataSource: UITableViewDiffableDataSource<FloorMetersSection, MRKMeter> {
+    var onCommitDelete: ((MRKMeter) -> Void)?
+
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        true
+    }
+
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        guard editingStyle == .delete, let meter = itemIdentifier(for: indexPath) else { return }
+        onCommitDelete?(meter)
+    }
+
+    override func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? {
+        "Delete"
+    }
+}
+
 /// Lists one floor's meters. Supports adding a meter to this floor
 /// (reusing the existing Add Meter form, pre-selecting this floor) and
 /// deleting one (swipe-to-delete with a confirmation, matching
@@ -24,7 +50,6 @@ class FloorMetersViewController: UIViewController {
     private lazy var tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .insetGrouped)
         tableView.delegate = self
-        tableView.dataSource = self
         tableView.register(MeterTableViewCell.self, forCellReuseIdentifier: "MeterCell")
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 60
@@ -45,6 +70,26 @@ class FloorMetersViewController: UIViewController {
         label.isHidden = true
         label.accessibilityIdentifier = "FloorMeters.emptyStateLabel"
         return label
+    }()
+
+    private lazy var dataSource: MeterDiffableDataSource = {
+        let dataSource = MeterDiffableDataSource(tableView: tableView) { [weak self] tableView, indexPath, meter in
+            let cell = tableView.dequeueReusableCell(withIdentifier: "MeterCell", for: indexPath) as! MeterTableViewCell
+            // Every row is already on this same floor (it's this screen's
+            // title), so repeating "Floor N" on every row the way
+            // Management's own (multi-floor) Meters segment does would be
+            // redundant — show the meter's own description there instead,
+            // when it has one, since that's more useful for telling meters
+            // on the same floor apart.
+            let subtitle = meter.meterDescription.isEmpty ? (self?.viewModel.floorDisplayName ?? "") : meter.meterDescription
+            cell.setup(meter: meter, locationString: subtitle)
+            cell.accessoryType = .disclosureIndicator
+            return cell
+        }
+        dataSource.onCommitDelete = { [weak self] meter in
+            self?.confirmDelete(of: meter)
+        }
+        return dataSource
     }()
 
     // MARK: - Lifecycle
@@ -120,7 +165,10 @@ class FloorMetersViewController: UIViewController {
     /// toggles the empty-state label.
     private func refreshUI() {
         title = viewModel.floorDisplayName
-        tableView.reloadData()
+        var snapshot = NSDiffableDataSourceSnapshot<FloorMetersSection, MRKMeter>()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(viewModel.meters, toSection: .main)
+        dataSource.apply(snapshot, animatingDifferences: true)
         emptyStateLabel.isHidden = viewModel.hasMeters
         tableView.isHidden = !viewModel.hasMeters
     }
@@ -169,46 +217,11 @@ class FloorMetersViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDataSource
-extension FloorMetersViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.meters.count
-    }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "MeterCell", for: indexPath) as! MeterTableViewCell
-        let meter = viewModel.meters[indexPath.row]
-        // Every row is already on this same floor (it's this screen's
-        // title), so repeating "Floor N" on every row the way
-        // Management's own (multi-floor) Meters segment does would be
-        // redundant — show the meter's own description there instead,
-        // when it has one, since that's more useful for telling meters
-        // on the same floor apart.
-        let subtitle = meter.meterDescription.isEmpty ? viewModel.floorDisplayName : meter.meterDescription
-        cell.setup(meter: meter, locationString: subtitle)
-        cell.accessoryType = .disclosureIndicator
-        return cell
-    }
-
-    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        true
-    }
-
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        guard editingStyle == .delete else { return }
-        confirmDelete(of: viewModel.meters[indexPath.row])
-    }
-
-    func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? {
-        "Delete"
-    }
-}
-
 // MARK: - UITableViewDelegate
 extension FloorMetersViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let meter = viewModel.meters[indexPath.row]
+        guard let meter = dataSource.itemIdentifier(for: indexPath) else { return }
         coordinator?.showMeterDetails(meter: meter, floor: viewModel.floor, building: viewModel.building)
     }
 }

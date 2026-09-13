@@ -9,6 +9,10 @@
 
 import UIKit
 
+private enum PreviousReadingsSection {
+    case main
+}
+
 /// Lists every meter that has at least one reading, filterable by date,
 /// building, floor, or meter (one filter field visible at a time, chosen by
 /// `segmentedControl`). Selecting a row opens that meter's full history via
@@ -83,14 +87,23 @@ class PreviousReadingsViewController: UIViewController {
     private lazy var tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .insetGrouped)
         tableView.delegate = self
-        tableView.dataSource = self
         tableView.register(PreviousReadingTableViewCell.self, forCellReuseIdentifier: "ReadingCell")
         tableView.backgroundColor = .clear
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.accessibilityIdentifier = "PreviousReadings.tableView"
         return tableView
     }()
-    
+
+    private lazy var dataSource: UITableViewDiffableDataSource<PreviousReadingsSection, PreviousReadingsViewModel.MeterReadingSummary> = {
+        let dataSource = UITableViewDiffableDataSource<PreviousReadingsSection, PreviousReadingsViewModel.MeterReadingSummary>(tableView: tableView) { tableView, indexPath, summary in
+            let cell = tableView.dequeueReusableCell(withIdentifier: "ReadingCell", for: indexPath) as! PreviousReadingTableViewCell
+            cell.setup(summary: summary)
+            cell.accessoryType = .disclosureIndicator
+            return cell
+        }
+        return dataSource
+    }()
+
     // Pickers
     private lazy var datePickerView: UIPickerView = {
         let picker = UIPickerView()
@@ -128,7 +141,7 @@ class PreviousReadingsViewController: UIViewController {
         Task { @MainActor in
             await viewModel.loadData()
             viewModel.applyFilters(segment: selectedSegment)
-            tableView.reloadData()
+            applySnapshot()
         }
     }
     
@@ -143,7 +156,10 @@ class PreviousReadingsViewController: UIViewController {
         view.addSubview(floorTextField)
         view.addSubview(meterTextField)
         view.addSubview(tableView)
-        
+        // Forces `dataSource` to initialize now (assigning itself as the
+        // table's data source) rather than whenever it's first touched.
+        _ = dataSource
+
         updateVisibleFilters()
     }
     
@@ -202,7 +218,15 @@ class PreviousReadingsViewController: UIViewController {
     /// Re-runs `viewModel.applyFilters(segment:)` for the current segment/selection and reloads the table.
     private func applyFilters() {
         viewModel.applyFilters(segment: selectedSegment)
-        tableView.reloadData()
+        applySnapshot()
+    }
+
+    /// Rebuilds the table's snapshot from `viewModel.meterSummaries`.
+    private func applySnapshot() {
+        var snapshot = NSDiffableDataSourceSnapshot<PreviousReadingsSection, PreviousReadingsViewModel.MeterReadingSummary>()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(viewModel.meterSummaries, toSection: .main)
+        dataSource.apply(snapshot, animatingDifferences: true)
     }
 
     // MARK: - Actions
@@ -213,23 +237,12 @@ class PreviousReadingsViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDataSource & Delegate
-extension PreviousReadingsViewController: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel.meterSummaries.count
-    }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ReadingCell", for: indexPath) as! PreviousReadingTableViewCell
-        cell.setup(summary: viewModel.meterSummaries[indexPath.row])
-        cell.accessoryType = .disclosureIndicator
-        return cell
-    }
-
+// MARK: - UITableViewDelegate
+extension PreviousReadingsViewController: UITableViewDelegate {
     /// Navigates to the tapped meter's full reading history.
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let summary = viewModel.meterSummaries[indexPath.row]
+        guard let summary = dataSource.itemIdentifier(for: indexPath) else { return }
         coordinator?.showMeterHistory(for: summary.meter, floor: summary.floor, building: summary.building)
     }
 }

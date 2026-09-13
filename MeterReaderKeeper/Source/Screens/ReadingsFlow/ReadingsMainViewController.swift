@@ -9,6 +9,10 @@
 
 import UIKit
 
+private enum ReadingsMainSection {
+    case main
+}
+
 /// The "take readings" screen for one building: a floor picker, the
 /// meter list for the selected floor (tapping a row adds or edits today's
 /// reading), a floor-map overlay, and a CSV-export button. Owns all UI
@@ -31,7 +35,6 @@ class ReadingsMainViewController: UIViewController {
     private lazy var tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .insetGrouped)
         tableView.delegate = self
-        tableView.dataSource = self
         tableView.register(ReadingMeterTableViewCell.self, forCellReuseIdentifier: "ReadingMeterCell")
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 80
@@ -40,7 +43,17 @@ class ReadingsMainViewController: UIViewController {
         tableView.accessibilityIdentifier = "ReadingsMain.tableView"
         return tableView
     }()
-    
+
+    private lazy var dataSource: UITableViewDiffableDataSource<ReadingsMainSection, MRKMeter> = {
+        let dataSource = UITableViewDiffableDataSource<ReadingsMainSection, MRKMeter>(tableView: tableView) { [weak self] tableView, indexPath, meter in
+            let cell = tableView.dequeueReusableCell(withIdentifier: "ReadingMeterCell", for: indexPath) as! ReadingMeterTableViewCell
+            cell.setup(meter: meter, floorNumber: self?.viewModel.floor?.number ?? 0)
+            cell.accessoryType = .disclosureIndicator
+            return cell
+        }
+        return dataSource
+    }()
+
     private let floorLabel: UILabel = {
         let label = UILabel()
         label.text = "Floor:"
@@ -137,7 +150,10 @@ class ReadingsMainViewController: UIViewController {
         floorStackView.addArrangedSubview(floorTextField)
         
         view.addSubview(tableView)
-        
+        // Forces `dataSource` to initialize now (assigning itself as the
+        // table's data source) rather than whenever it's first touched.
+        _ = dataSource
+
         // Map overlay
         view.addSubview(mapContainerView)
         mapContainerView.addSubview(mapImageView)
@@ -216,7 +232,10 @@ class ReadingsMainViewController: UIViewController {
     /// currently selected floor.
     private func refreshFloorDisplay() {
         floorTextField.text = viewModel.floor.map { "Floor \($0.number)" }
-        tableView.reloadData()
+        var snapshot = NSDiffableDataSourceSnapshot<ReadingsMainSection, MRKMeter>()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(viewModel.meters, toSection: .main)
+        dataSource.apply(snapshot, animatingDifferences: true)
     }
 
     // MARK: - Actions
@@ -285,29 +304,13 @@ class ReadingsMainViewController: UIViewController {
     }
 }
 
-// MARK: - UITableViewDataSource
-extension ReadingsMainViewController: UITableViewDataSource {
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel.meters.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ReadingMeterCell", for: indexPath) as! ReadingMeterTableViewCell
-        let meter = viewModel.meters[indexPath.row]
-        cell.setup(meter: meter, floorNumber: viewModel.floor?.number ?? 0)
-        cell.accessoryType = .disclosureIndicator
-        return cell
-    }
-}
-
 // MARK: - UITableViewDelegate
 extension ReadingsMainViewController: UITableViewDelegate {
     /// Opens Add or Edit Reading for the tapped meter, per
-    /// `ReadingsMainViewModel.readingRoute(forMeterAt:)`.
+    /// `ReadingsMainViewModel.readingRoute(forMeterAt:)`. Uses `indexPath.row`
+    /// (rather than `dataSource.itemIdentifier(for:)`) because
+    /// `readingRoute(forMeterAt:)` looks the meter up by position in
+    /// `viewModel.meters`, which the snapshot always mirrors exactly.
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
 
